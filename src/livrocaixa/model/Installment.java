@@ -3,6 +3,7 @@ package livrocaixa.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 /** Parcela demonstrativa vinculada a uma consulta faturada. */
 public final class Installment implements Serializable {
@@ -25,5 +26,22 @@ public final class Installment implements Serializable {
         this.value = value;
         this.paid = paid;
         this.cancelled = cancelled;
+    }
+
+    /** Valor que ainda pode ser recebido, sem permitir saldo negativo na interface. */
+    public BigDecimal remaining() {
+        return value.subtract(paid).max(BigDecimal.ZERO);
+    }
+
+    public boolean isPaid() {
+        return !cancelled && paid.compareTo(value) >= 0;
+    }
+
+    /** Situação calculada na data de referência informada pela tela ou relatório. */
+    public String status(LocalDate referenceDate) {
+        Objects.requireNonNull(referenceDate, "referenceDate");
+        if (cancelled) return "Cancelada";
+        if (isPaid()) return "Pago";
+        return due.isBefore(referenceDate) ? "Vencida" : "Pendente";
     }
 }

@@ -114,6 +114,31 @@ final class UiKit {
         }
     }
 
+    /** Botão de seleção usado em grupos como À vista/À prazo e R$/%. */
+    static final class SegmentToggle extends JToggleButton {
+        SegmentToggle(String text) { this(text, 16); }
+        SegmentToggle(String text, int fontSize) {
+            super(text);
+            setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+            setFocusPainted(false);
+            setBorderPainted(false);
+            setContentAreaFilled(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            int verticalPadding = fontSize >= 20 ? 10 : 8;
+            setBorder(new EmptyBorder(verticalPadding, 16, verticalPadding, 16));
+            addActionListener(e -> repaint());
+        }
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            antialias(g);
+            g.setColor(isSelected() ? BLUE : new Color(235, 241, 251));
+            g.fillRoundRect(0, 0, getWidth(), getHeight(), 13, 13);
+            g.dispose();
+            setForeground(isSelected() ? Color.WHITE : INK);
+            super.paintComponent(graphics);
+        }
+    }
+
     static JButton primary(String text, String icon) { return new RoundButton(text, vectorIcon(icon, 24, Color.WHITE), BLUE, Color.WHITE); }
     static JButton secondary(String text, String icon) { return new RoundButton(text, vectorIcon(icon, 22, INK), new Color(235, 241, 250), INK); }
     static JButton danger(String text) { return new RoundButton(text, vectorIcon("trash", 20, Color.WHITE), RED, Color.WHITE); }

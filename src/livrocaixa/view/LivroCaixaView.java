@@ -5,6 +5,8 @@ import livrocaixa.model.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -18,8 +20,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Camada View do protótipo visual Livro Caixa.
@@ -87,7 +87,7 @@ public final class LivroCaixaView {
         final String employee; final JPanel content = new JPanel(new BorderLayout()); final JLabel pageTitle = title("Painel", 30);
         final Map<String,JButton> nav = new LinkedHashMap<>();
         MainFrame(LivroCaixaController controller, String employee) {
-            super("Livro Caixa");setIconImage(appIcon()); this.controller=Objects.requireNonNull(controller, "controller"); this.store=controller.getModel(); this.employee=employee; setDefaultCloseOperation(EXIT_ON_CLOSE); setMinimumSize(new Dimension(1180,700)); setSize(1500,850); setLocationRelativeTo(null);
+            super("Livro Caixa");setIconImage(appIcon()); this.controller=Objects.requireNonNull(controller, "controller"); this.store=controller.getModel(); this.employee=employee; setDefaultCloseOperation(EXIT_ON_CLOSE); setMinimumSize(new Dimension(1180,700)); setSize(1500,850); setLocationRelativeTo(null);setExtendedState(JFrame.MAXIMIZED_BOTH);
             JPanel shell = new JPanel(new BorderLayout()); UiKit.GradientPanel side = new UiKit.GradientPanel(new Color(4,38,67),new Color(9,71,108),false); side.setPreferredSize(new Dimension(280,0)); side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
             JLabel logo = new JLabel("Livro Caixa"); logo.setIcon(UiKit.vectorIcon("wallet",38,Color.WHITE)); logo.setIconTextGap(13); logo.setForeground(Color.WHITE); logo.setFont(new Font("Segoe UI",Font.BOLD,31)); logo.setBorder(new EmptyBorder(26,24,36,10)); logo.setAlignmentX(LEFT_ALIGNMENT); side.add(logo);
             addNav(side,"Painel","home"); addNav(side,"Clientes","user"); addNav(side,"Consultas","calendar"); addNav(side,"Contas a receber","coins"); addNav(side,"Saídas","swap"); addNav(side,"Relatórios","chart"); addNav(side,"Configurações","gear");
@@ -104,7 +104,41 @@ public final class LivroCaixaView {
 
         /** Exibe formulários e etapas internas sem recriar a janela ou o menu principal. */
         void showCustom(String titleText,JComponent panel){pageTitle.setText(titleText);content.removeAll();nav.forEach((n,b)->{b.setBackground(new Color(0,0,0,0));b.repaint();});content.add(panel);content.revalidate();content.repaint();}
-        void showSuccessPage(String message,String backPage){JPanel root=page();root.setLayout(new GridBagLayout());UiKit.RoundPanel box=new UiKit.RoundPanel(20).fill(Color.WHITE);box.setPreferredSize(new Dimension(520,330));box.setLayout(new BoxLayout(box,BoxLayout.Y_AXIS));box.setBorder(new EmptyBorder(30,45,30,45));JLabel check=new JLabel("✓",SwingConstants.CENTER);check.setOpaque(true);check.setBackground(new Color(218,247,224));check.setForeground(new Color(8,139,38));check.setFont(new Font("Segoe UI",Font.BOLD,54));check.setAlignmentX(.5f);check.setMaximumSize(new Dimension(86,86));box.add(check);box.add(Box.createVerticalStrut(18));JLabel heading=title(message,26);heading.setAlignmentX(.5f);box.add(heading);box.add(Box.createVerticalStrut(8));JLabel sub=new JLabel("Os dados foram registrados com sucesso.");sub.setForeground(UiKit.MUTED);sub.setAlignmentX(.5f);box.add(sub);box.add(Box.createVerticalStrut(26));JButton ok=primary("OK");ok.setAlignmentX(.5f);ok.setMaximumSize(new Dimension(240,48));ok.addActionListener(e->showPage(backPage));box.add(ok);root.add(box);showCustom("Confirmação",root);}
+        void showSuccessPage(String message,String backPage){
+            JPanel root=page();
+            root.setLayout(new GridBagLayout());
+            UiKit.RoundPanel box=new UiKit.RoundPanel(20).fill(Color.WHITE);
+            box.setPreferredSize(new Dimension(520,330));
+            box.setLayout(new BoxLayout(box,BoxLayout.Y_AXIS));
+            box.setBorder(new EmptyBorder(30,45,30,45));
+
+            Color success=new Color(8,139,38);
+            UiKit.RoundPanel iconBox=new UiKit.RoundPanel(22).fill(new Color(218,247,224)).line(null).shadow(false);
+            iconBox.setLayout(new GridBagLayout());
+            iconBox.setAlignmentX(.5f);
+            iconBox.setPreferredSize(new Dimension(86,86));
+            iconBox.setMaximumSize(new Dimension(86,86));
+            iconBox.add(new JLabel(UiKit.vectorIcon("coins",46,success)));
+            box.add(iconBox);
+            box.add(Box.createVerticalStrut(18));
+
+            JLabel heading=title(message,26);
+            heading.setAlignmentX(.5f);
+            box.add(heading);
+            box.add(Box.createVerticalStrut(8));
+            JLabel sub=new JLabel("Os dados foram registrados com sucesso.");
+            sub.setForeground(UiKit.MUTED);
+            sub.setAlignmentX(.5f);
+            box.add(sub);
+            box.add(Box.createVerticalStrut(26));
+            JButton ok=primary("OK");
+            ok.setAlignmentX(.5f);
+            ok.setMaximumSize(new Dimension(240,48));
+            ok.addActionListener(e->showPage(backPage));
+            box.add(ok);
+            root.add(box);
+            showCustom("Confirmação",root);
+        }
 
         JComponent dashboard(){ JPanel p=page(); JPanel metrics=new JPanel(new GridLayout(1,4,14,0)); metrics.setOpaque(false); metrics.setPreferredSize(new Dimension(0,142)); metrics.add(metric("Saldo atual",money(store.balance()),BLUE,"wallet")); metrics.add(metric("Entradas no mês",money(store.income()),new Color(0,177,183),"arrowUp")); metrics.add(metric("Saídas no mês",money(store.expenseTotal()),new Color(230,35,43),"arrowDown")); metrics.add(metric("A receber",money(store.pending()),ORANGE,"coins")); p.add(metrics,BorderLayout.NORTH);
             JPanel center=new JPanel(new GridLayout(1,2,14,0)); center.setOpaque(false); center.setBorder(new EmptyBorder(16,0,16,0)); UiKit.RoundPanel chartCard=new UiKit.RoundPanel(16).fill(Color.WHITE);chartCard.setLayout(new BorderLayout());chartCard.setBorder(new EmptyBorder(16,18,14,18));chartCard.add(title("Fluxo de caixa",23),BorderLayout.NORTH);chartCard.add(cashFlowChart(store.income(),store.expenseTotal()));center.add(chartCard);
@@ -113,10 +147,115 @@ public final class LivroCaixaView {
 
         JComponent clients(){return OperationalListScreens.buildClients(this);}
         void clientDialog(Client edit){
-            JPanel root=page();UiKit.RoundPanel card=new UiKit.RoundPanel(16).fill(Color.WHITE);card.setLayout(new BorderLayout(20,20));card.setBorder(new EmptyBorder(20,22,20,22));JPanel heading=new JPanel();heading.setOpaque(false);heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));heading.add(title(edit==null?"Novo cliente":"Editar cliente",34));JLabel subtitle=new JLabel("Preencha os dados para cadastrar");subtitle.setFont(new Font("Segoe UI",Font.PLAIN,20));subtitle.setForeground(UiKit.MUTED);heading.add(Box.createVerticalStrut(4));heading.add(subtitle);card.add(heading,BorderLayout.NORTH);
-            JPanel body=new JPanel(new GridBagLayout());body.setOpaque(false);GridBagConstraints gc=new GridBagConstraints();gc.gridy=0;gc.fill=GridBagConstraints.BOTH;gc.weighty=1;gc.insets=new Insets(0,0,0,22);gc.gridx=0;gc.weightx=2;UiKit.RoundPanel left=new UiKit.RoundPanel(14).fill(new Color(248,250,255)).shadow(false);left.setLayout(new BoxLayout(left,BoxLayout.Y_AXIS));left.setBorder(new EmptyBorder(28,28,28,28));JTextField name=modernField(edit==null?"":edit.name),cpf=modernField(edit==null?"":edit.cpf);name.setFont(new Font("Segoe UI",Font.PLAIN,20));cpf.setFont(new Font("Segoe UI",Font.PLAIN,20));left.add(taggedField("Nome","Obrigatório",name));left.add(Box.createVerticalStrut(22));left.add(taggedField("CPF","Obrigatório",cpf));JLabel help=new JLabel("Formato: 000.000.000-00");help.setForeground(UiKit.MUTED);help.setFont(new Font("Segoe UI",Font.PLAIN,16));left.add(Box.createVerticalStrut(7));left.add(help);body.add(left,gc);
-            gc.gridx=1;gc.weightx=1;gc.insets=new Insets(0,0,0,0);UiKit.RoundPanel summary=new UiKit.RoundPanel(14).fill(new Color(244,248,255)).shadow(false);summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));summary.setBorder(new EmptyBorder(24,25,24,25));summary.add(title("Resumo",24));summary.add(Box.createVerticalStrut(30));summary.add(title("Nome:",17));summary.add(Box.createVerticalStrut(4));summary.add(new JLabel(edit==null?"Será preenchido ao salvar":edit.name));summary.add(Box.createVerticalStrut(28));summary.add(title("CPF:",17));summary.add(Box.createVerticalStrut(4));summary.add(new JLabel(edit==null?"—":edit.cpf));body.add(summary,gc);card.add(body);
-            JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));actions.setOpaque(false);JButton cancel=new UiKit.RoundButton("Cancelar",UiKit.vectorIcon("close",20,UiKit.INK),new Color(234,240,249),UiKit.INK),save=new UiKit.RoundButton("Salvar cliente",UiKit.vectorIcon("save",21,Color.WHITE),BLUE,Color.WHITE);cancel.addActionListener(e->showPage("Clientes"));save.addActionListener(e->{if(name.getText().isBlank()||cpf.getText().isBlank()){error(this,"Informe o nome e o CPF.");return;}if(edit==null)store.clients.add(new Client(store.nextClient++,name.getText().trim(),cpf.getText().trim(),"","",""));else{edit.name=name.getText().trim();edit.cpf=cpf.getText().trim();}store.save();showPage("Clientes");});actions.add(cancel);actions.add(save);card.add(actions,BorderLayout.SOUTH);root.add(card);showCustom("Clientes",root);
+            JPanel root=page();
+            UiKit.RoundPanel card=new UiKit.RoundPanel(16).fill(Color.WHITE);
+            card.setLayout(new BorderLayout(0,22));
+            card.setBorder(new EmptyBorder(24,26,22,26));
+
+            JPanel heading=new JPanel();
+            heading.setOpaque(false);
+            heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
+            heading.add(title(edit==null?"Novo cliente":"Editar cliente",32));
+            JLabel subtitle=new JLabel(edit==null?"Preencha os dados para cadastrar um novo cliente.":"Atualize os dados cadastrais do cliente.");
+            subtitle.setFont(new Font("Segoe UI",Font.PLAIN,18));
+            subtitle.setForeground(UiKit.MUTED);
+            heading.add(Box.createVerticalStrut(5));
+            heading.add(subtitle);
+            card.add(heading,BorderLayout.NORTH);
+
+            JTextField name=modernField(edit==null?"":edit.name);
+            JTextField cpf=modernField(edit==null?"":edit.cpf);
+            name.setFont(new Font("Segoe UI",Font.PLAIN,19));
+            cpf.setFont(new Font("Segoe UI",Font.PLAIN,19));
+
+            UiKit.RoundPanel formCard=new UiKit.RoundPanel(14).fill(new Color(248,250,255)).shadow(false);
+            formCard.setLayout(new BoxLayout(formCard,BoxLayout.Y_AXIS));
+            formCard.setBorder(new EmptyBorder(22,24,22,24));
+            formCard.add(taggedField("Nome completo","Obrigatório",name));
+            formCard.add(Box.createVerticalStrut(17));
+            formCard.add(taggedField("CPF","Obrigatório",cpf));
+            JLabel help=new JLabel("Use o formato 000.000.000-00");
+            help.setIcon(UiKit.vectorIcon("info",16,UiKit.MUTED));
+            help.setIconTextGap(8);
+            help.setForeground(UiKit.MUTED);
+            help.setFont(new Font("Segoe UI",Font.PLAIN,15));
+            help.setAlignmentX(Component.LEFT_ALIGNMENT);
+            formCard.add(Box.createVerticalStrut(8));
+            formCard.add(help);
+
+            UiKit.RoundPanel summary=new UiKit.RoundPanel(14).fill(new Color(244,248,255)).shadow(false);
+            summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));
+            summary.setBorder(new EmptyBorder(20,22,20,22));
+            JPanel summaryHeading=new JPanel(new BorderLayout(10,0));
+            summaryHeading.setOpaque(false);
+            JLabel summaryIcon=new JLabel(UiKit.vectorIcon("user",24,BLUE));
+            summaryHeading.add(summaryIcon,BorderLayout.WEST);
+            JPanel summaryText=new JPanel();
+            summaryText.setOpaque(false);
+            summaryText.setLayout(new BoxLayout(summaryText,BoxLayout.Y_AXIS));
+            summaryText.add(title("Pré-visualização",22));
+            JLabel summaryHint=new JLabel("Confira os dados antes de salvar");
+            summaryHint.setFont(new Font("Segoe UI",Font.PLAIN,14));
+            summaryHint.setForeground(UiKit.MUTED);
+            summaryText.add(summaryHint);
+            summaryHeading.add(summaryText);
+            summaryHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
+            summaryHeading.setMaximumSize(new Dimension(Integer.MAX_VALUE,52));
+            summary.add(summaryHeading);
+            summary.add(Box.createVerticalStrut(16));
+            JLabel summaryName=new JLabel(name.getText().isBlank()?"Ainda não informado":name.getText().trim());
+            JLabel summaryCpf=new JLabel(cpf.getText().isBlank()?"Ainda não informado":cpf.getText().trim());
+            summary.add(clientPreviewItem("Nome",summaryName,"user"));
+            summary.add(Box.createVerticalStrut(10));
+            summary.add(clientPreviewItem("CPF",summaryCpf,"document"));
+
+            DocumentListener previewListener=new DocumentListener(){
+                private void update(){
+                    String nameValue=name.getText().trim(),cpfValue=cpf.getText().trim();
+                    summaryName.setText(nameValue.isBlank()?"Ainda não informado":nameValue);
+                    summaryCpf.setText(cpfValue.isBlank()?"Ainda não informado":cpfValue);
+                }
+                @Override public void insertUpdate(DocumentEvent e){update();}
+                @Override public void removeUpdate(DocumentEvent e){update();}
+                @Override public void changedUpdate(DocumentEvent e){update();}
+            };
+            name.getDocument().addDocumentListener(previewListener);
+            cpf.getDocument().addDocumentListener(previewListener);
+
+            JPanel body=new JPanel(new GridBagLayout());
+            body.setOpaque(false);
+            GridBagConstraints gc=new GridBagConstraints();
+            gc.gridy=0;
+            gc.fill=GridBagConstraints.HORIZONTAL;
+            gc.anchor=GridBagConstraints.NORTH;
+            gc.weighty=0;
+            gc.gridx=0;
+            gc.weightx=1.8;
+            gc.insets=new Insets(0,0,0,20);
+            body.add(formCard,gc);
+            gc.gridx=1;
+            gc.weightx=1;
+            gc.insets=new Insets(0,0,0,0);
+            body.add(summary,gc);
+            JPanel bodyHolder=new JPanel(new BorderLayout());
+            bodyHolder.setOpaque(false);
+            bodyHolder.add(body,BorderLayout.NORTH);
+            card.add(bodyHolder);
+
+            JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
+            actions.setOpaque(false);
+            actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(16,0,0,0)));
+            JButton cancel=new UiKit.RoundButton("Cancelar",UiKit.vectorIcon("close",19,UiKit.INK),new Color(234,240,249),UiKit.INK);
+            JButton save=new UiKit.RoundButton("Salvar cliente",UiKit.vectorIcon("save",20,Color.WHITE),BLUE,Color.WHITE);
+            cancel.setPreferredSize(new Dimension(150,50));
+            save.setPreferredSize(new Dimension(190,50));
+            cancel.addActionListener(e->showPage("Clientes"));
+            save.addActionListener(e->{if(name.getText().isBlank()||cpf.getText().isBlank()){error(this,"Informe o nome e o CPF.");return;}if(edit==null)store.clients.add(new Client(store.nextClient++,name.getText().trim(),cpf.getText().trim(),"","",""));else{edit.name=name.getText().trim();edit.cpf=cpf.getText().trim();}store.save();showPage("Clientes");});
+            actions.add(cancel);
+            actions.add(save);
+            card.add(actions,BorderLayout.SOUTH);
+            root.add(card,BorderLayout.NORTH);
+            showCustom("Clientes",root);
         }
 
         JComponent appointments(){return OperationalListScreens.buildAppointments(this);}
@@ -137,30 +276,14 @@ public final class LivroCaixaView {
         }
 
         JComponent reports(){return ManagementScreens.buildReports(this);}
-        JComponent overviewReport(){JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);JPanel m=new JPanel(new GridLayout(1,4,12,0));m.setOpaque(false);m.setPreferredSize(new Dimension(0,110));m.add(metric("Entradas",money(store.income()),GREEN,"arrowUp"));m.add(metric("Saídas",money(store.expenseTotal()),RED,"arrowDown"));m.add(metric("Saldo",money(store.balance()),BLUE,"wallet"));m.add(metric("A receber",money(store.pending()),ORANGE,"coins"));p.add(m,BorderLayout.NORTH);List<Object[]> movements=new ArrayList<>();for(Payment x:store.payments)if(!x.reversed)movements.add(new Object[]{fmt(x.date),"Entrada",x.label+" - "+x.client,x.method,money(x.value)});for(Expense x:store.expenses)movements.add(new Object[]{fmt(x.date),"Saída",x.description,"—",money(x.value)});JPanel middle=new JPanel(new GridLayout(1,2,12,0));middle.setOpaque(false);UiKit.RoundPanel chart=new UiKit.RoundPanel(15).fill(Color.WHITE);chart.setLayout(new BorderLayout());chart.setBorder(new EmptyBorder(12,14,12,14));chart.add(title("Entradas × Saídas",21),BorderLayout.NORTH);chart.add(cashFlowChart(store.income(),store.expenseTotal()));middle.add(chart);JPanel sessions=new JPanel(new GridLayout(1,3,10,0));sessions.setOpaque(false);sessions.add(reportSummary("Saídas",store.expenses.size()+" registros",money(store.expenseTotal()),RED,"swap"));sessions.add(reportSummary("Consultas",store.appointments.size()+" realizadas",store.clients.size()+" clientes",BLUE,"calendar"));sessions.add(reportSummary("Recebimentos",store.payments.size()+" pagamentos",money(store.income()),GREEN,"coins"));middle.add(sessions);p.add(middle);JComponent table=tablePanel("Últimas movimentações",new String[]{"Data","Movimento","Descrição","Forma de pagamento","Valor"},movements.stream().limit(8).toArray(Object[][]::new));table.setPreferredSize(new Dimension(0,220));p.add(table,BorderLayout.SOUTH);return p;}
-        JComponent expenseReport(){BigDecimal max=store.expenses.stream().map(x->x.value).max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);BigDecimal avg=store.expenses.isEmpty()?BigDecimal.ZERO:store.expenseTotal().divide(BigDecimal.valueOf(store.expenses.size()),2,RoundingMode.HALF_UP);JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);JPanel m=new JPanel(new GridLayout(1,4,10,0));m.setOpaque(false);m.add(metric("Total",money(store.expenseTotal()),RED,"swap"));m.add(metric("Quantidade",String.valueOf(store.expenses.size()),BLUE,"chart"));m.add(metric("Média",money(avg),ORANGE,"wallet"));m.add(metric("Maior saída",money(max),RED,"arrowUp"));p.add(m,BorderLayout.NORTH);p.add(tablePanel("Saídas por tipo e período",new String[]{"Data","Tipo","Descrição","Funcionário","Valor"},store.expenses.stream().map(x->new Object[]{fmt(x.date),x.type,x.description,x.employee,money(x.value)}).toArray(Object[][]::new)));return p;}
-        JComponent appointmentReport(){long clients=store.appointments.stream().map(x->x.client).distinct().count();JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);JPanel m=new JPanel(new GridLayout(1,4,10,0));m.setOpaque(false);m.add(metric("Consultas",String.valueOf(store.appointments.size()),BLUE,"calendar"));m.add(metric("Clientes",String.valueOf(clients),GREEN,"user"));m.add(metric("Tipo principal","Consulta de rotina",ORANGE,"chart"));m.add(metric("Funcionário principal",employee,BLUE,"user"));p.add(m,BorderLayout.NORTH);p.add(tablePanel("Consultas realizadas",new String[]{"Data","Cliente","Tipo","Funcionário","Valor","Status"},store.appointments.stream().map(x->new Object[]{fmt(x.date),x.client,x.type,x.employee,money(x.value),x.billed?"Faturada":"Aberta"}).toArray(Object[][]::new)));return p;}
-        JComponent paymentsReport(){String[] cols={"Código","Data","Cliente","Parcela","Forma","Valor","Desconto","Status"};Object[][] rows=new Object[store.payments.size()][cols.length];for(int i=0;i<rows.length;i++){Payment x=store.payments.get(i);rows[i]=new Object[]{x.id,fmt(x.date),x.client,x.label,x.method,money(x.value),money(x.discount),x.reversed?"Estornada":"Confirmada"};}JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);JPanel m=new JPanel(new GridLayout(1,4,10,0));m.setOpaque(false);m.add(metric("Total recebido",money(store.income()),GREEN,"coins"));m.add(metric("À vista",money(store.income()),BLUE,"wallet"));m.add(metric("A prazo",money(BigDecimal.ZERO),ORANGE,"calendar"));m.add(metric("Pagamentos",String.valueOf(store.payments.size()),GREEN,"chart"));p.add(m,BorderLayout.NORTH);p.add(tablePanel("Histórico de recebimentos",cols,rows));JButton undo=secondary("Desfazer baixa selecionada");undo.addActionListener(e->{JTable t=findTable(p);int viewRow=t==null?-1:t.getSelectedRow();if(viewRow<0){error(this,"Selecione um pagamento.");return;}int row=t.convertRowIndexToModel(viewRow);Payment pay=store.payments.get(row);if(pay.reversed){error(this,"Pagamento já estornado.");return;}if(confirm(this,"Desfazer esta baixa?")){pay.reversed=true;if(!"Entrada".equals(pay.label)){store.installments.stream().filter(x->x.appointmentId==pay.appointmentId&&x.label.equals(pay.label)).findFirst().ifPresent(x->x.paid=x.paid.subtract(pay.value.add(pay.discount)).max(BigDecimal.ZERO));}store.save();showPage("Relatórios");}});p.add(undo,BorderLayout.SOUTH);return p;}
 
         JComponent settings(){return ManagementScreens.buildSettings(this);}
-        JComponent settingsCard(String name,int count,String icon,Color color,int tab){UiKit.RoundPanel card=new UiKit.RoundPanel(17).fill(Color.WHITE);card.setLayout(new BoxLayout(card,BoxLayout.Y_AXIS));card.setBorder(new EmptyBorder(22,22,22,22));JLabel glyph=new JLabel(UiKit.vectorIcon(icon,44,color));glyph.setAlignmentX(.5f);JLabel heading=title(name,21);heading.setAlignmentX(.5f);JLabel amount=new JLabel(count+" cadastrados");amount.setForeground(UiKit.MUTED);amount.setAlignmentX(.5f);JButton manage=primary("Gerenciar");manage.setAlignmentX(.5f);manage.addActionListener(e->settingsManager(tab));card.add(Box.createVerticalGlue());card.add(glyph);card.add(Box.createVerticalStrut(12));card.add(heading);card.add(Box.createVerticalStrut(6));card.add(amount);card.add(Box.createVerticalStrut(16));card.add(manage);card.add(Box.createVerticalGlue());return card;}
-        void settingsManager(int index){JPanel root=page();JPanel top=new JPanel(new BorderLayout());top.setOpaque(false);top.add(title("Cadastros auxiliares",27));JButton back=secondary("Voltar às configurações");back.addActionListener(e->showPage("Configurações"));top.add(back,BorderLayout.EAST);root.add(top,BorderLayout.NORTH);JTabbedPane tabs=new JTabbedPane();tabs.addTab("Tipos de consulta",listEditor(store.appointmentTypes,"tipo de consulta"));tabs.addTab("Tipos de saída",listEditor(store.expenseTypes,"tipo de saída"));tabs.addTab("Formas de pagamento",listEditor(store.paymentMethods,"forma de pagamento"));tabs.addTab("Funcionários e perfis",employees());styleTabs(tabs);tabs.setSelectedIndex(Math.max(0,Math.min(index,tabs.getTabCount()-1)));root.add(tabs);showCustom("Configurações",root);}
-        JComponent listEditor(List<String> list,String label){DefaultListModel<String> model=new DefaultListModel<>();list.forEach(model::addElement);JList<String> view=new JList<>(model);view.setFont(LivroCaixaView.NORMAL);JPanel p=new JPanel(new BorderLayout(10,10));p.setBorder(new EmptyBorder(18,18,18,18));p.add(new JScrollPane(view));JPanel actions=new JPanel();JButton add=primary("Novo"),edit=secondary("Editar"),del=danger("Excluir");add.addActionListener(e->{String s=JOptionPane.showInputDialog(this,"Descrição do "+label+":");if(s!=null&&!s.isBlank()){list.add(s.trim());store.save();showPage("Configurações");}});edit.addActionListener(e->{int i=view.getSelectedIndex();if(i>=0){String s=JOptionPane.showInputDialog(this,"Descrição:",list.get(i));if(s!=null&&!s.isBlank()){list.set(i,s.trim());store.save();showPage("Configurações");}}});del.addActionListener(e->{int i=view.getSelectedIndex();if(i>=0&&confirm(this,"Excluir item?")){list.remove(i);store.save();showPage("Configurações");}});actions.add(add);actions.add(edit);actions.add(del);p.add(actions,BorderLayout.SOUTH);return p;}
-        JComponent employees(){return tablePanel("Funcionários e perfis",new String[]{"Nome","Perfil","Status"},new Object[][]{{employee,"Administrador","Ativo"},{"Bruno Reis","Atendente","Ativo"}});}
-        JComponent reportSummary(String heading,String line1,String line2,Color color,String icon){UiKit.RoundPanel p=new UiKit.RoundPanel(14).fill(new Color(color.getRed(),color.getGreen(),color.getBlue(),24)).line(new Color(color.getRed(),color.getGreen(),color.getBlue(),90)).shadow(false);p.setLayout(new BoxLayout(p,BoxLayout.Y_AXIS));p.setBorder(new EmptyBorder(14,14,14,14));JLabel h=new JLabel(heading,UiKit.vectorIcon(icon,25,color),SwingConstants.LEFT);h.setIconTextGap(9);h.setFont(new Font("Segoe UI",Font.BOLD,17));p.add(h);p.add(Box.createVerticalStrut(12));p.add(new JLabel(line1));JLabel value=title(line2,18);value.setForeground(color);p.add(Box.createVerticalStrut(5));p.add(value);return p;}
-        void styleTabs(JTabbedPane tabs){tabs.setOpaque(false);tabs.setBackground(UiKit.BG);tabs.setForeground(UiKit.INK);tabs.setBorder(new EmptyBorder(8,0,0,0));for(int i=0;i<tabs.getTabCount();i++){JLabel label=new JLabel(tabs.getTitleAt(i),tabs.getIconAt(i),SwingConstants.CENTER);label.setFont(new Font("Segoe UI",Font.BOLD,17));label.setBorder(new EmptyBorder(10,22,10,22));tabs.setTabComponentAt(i,label);}}
-
-        JComponent crudPage(String heading,String[] cols,Object[][] rows,String newLabel,Consumer<Integer> edit,Consumer<Integer> delete,ActionListener add){
-            JPanel p=page();DefaultTableModel model=new DefaultTableModel(rows,cols){public boolean isCellEditable(int r,int c){return false;}};JTable table=styledTable(model);
-            JPanel header=new JPanel(new BorderLayout(0,12));header.setOpaque(false);JPanel headingRow=new JPanel(new BorderLayout());headingRow.setOpaque(false);headingRow.add(title(heading,25),BorderLayout.WEST);JButton n=quickButton(newLabel,"plus",add);headingRow.add(n,BorderLayout.EAST);header.add(headingRow,BorderLayout.NORTH);
-            UiKit.RoundPanel filters=new UiKit.RoundPanel(14).fill(Color.WHITE);filters.setLayout(new BorderLayout(10,0));filters.setBorder(new EmptyBorder(12,14,12,14));JTextField search=modernField("");search.putClientProperty("JTextField.placeholderText","Pesquisar por nome, CPF, código ou descrição");filters.add(search);JPanel filterActions=new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0));filterActions.setOpaque(false);JButton apply=primary("Aplicar filtros"),clear=secondary("Limpar");filterActions.add(apply);filterActions.add(clear);filters.add(filterActions,BorderLayout.EAST);header.add(filters);p.add(header,BorderLayout.NORTH);
-            Runnable doFilter=()->{String q=search.getText().trim();@SuppressWarnings("unchecked") javax.swing.table.TableRowSorter<DefaultTableModel> sorter=(javax.swing.table.TableRowSorter<DefaultTableModel>)table.getRowSorter();sorter.setRowFilter(q.isBlank()?null:RowFilter.regexFilter("(?i)"+java.util.regex.Pattern.quote(q)));};apply.addActionListener(e->doFilter.run());search.addActionListener(e->doFilter.run());clear.addActionListener(e->{search.setText("");doFilter.run();});
-            JPanel buttons=new JPanel(new FlowLayout(FlowLayout.RIGHT,10,8));buttons.setOpaque(false);JButton e=secondary("Editar / Abrir"),del=danger("Excluir / Cancelar");e.addActionListener(x->{int row=table.getSelectedRow();edit.accept(row<0?-1:table.convertRowIndexToModel(row));});del.addActionListener(x->{int row=table.getSelectedRow();delete.accept(row<0?-1:table.convertRowIndexToModel(row));});buttons.add(e);buttons.add(del);UiKit.RoundPanel c=new UiKit.RoundPanel(16).fill(Color.WHITE);c.setLayout(new BorderLayout());c.setBorder(new EmptyBorder(12,12,6,12));JScrollPane scroll=new JScrollPane(table);scroll.setBorder(new LineBorder(UiKit.LINE));c.add(scroll);c.add(buttons,BorderLayout.SOUTH);p.add(c);return p;}
     }
 
     static JPanel page(){JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);p.setBorder(new EmptyBorder(18,18,18,18));return p;}static JPanel form(){JPanel p=new JPanel();p.setBackground(UiKit.BG);p.setBorder(new EmptyBorder(22,22,22,22));p.setLayout(new BoxLayout(p,BoxLayout.Y_AXIS));return p;}static JPanel card(){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setBorder(new EmptyBorder(12,18,12,18));return p;}
     static JLabel title(String s,int z){JLabel l=new JLabel(s);l.setFont(new Font("Segoe UI",Font.BOLD,z));l.setForeground(UiKit.INK);return l;}static JTextField field(String s){return modernField(s);}static JTextField modernField(String s){JTextField f=new JTextField(s);f.setFont(NORMAL);f.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));f.setPreferredSize(new Dimension(250,46));f.setBackground(Color.WHITE);f.setForeground(UiKit.INK);f.setCaretColor(BLUE);f.setBorder(new CompoundBorder(new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));return f;}static JPasswordField modernPassword(String s){JPasswordField f=new JPasswordField(s);f.setFont(NORMAL);f.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));f.setPreferredSize(new Dimension(250,46));f.setBackground(Color.WHITE);f.setBorder(new CompoundBorder(new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));return f;}static JPanel labeled(String name,Component c){JPanel p=new JPanel(new BorderLayout(0,5));p.setOpaque(false);p.setAlignmentX(Component.LEFT_ALIGNMENT);p.setMaximumSize(new Dimension(Integer.MAX_VALUE,c instanceof JScrollPane?135:82));JLabel l=new JLabel(name);l.setFont(BOLD);l.setForeground(UiKit.INK);p.add(l,BorderLayout.NORTH);p.add(c);return p;}
     static JPanel taggedField(String name,String tag,Component component){JPanel p=new JPanel(new BorderLayout(0,8));p.setOpaque(false);p.setAlignmentX(Component.LEFT_ALIGNMENT);JPanel head=new JPanel(new FlowLayout(FlowLayout.LEFT,10,0));head.setOpaque(false);JLabel label=title(name,19);JLabel badge=new JLabel(tag);badge.setFont(new Font("Segoe UI",Font.BOLD,13));boolean required="Obrigatório".equalsIgnoreCase(tag);badge.setForeground(required?new Color(190,25,30):new Color(70,76,88));badge.setOpaque(true);badge.setBackground(required?new Color(255,220,220):new Color(225,229,236));badge.setBorder(new CompoundBorder(new LineBorder(required?new Color(255,145,145):new Color(185,190,200)),new EmptyBorder(3,10,3,10)));head.add(label);head.add(badge);p.add(head,BorderLayout.NORTH);p.add(component);p.setMaximumSize(new Dimension(Integer.MAX_VALUE,92));return p;}
+    static JComponent clientPreviewItem(String label,JLabel value,String icon){UiKit.RoundPanel row=new UiKit.RoundPanel(12).fill(Color.WHITE).line(UiKit.LINE).shadow(false);row.setLayout(new BorderLayout(12,0));row.setBorder(new EmptyBorder(11,12,11,12));row.setAlignmentX(Component.LEFT_ALIGNMENT);row.setMaximumSize(new Dimension(Integer.MAX_VALUE,68));UiKit.RoundPanel iconBox=new UiKit.RoundPanel(10).fill(new Color(231,240,255)).line(null).shadow(false);iconBox.setPreferredSize(new Dimension(44,44));iconBox.setLayout(new GridBagLayout());iconBox.add(new JLabel(UiKit.vectorIcon(icon,21,BLUE)));row.add(iconBox,BorderLayout.WEST);JPanel text=new JPanel();text.setOpaque(false);text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));JLabel caption=new JLabel(label);caption.setFont(new Font("Segoe UI",Font.BOLD,13));caption.setForeground(UiKit.MUTED);value.setFont(new Font("Segoe UI",Font.BOLD,16));value.setForeground(UiKit.INK);text.add(caption);text.add(Box.createVerticalStrut(3));text.add(value);row.add(text);return row;}
     static JButton primary(String s){return new UiKit.RoundButton(s,null,BLUE,Color.WHITE);}static JButton secondary(String s){return new UiKit.RoundButton(s,null,new Color(235,241,250),UiKit.INK);}static JButton danger(String s){return new UiKit.RoundButton(s,UiKit.vectorIcon("trash",19,RED),new Color(255,238,240),RED);}static JButton quickButton(String s,ActionListener a){return quickButton(s,"plus",a);}static JButton quickButton(String s,String icon,ActionListener a){JButton b=new UiKit.RoundButton(s,UiKit.vectorIcon(icon,26,Color.WHITE),BLUE,Color.WHITE);b.setFont(new Font("Segoe UI",Font.BOLD,17));b.addActionListener(a);return b;}
     static JPanel metric(String name,String value,Color c){return metric(name,value,c,"wallet");}static JPanel metric(String name,String value,Color c,String icon){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setLayout(new BorderLayout(14,0));p.setBorder(new EmptyBorder(16,16,16,16));UiKit.RoundPanel iconBox=new UiKit.RoundPanel(13).fill(new Color(c.getRed(),c.getGreen(),c.getBlue(),28)).line(null).shadow(false);iconBox.setPreferredSize(new Dimension(62,62));iconBox.setLayout(new GridBagLayout());iconBox.add(new JLabel(UiKit.vectorIcon(icon,34,c)));p.add(iconBox,BorderLayout.WEST);JPanel text=new JPanel();text.setOpaque(false);text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));JLabel n=title(name,17),v=title(value,27);v.setForeground(c);text.add(Box.createVerticalGlue());text.add(n);text.add(Box.createVerticalStrut(8));text.add(v);text.add(Box.createVerticalGlue());p.add(text);return p;}static Border titled(String s){return new TitledBorder(new LineBorder(new Color(185,205,235)),s,TitledBorder.LEADING,TitledBorder.TOP,new Font("Segoe UI",Font.BOLD,19),UiKit.INK);}
     static JTable styledTable(DefaultTableModel m){JTable t=UiKit.modernTable(m);t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);return t;}static JPanel tablePanel(String title,String[] cols,Object[][] rows){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setLayout(new BorderLayout());p.setBorder(new EmptyBorder(14,14,14,14));JLabel h=LivroCaixaView.title(title,21);h.setBorder(new EmptyBorder(0,2,12,2));p.add(h,BorderLayout.NORTH);JScrollPane scroll=new JScrollPane(styledTable(new DefaultTableModel(rows,cols){public boolean isCellEditable(int r,int c){return false;}}));scroll.setBorder(new LineBorder(UiKit.LINE));p.add(scroll);return p;}static JTable findTable(Container c){for(Component x:c.getComponents()){if(x instanceof JTable t)return t;if(x instanceof JScrollPane s&&s.getViewport().getView() instanceof JTable t)return t;if(x instanceof Container cc){JTable t=findTable(cc);if(t!=null)return t;}}return null;}
@@ -168,5 +291,114 @@ public final class LivroCaixaView {
     static UiKit.CashFlowChart cashFlowChart(BigDecimal income,BigDecimal expense){double in=income.max(BigDecimal.ONE).doubleValue(),out=expense.max(BigDecimal.ONE).doubleValue();double[] ins={in*.63,in*.71,in*.79,in*.90,in*.98,in};double[] outs={out*.80,out*.96,out, out*.89,out*1.02,out};return new UiKit.CashFlowChart().values(new String[]{"Jun","Jul","Ago","Set","Out","Nov"},ins,outs);}
     static class NavButton extends JButton {boolean hover;NavButton(String text,Icon icon){super(text,icon);setHorizontalAlignment(LEFT);setIconTextGap(16);setForeground(Color.WHITE);setFont(new Font("Segoe UI",Font.BOLD,19));setOpaque(false);setContentAreaFilled(false);setBorderPainted(false);setFocusPainted(false);setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));setBorder(new EmptyBorder(12,24,12,12));addMouseListener(new MouseAdapter(){public void mouseEntered(MouseEvent e){hover=true;repaint();}public void mouseExited(MouseEvent e){hover=false;repaint();}});}protected void paintComponent(Graphics graphics){Graphics2D g=(Graphics2D)graphics.create();UiKit.antialias(g);Color bg=getBackground();if(bg.getAlpha()>0)g.setColor(bg);else g.setColor(hover?new Color(255,255,255,24):new Color(0,0,0,0));g.fillRoundRect(10,2,getWidth()-20,getHeight()-4,13,13);g.dispose();super.paintComponent(graphics);}}
     static Image appIcon(){BufferedImage image=new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);Graphics2D g=image.createGraphics();UiKit.antialias(g);g.setColor(BLUE);g.fillRoundRect(3,3,58,58,15,15);Icon wallet=UiKit.vectorIcon("wallet",38,Color.WHITE);wallet.paintIcon(null,g,13,13);g.dispose();return image;}
-    static JDialog dialog(Frame owner,String title,int w,int h){JDialog d=new JDialog(owner,title,true);d.setSize(w,h);d.setLocationRelativeTo(owner);return d;}static String fmt(LocalDate d){return d.format(DATE);}static LocalDate parseDate(String s){return LocalDate.parse(s.trim(),DATE);}static String money(BigDecimal v){return BRL.format(v);}static BigDecimal parseMoney(String s){String x=s.replace("R$","").replace("\u00A0","").replace("\u202F","").replaceAll("\\s+","").trim();if(x.contains(","))x=x.replace(".","").replace(",",".");return new BigDecimal(x).setScale(2,RoundingMode.HALF_UP);}static void info(Component c,String s){JOptionPane.showMessageDialog(c,s,"Livro Caixa",JOptionPane.INFORMATION_MESSAGE);}static void error(Component c,String s){JOptionPane.showMessageDialog(c,s,"Atenção",JOptionPane.ERROR_MESSAGE);}static boolean confirm(Component c,String s){return JOptionPane.showConfirmDialog(c,s,"Confirmação",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION;}
+    static JDialog dialog(Frame owner,String title,int w,int h){JDialog d=new JDialog(owner,title,true);d.setSize(w,h);d.setLocationRelativeTo(owner);return d;}
+    static String fmt(LocalDate d){return d.format(DATE);}
+    static LocalDate parseDate(String s){return LocalDate.parse(s.trim(),DATE);}
+    static String money(BigDecimal v){return BRL.format(v);}
+    static BigDecimal parseMoney(String s){String x=s.replace("R$","").replace("\u00A0","").replace("\u202F","").replaceAll("\\s+","").trim();if(x.contains(","))x=x.replace(".","").replace(",",".");return new BigDecimal(x).setScale(2,RoundingMode.HALF_UP);}
+    static void info(Component c,String s){JOptionPane.showMessageDialog(c,s,"Livro Caixa",JOptionPane.INFORMATION_MESSAGE);}
+    static void error(Component c,String s){JOptionPane.showMessageDialog(c,s,"Atenção",JOptionPane.ERROR_MESSAGE);}
+
+    static boolean confirm(Component ownerComponent,String message){
+        String normalized=message.toLowerCase(Locale.ROOT);
+        String dialogTitle="Confirmar ação",actionLabel="Confirmar",detail="Revise os dados antes de continuar.",icon="warning";
+        if(normalized.startsWith("excluir")){
+            dialogTitle="Confirmar exclusão";
+            actionLabel=normalized.contains("cliente")?"Excluir cliente":normalized.contains("saída")?"Excluir saída":normalized.contains("funcionário")?"Excluir funcionário":normalized.contains("cadastro")?"Excluir cadastro":"Excluir";
+            detail="O registro será removido e esta ação não poderá ser desfeita.";
+            icon="trash";
+        }else if(normalized.startsWith("cancelar")){
+            dialogTitle="Confirmar cancelamento";
+            actionLabel="Cancelar parcela";
+            detail="A parcela será marcada como cancelada. Confira antes de continuar.";
+        }else if(normalized.startsWith("desfazer")){
+            dialogTitle="Confirmar reversão";
+            actionLabel="Desfazer baixa";
+            detail="O pagamento e o desconto associados serão revertidos.";
+            icon="refresh";
+        }
+
+        Window owner=ownerComponent instanceof Window window?window:SwingUtilities.getWindowAncestor(ownerComponent);
+        JDialog confirmDialog=new JDialog(owner,Dialog.ModalityType.APPLICATION_MODAL);
+        confirmDialog.setUndecorated(true);
+        confirmDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        confirmDialog.setResizable(false);
+
+        boolean[] accepted={false};
+        UiKit.RoundPanel root=new UiKit.RoundPanel(18).fill(Color.WHITE).line(new Color(190,204,226)).shadow(true);
+        root.setLayout(new BorderLayout(0,18));
+        root.setBorder(new EmptyBorder(22,24,20,24));
+        root.setPreferredSize(new Dimension(540,275));
+
+        JPanel header=new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(title(dialogTitle,22),BorderLayout.WEST);
+        JButton close=new JButton(UiKit.vectorIcon("close",18,UiKit.MUTED));
+        close.setBorder(new EmptyBorder(5,8,5,8));
+        close.setContentAreaFilled(false);
+        close.setFocusPainted(false);
+        close.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        close.addActionListener(e->confirmDialog.dispose());
+        header.add(close,BorderLayout.EAST);
+        root.add(header,BorderLayout.NORTH);
+
+        JPanel content=new JPanel(new BorderLayout(18,0));
+        content.setOpaque(false);
+        UiKit.RoundPanel iconBox=new UiKit.RoundPanel(14).fill(new Color(255,233,235)).line(new Color(255,193,198)).shadow(false);
+        iconBox.setPreferredSize(new Dimension(68,68));
+        iconBox.setLayout(new GridBagLayout());
+        iconBox.add(new JLabel(UiKit.vectorIcon(icon,32,UiKit.RED)));
+        content.add(iconBox,BorderLayout.WEST);
+        JPanel copy=new JPanel();
+        copy.setOpaque(false);
+        copy.setLayout(new BoxLayout(copy,BoxLayout.Y_AXIS));
+        JTextArea question=new JTextArea(message);
+        question.setEditable(false);
+        question.setFocusable(false);
+        question.setOpaque(false);
+        question.setLineWrap(true);
+        question.setWrapStyleWord(true);
+        question.setRows(2);
+        question.setColumns(29);
+        question.setFont(new Font("Segoe UI",Font.BOLD,18));
+        question.setForeground(UiKit.INK);
+        question.setBorder(null);
+        JTextArea explanation=new JTextArea(detail);
+        explanation.setEditable(false);
+        explanation.setFocusable(false);
+        explanation.setOpaque(false);
+        explanation.setLineWrap(true);
+        explanation.setWrapStyleWord(true);
+        explanation.setRows(2);
+        explanation.setColumns(29);
+        explanation.setFont(new Font("Segoe UI",Font.PLAIN,15));
+        explanation.setForeground(UiKit.MUTED);
+        explanation.setBorder(null);
+        copy.add(question);
+        copy.add(Box.createVerticalStrut(5));
+        copy.add(explanation);
+        content.add(copy);
+        root.add(content);
+
+        JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,10,0));
+        actions.setOpaque(false);
+        actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(15,0,0,0)));
+        JButton back=new UiKit.RoundButton("Voltar",UiKit.vectorIcon("close",18,UiKit.INK),new Color(235,241,250),UiKit.INK);
+        JButton proceed=new UiKit.RoundButton(actionLabel,UiKit.vectorIcon(icon,18,Color.WHITE),UiKit.RED,Color.WHITE);
+        back.setPreferredSize(new Dimension(140,48));
+        proceed.setPreferredSize(new Dimension(190,48));
+        back.addActionListener(e->confirmDialog.dispose());
+        proceed.addActionListener(e->{accepted[0]=true;confirmDialog.dispose();});
+        actions.add(back);
+        actions.add(proceed);
+        root.add(actions,BorderLayout.SOUTH);
+
+        confirmDialog.setContentPane(root);
+        confirmDialog.getRootPane().setDefaultButton(back);
+        confirmDialog.getRootPane().registerKeyboardAction(e->confirmDialog.dispose(),KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0),JComponent.WHEN_IN_FOCUSED_WINDOW);
+        confirmDialog.pack();
+        confirmDialog.setLocationRelativeTo(ownerComponent);
+        confirmDialog.setVisible(true);
+        return accepted[0];
+    }
 }

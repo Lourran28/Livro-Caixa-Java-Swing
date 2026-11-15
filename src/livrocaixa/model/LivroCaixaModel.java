@@ -92,6 +92,116 @@ public final class LivroCaixaModel implements Serializable {
         return model;
     }
 
+    public List<Installment> installmentsForInvoice(int invoiceId) {
+        return installments.stream()
+                .filter(item -> item.appointmentId == invoiceId)
+                .sorted(Comparator.comparing((Installment item) -> item.due).thenComparingInt(item -> item.id))
+                .toList();
+    }
+
+    public List<Payment> paymentsForInvoice(int invoiceId) {
+        return payments.stream()
+                .filter(payment -> payment.appointmentId == invoiceId)
+                .sorted(Comparator.comparing((Payment payment) -> payment.date).thenComparingInt(payment -> payment.id))
+                .toList();
+    }
+
+    /**
+     * Localiza a consulta da fatura. Os dados demonstrativos antigos usam números
+     * de fatura diferentes do código da consulta, então o cliente serve de fallback.
+     */
+    public Appointment appointmentForInvoice(int invoiceId) {
+        Appointment exact = appointments.stream()
+                .filter(appointment -> appointment.id == invoiceId)
+                .findFirst()
+                .orElse(null);
+        if (exact != null) return exact;
+
+        String client = installments.stream()
+                .filter(item -> item.appointmentId == invoiceId)
+                .map(item -> item.client)
+                .findFirst()
+                .orElseGet(() -> payments.stream()
+                        .filter(payment -> payment.appointmentId == invoiceId)
+                        .map(payment -> payment.client)
+                        .findFirst()
+                        .orElse(null));
+        if (client == null) return null;
+        return appointments.stream()
+                .filter(appointment -> client.equals(appointment.client))
+                .max(Comparator.comparing(appointment -> appointment.date))
+                .orElse(null);
+    }
+
+    public BigDecimal invoiceTotal(int invoiceId) {
+        Appointment exactAppointment = appointments.stream()
+                .filter(appointment -> appointment.id == invoiceId)
+                .findFirst()
+                .orElse(null);
+        if (exactAppointment != null) return exactAppointment.value;
+
+        BigDecimal scheduled = installmentsForInvoice(invoiceId).stream()
+                .map(item -> item.value)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal entry = paymentsForInvoice(invoiceId).stream()
+                .filter(payment -> !payment.reversed && "Entrada".equalsIgnoreCase(payment.label))
+                .map(payment -> payment.value.add(payment.discount))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (scheduled.signum() > 0) return scheduled.add(entry);
+        return paymentsForInvoice(invoiceId).stream()
+                .filter(payment -> !payment.reversed)
+                .map(payment -> payment.value.add(payment.discount))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal invoiceReceived(int invoiceId) {
+        return paymentsForInvoice(invoiceId).stream()
+                .filter(payment -> !payment.reversed)
+                .map(payment -> payment.value)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal invoiceDiscounts(int invoiceId) {
+        return paymentsForInvoice(invoiceId).stream()
+                .filter(payment -> !payment.reversed)
+                .map(payment -> payment.discount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal invoiceBalance(int invoiceId) {
+        return invoiceTotal(invoiceId).subtract(invoiceReceived(invoiceId))
+                .subtract(invoiceDiscounts(invoiceId)).max(BigDecimal.ZERO);
+    }
+
+    /**
+     * Registra uma fatura somente depois de validar todo o conjunto. A operação
+     * continua em memória nesta versão visual e não introduz banco ou backend.
+     */
+    public void recordInvoice(Appointment appointment, List<Payment> invoicePayments,
+                              List<Installment> invoiceInstallments) {
+        if (appointment == null || appointments.stream().noneMatch(item -> item.id == appointment.id))
+            throw new IllegalArgumentException("Consulta não encontrada.");
+        if (appointment.billed) throw new IllegalArgumentException("Esta consulta já foi faturada.");
+        boolean invalidPayment = invoicePayments.stream().anyMatch(payment -> payment.appointmentId != appointment.id
+                || payment.value.signum() <= 0 || payment.discount.signum() < 0 || payment.reversed);
+        boolean invalidInstallment = invoiceInstallments.stream().anyMatch(installment -> installment.appointmentId != appointment.id
+                || installment.value.signum() <= 0 || installment.paid.signum() < 0 || installment.cancelled);
+        if (invalidPayment || invalidInstallment) throw new IllegalArgumentException("Dados da fatura inválidos.");
+
+        BigDecimal allocated = invoicePayments.stream()
+                .map(payment -> payment.value.add(payment.discount)).reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(invoiceInstallments.stream().map(item -> item.value).reduce(BigDecimal.ZERO, BigDecimal::add));
+        if (allocated.compareTo(appointment.value) != 0)
+            throw new IllegalArgumentException("Pagamentos e parcelas devem totalizar o valor da consulta.");
+
+        payments.addAll(invoicePayments);
+        installments.addAll(invoiceInstallments);
+        invoicePayments.forEach(payment -> nextPayment = Math.max(nextPayment, payment.id + 1));
+        invoiceInstallments.forEach(installment -> nextInstallment = Math.max(nextInstallment, installment.id + 1));
+        appointment.billed = true;
+        save();
+    }
+
     public BigDecimal income() {
         return payments.stream().filter(payment -> !payment.reversed)
                 .map(payment -> payment.value).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -108,7 +218,7 @@ public final class LivroCaixaModel implements Serializable {
 
     public BigDecimal pending() {
         return installments.stream().filter(item -> !item.cancelled)
-                .map(item -> item.value.subtract(item.paid))
+                .map(Installment::remaining)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

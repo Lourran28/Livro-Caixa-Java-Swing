@@ -84,7 +84,7 @@ final class FinanceListScreens {
         table.getColumnModel().getColumn(4).setPreferredWidth(135);
         table.getColumnModel().getColumn(5).setPreferredWidth(125);
         table.getColumnModel().getColumn(6).setPreferredWidth(330);
-        table.getColumnModel().getColumn(6).setCellRenderer(new DualActionRenderer("Registrar pagamento", "Detalhes", true));
+        table.getColumnModel().getColumn(6).setCellRenderer(new DualActionRenderer("Registrar pagamento", "Ver fatura", true));
         List<Installment> visible = new ArrayList<>();
 
         Runnable refresh = () -> {
@@ -112,16 +112,11 @@ final class FinanceListScreens {
                 int row = table.convertRowIndexToModel(viewRow);
                 if (row >= visible.size()) return;
                 Installment item = visible.get(row);
-                Rectangle cell = table.getCellRect(viewRow, col, true);
-                if (e.getX() - cell.x < cell.width * .68) {
+                int action = actionIndex(table, viewRow, col, e);
+                if (action == 0) {
+                    if (item.cancelled) return;
                     if (item.paid.compareTo(item.value) >= 0) frame.paymentConfirmed(item); else frame.paymentDialog(item);
-                } else {
-                    JOptionPane.showMessageDialog(frame,
-                            "Cliente: " + item.client + "\nFatura: " + item.appointmentId + "\nParcela: " + item.label
-                                    + "\nVencimento: " + LivroCaixaView.fmt(item.due) + "\nValor: " + LivroCaixaView.money(item.value)
-                                    + "\nRecebido: " + LivroCaixaView.money(item.paid),
-                            "Detalhes da parcela", JOptionPane.INFORMATION_MESSAGE);
-                }
+                } else if (action == 1) ConfirmedPaymentScreen.showInvoice(frame, item.appointmentId);
             }
         });
         refresh.run();
@@ -160,7 +155,7 @@ final class FinanceListScreens {
         List<Expense> visible=new ArrayList<>();JLabel totalValue=LivroCaixaView.title(LivroCaixaView.money(BigDecimal.ZERO),22);totalValue.setForeground(Color.WHITE);
         Runnable refresh=()->{LocalDate from=parseDateOr(start.getText(),LocalDate.MIN),to=parseDateOr(end.getText(),LocalDate.MAX);String chosenType=String.valueOf(type.getSelectedItem()),chosenEmployee=String.valueOf(employee.getSelectedItem());visible.clear();model.setRowCount(0);BigDecimal[] total={BigDecimal.ZERO};frame.store.expenses.stream().filter(x->!x.date.isBefore(from)&&!x.date.isAfter(to)).filter(x->"Todos".equals(chosenType)||x.type.equals(chosenType)).filter(x->"Todos".equals(chosenEmployee)||x.employee.equals(chosenEmployee)).forEach(x->{visible.add(x);total[0]=total[0].add(x.value);model.addRow(new Object[]{String.format("%03d",x.id),LivroCaixaView.fmt(x.date),x.type,x.employee,LivroCaixaView.money(x.value),""});});totalValue.setText(LivroCaixaView.money(total[0]));};
         apply.addActionListener(e->refresh.run());clear.addActionListener(e->{start.setText("01/11/2026");end.setText("30/11/2026");type.setSelectedIndex(0);employee.setSelectedIndex(0);refresh.run();});
-        table.addMouseListener(new MouseAdapter(){@Override public void mouseClicked(MouseEvent e){int viewRow=table.rowAtPoint(e.getPoint()),col=table.columnAtPoint(e.getPoint());if(viewRow<0||col!=5)return;int row=table.convertRowIndexToModel(viewRow);if(row>=visible.size())return;Expense item=visible.get(row);Rectangle cell=table.getCellRect(viewRow,col,true);if(e.getX()-cell.x<cell.width/2)frame.expenseDialog(item);else if(LivroCaixaView.confirm(frame,"Excluir esta saída?")){frame.store.expenses.remove(item);frame.store.save();refresh.run();}}});
+        table.addMouseListener(new MouseAdapter(){@Override public void mouseClicked(MouseEvent e){int viewRow=table.rowAtPoint(e.getPoint()),col=table.columnAtPoint(e.getPoint());if(viewRow<0||col!=5)return;int row=table.convertRowIndexToModel(viewRow);if(row>=visible.size())return;Expense item=visible.get(row);int action=actionIndex(table,viewRow,col,e);if(action==0)frame.expenseDialog(item);else if(action==1&&LivroCaixaView.confirm(frame,"Excluir a saída \""+item.type+"\" de "+LivroCaixaView.money(item.value)+"?")){frame.store.expenses.remove(item);frame.store.save();refresh.run();}}});
         refresh.run();JScrollPane scroll=new JScrollPane(table);scroll.setBorder(new LineBorder(UiKit.LINE));surface.add(scroll);
         JPanel footer=new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));footer.setOpaque(false);UiKit.RoundPanel totalBox=new UiKit.RoundPanel(13).fill(new Color(244,248,255)).shadow(false);totalBox.setLayout(new BorderLayout());totalBox.setBorder(new EmptyBorder(5,18,5,5));JLabel totalLabel=LivroCaixaView.title("Total do período",18);totalLabel.setBorder(new EmptyBorder(0,0,0,20));totalBox.add(totalLabel);UiKit.RoundPanel blue=new UiKit.RoundPanel(11).fill(new Color(25,68,210)).line(null).shadow(false);blue.setBorder(new EmptyBorder(8,20,8,20));blue.add(totalValue);totalBox.add(blue,BorderLayout.EAST);footer.add(totalBox);surface.add(footer,BorderLayout.SOUTH);
         page.add(surface);return page;
@@ -173,9 +168,22 @@ final class FinanceListScreens {
     private static LocalDate parseDateOr(String value,LocalDate fallback){try{return LivroCaixaView.parseDate(value);}catch(Exception e){return fallback;}}
     private static String installmentStatus(Installment x){if(x.cancelled)return "Cancelada";if(x.paid.compareTo(x.value)>=0)return "Pago";return x.due.isBefore(REFERENCE_DATE)?"Vencido":"Pendente";}
 
+    /** Mantém a área clicável exatamente sobre os dois botões desenhados pelo renderer. */
+    private static int actionIndex(JTable table,int viewRow,int column,MouseEvent event){
+        Rectangle cell=table.getCellRect(viewRow,column,true);
+        TableCellRenderer renderer=table.getCellRenderer(viewRow,column);
+        Component rendered=renderer.getTableCellRendererComponent(table,table.getValueAt(viewRow,column),false,false,viewRow,column);
+        if(!(rendered instanceof Container container))return -1;
+        container.setBounds(0,0,cell.width,cell.height);container.doLayout();
+        Point point=new Point(event.getX()-cell.x,event.getY()-cell.y);
+        Component[] actions=container.getComponents();
+        for(int i=0;i<actions.length;i++)if(actions[i].getBounds().contains(point))return i;
+        return -1;
+    }
+
     private static final class DualActionRenderer implements TableCellRenderer {
         private final String first,second;private final boolean primaryFirst;
         DualActionRenderer(String first,String second,boolean primaryFirst){this.first=first;this.second=second;this.primaryFirst=primaryFirst;}
-        @Override public Component getTableCellRendererComponent(JTable table,Object value,boolean selected,boolean focus,int row,int column){JPanel p=new JPanel(new FlowLayout(FlowLayout.CENTER,7,4));p.setOpaque(true);p.setBackground(selected?table.getSelectionBackground():(row&1)==0?Color.WHITE:new Color(249,251,255));boolean paid=primaryFirst&&table.getColumnCount()>5&&"Pago".equals(String.valueOf(table.getValueAt(row,5)));String firstLabel=paid?"Ver pagamentos":first;JButton a=primaryFirst&&!paid?UiKit.primary(firstLabel,"wallet"):UiKit.secondary(firstLabel,primaryFirst?"wallet":"edit");JButton b=UiKit.secondary(second,primaryFirst?"document":"trash");a.setFont(new Font("Segoe UI",Font.BOLD,12));b.setFont(new Font("Segoe UI",Font.BOLD,12));a.setBorder(new EmptyBorder(5,9,5,9));b.setBorder(new EmptyBorder(5,9,5,9));if(!primaryFirst)b.setForeground(new Color(205,23,31));p.add(a);p.add(b);return p;}
+        @Override public Component getTableCellRendererComponent(JTable table,Object value,boolean selected,boolean focus,int row,int column){JPanel p=new JPanel(new FlowLayout(FlowLayout.CENTER,7,4));p.setOpaque(true);p.setBackground(selected?table.getSelectionBackground():(row&1)==0?Color.WHITE:new Color(249,251,255));String state=primaryFirst&&table.getColumnCount()>5?String.valueOf(table.getValueAt(row,5)):"";boolean paid="Pago".equals(state),cancelled="Cancelada".equals(state);String firstLabel=cancelled?"Cancelada":paid?"Ver pagamentos":first;JButton a=cancelled?UiKit.secondary(firstLabel,"close"):primaryFirst&&!paid?UiKit.primary(firstLabel,"wallet"):UiKit.secondary(firstLabel,primaryFirst?"wallet":"edit");a.setEnabled(!cancelled);JButton b=primaryFirst?UiKit.secondary(second,"document"):new UiKit.RoundButton(second,UiKit.vectorIcon("trash",16,UiKit.RED),new Color(255,235,237),UiKit.RED);a.setFont(new Font("Segoe UI",Font.BOLD,12));b.setFont(new Font("Segoe UI",Font.BOLD,12));a.setBorder(new EmptyBorder(5,9,5,9));b.setBorder(new EmptyBorder(5,9,5,9));p.add(a);p.add(b);return p;}
     }
 }
