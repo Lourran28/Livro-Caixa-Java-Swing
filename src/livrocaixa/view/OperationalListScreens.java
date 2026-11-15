@@ -92,7 +92,7 @@ final class OperationalListScreens {
                 if (client == null) return;
                 Rectangle cell = table.getCellRect(viewRow, col, true);
                 if (e.getX() - cell.x < cell.width / 2) frame.clientDialog(client);
-                else if (LivroCaixaView.confirm(frame, "Excluir este cliente?")) {
+                else if (LivroCaixaView.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
                     frame.store.clients.remove(client); frame.store.save(); frame.showPage("Clientes");
                 }
             }
