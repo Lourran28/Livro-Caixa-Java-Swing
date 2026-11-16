@@ -17,7 +17,7 @@ import java.util.List;
 
 /** Telas financeiras de listagem, desenhadas conforme os protótipos 08 e 11. */
 final class FinanceListScreens {
-    private static final LocalDate REFERENCE_DATE = LocalDate.of(2026, 11, 5);
+    private static final LocalDate REFERENCE_DATE = LivroCaixaModel.DEMO_DATE;
 
     private FinanceListScreens() {}
 
@@ -92,8 +92,10 @@ final class FinanceListScreens {
             LocalDate to = parseDateOr(end.getText(), LocalDate.MAX);
             String chosenClient = String.valueOf(client.getSelectedItem());
             String chosenStatus = String.valueOf(status.getSelectedItem());
-            visible.clear(); model.setRowCount(0);
-            frame.store.installments.stream().filter(x -> !x.due.isBefore(from) && !x.due.isAfter(to))
+            visible.clear();
+            model.setRowCount(0);
+            frame.store.installments.stream()
+                    .filter(x -> !x.due.isBefore(from) && !x.due.isAfter(to))
                     .filter(x -> "Todos".equals(chosenClient) || x.client.equals(chosenClient))
                     .forEach(x -> {
                         String state = installmentStatus(x);
@@ -104,9 +106,16 @@ final class FinanceListScreens {
                     });
         };
         apply.addActionListener(e -> refresh.run());
-        clear.addActionListener(e -> { start.setText("01/11/2026"); end.setText("30/11/2026"); client.setSelectedIndex(0); status.setSelectedIndex(0); refresh.run(); });
+        clear.addActionListener(e -> {
+            start.setText("01/11/2026");
+            end.setText("30/11/2026");
+            client.setSelectedIndex(0);
+            status.setSelectedIndex(0);
+            refresh.run();
+        });
         table.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
+            @Override
+            public void mouseClicked(MouseEvent e) {
                 int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
                 if (viewRow < 0 || col != 6) return;
                 int row = table.convertRowIndexToModel(viewRow);
@@ -115,8 +124,14 @@ final class FinanceListScreens {
                 int action = actionIndex(table, viewRow, col, e);
                 if (action == 0) {
                     if (item.cancelled) return;
-                    if (item.paid.compareTo(item.value) >= 0) frame.paymentConfirmed(item); else frame.paymentDialog(item);
-                } else if (action == 1) ConfirmedPaymentScreen.showInvoice(frame, item.appointmentId);
+                    if (item.paid.compareTo(item.value) >= 0) {
+                        frame.paymentConfirmed(item);
+                    } else {
+                        frame.paymentDialog(item);
+                    }
+                } else if (action == 1) {
+                    ConfirmedPaymentScreen.showInvoice(frame, item.appointmentId);
+                }
             }
         });
         refresh.run();
@@ -134,56 +149,256 @@ final class FinanceListScreens {
         surface.setBorder(new EmptyBorder(17, 18, 17, 18));
 
         JPanel top = new JPanel();
-        top.setOpaque(false); top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
-        JLabel heading = LivroCaixaView.title("Controle de saídas", 29); heading.setAlignmentX(Component.LEFT_ALIGNMENT); top.add(heading); top.add(Box.createVerticalStrut(12));
-        JTextField start = LivroCaixaView.modernField("01/11/2026"), end = LivroCaixaView.modernField("30/11/2026");
-        JComboBox<String> type = new JComboBox<>(); type.addItem("Todos"); frame.store.expenseTypes.forEach(type::addItem);
+        top.setOpaque(false);
+        top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+        JLabel heading = LivroCaixaView.title("Controle de saídas", 29);
+        heading.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.add(heading);
+        top.add(Box.createVerticalStrut(12));
+
+        JTextField start = LivroCaixaView.modernField("01/11/2026");
+        JTextField end = LivroCaixaView.modernField("30/11/2026");
+        JComboBox<String> type = new JComboBox<>();
+        type.addItem("Todos");
+        frame.store.expenseTypes.forEach(type::addItem);
         JComboBox<String> employee = new JComboBox<>(new String[]{"Todos", frame.employee, "Bruno Reis"});
         UiKit.RoundPanel filters = new UiKit.RoundPanel(14).fill(new Color(245, 248, 255)).shadow(false);
-        filters.setBorder(new EmptyBorder(11, 12, 11, 12)); filters.setLayout(new GridBagLayout());
+        filters.setBorder(new EmptyBorder(11, 12, 11, 12));
+        filters.setLayout(new GridBagLayout());
         GridBagConstraints gc = constraints();
-        addFilter(filters, gc, 0, "Data inicial", start, 1.0); addFilter(filters, gc, 1, "Data final", end, 1.0);
-        addFilter(filters, gc, 2, "Tipo de saída", type, 1.15); addFilter(filters, gc, 3, "Funcionário", employee, 1.0);
-        JButton apply = UiKit.primary("Aplicar filtros", "filter"), clear = UiKit.secondary("Limpar", "refresh");
-        gc.gridx=4;gc.weightx=0;gc.fill=GridBagConstraints.NONE;gc.anchor=GridBagConstraints.SOUTH;gc.insets=new Insets(20,8,0,0);filters.add(apply,gc);
-        gc.gridx=5;filters.add(clear,gc);filters.setAlignmentX(Component.LEFT_ALIGNMENT);top.add(filters);top.add(Box.createVerticalStrut(11));
-        JPanel addRow=new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));addRow.setOpaque(false);JButton add=UiKit.primary("Nova saída","plus");add.addActionListener(e->frame.expenseDialog(null));addRow.add(add);addRow.setAlignmentX(Component.LEFT_ALIGNMENT);top.add(addRow);
-        surface.add(top,BorderLayout.NORTH);
+        addFilter(filters, gc, 0, "Data inicial", start, 1.0);
+        addFilter(filters, gc, 1, "Data final", end, 1.0);
+        addFilter(filters, gc, 2, "Tipo de saída", type, 1.15);
+        addFilter(filters, gc, 3, "Funcionário", employee, 1.0);
+        JButton apply = UiKit.primary("Aplicar filtros", "filter");
+        JButton clear = UiKit.secondary("Limpar", "refresh");
+        gc.gridx = 4;
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE;
+        gc.anchor = GridBagConstraints.SOUTH;
+        gc.insets = new Insets(20, 8, 0, 0);
+        filters.add(apply, gc);
+        gc.gridx = 5;
+        filters.add(clear, gc);
+        filters.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.add(filters);
+        top.add(Box.createVerticalStrut(11));
 
-        String[] columns={"Código","Data","Tipo de saída","Funcionário","Valor","Ações"};DefaultTableModel model=readOnlyModel(columns);JTable table=UiKit.modernTable(model);table.setRowHeight(43);
-        table.getColumnModel().getColumn(0).setMaxWidth(115);table.getColumnModel().getColumn(1).setPreferredWidth(145);table.getColumnModel().getColumn(4).setPreferredWidth(165);table.getColumnModel().getColumn(5).setPreferredWidth(225);table.getColumnModel().getColumn(5).setCellRenderer(new DualActionRenderer("Editar","Excluir",false));
-        List<Expense> visible=new ArrayList<>();JLabel totalValue=LivroCaixaView.title(LivroCaixaView.money(BigDecimal.ZERO),22);totalValue.setForeground(Color.WHITE);
-        Runnable refresh=()->{LocalDate from=parseDateOr(start.getText(),LocalDate.MIN),to=parseDateOr(end.getText(),LocalDate.MAX);String chosenType=String.valueOf(type.getSelectedItem()),chosenEmployee=String.valueOf(employee.getSelectedItem());visible.clear();model.setRowCount(0);BigDecimal[] total={BigDecimal.ZERO};frame.store.expenses.stream().filter(x->!x.date.isBefore(from)&&!x.date.isAfter(to)).filter(x->"Todos".equals(chosenType)||x.type.equals(chosenType)).filter(x->"Todos".equals(chosenEmployee)||x.employee.equals(chosenEmployee)).forEach(x->{visible.add(x);total[0]=total[0].add(x.value);model.addRow(new Object[]{String.format("%03d",x.id),LivroCaixaView.fmt(x.date),x.type,x.employee,LivroCaixaView.money(x.value),""});});totalValue.setText(LivroCaixaView.money(total[0]));};
-        apply.addActionListener(e->refresh.run());clear.addActionListener(e->{start.setText("01/11/2026");end.setText("30/11/2026");type.setSelectedIndex(0);employee.setSelectedIndex(0);refresh.run();});
-        table.addMouseListener(new MouseAdapter(){@Override public void mouseClicked(MouseEvent e){int viewRow=table.rowAtPoint(e.getPoint()),col=table.columnAtPoint(e.getPoint());if(viewRow<0||col!=5)return;int row=table.convertRowIndexToModel(viewRow);if(row>=visible.size())return;Expense item=visible.get(row);int action=actionIndex(table,viewRow,col,e);if(action==0)frame.expenseDialog(item);else if(action==1&&LivroCaixaView.confirm(frame,"Excluir a saída \""+item.type+"\" de "+LivroCaixaView.money(item.value)+"?")){frame.store.expenses.remove(item);frame.store.save();refresh.run();}}});
-        refresh.run();JScrollPane scroll=new JScrollPane(table);scroll.setBorder(new LineBorder(UiKit.LINE));surface.add(scroll);
-        JPanel footer=new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));footer.setOpaque(false);UiKit.RoundPanel totalBox=new UiKit.RoundPanel(13).fill(new Color(244,248,255)).shadow(false);totalBox.setLayout(new BorderLayout());totalBox.setBorder(new EmptyBorder(5,18,5,5));JLabel totalLabel=LivroCaixaView.title("Total do período",18);totalLabel.setBorder(new EmptyBorder(0,0,0,20));totalBox.add(totalLabel);UiKit.RoundPanel blue=new UiKit.RoundPanel(11).fill(new Color(25,68,210)).line(null).shadow(false);blue.setBorder(new EmptyBorder(8,20,8,20));blue.add(totalValue);totalBox.add(blue,BorderLayout.EAST);footer.add(totalBox);surface.add(footer,BorderLayout.SOUTH);
-        page.add(surface);return page;
+        JPanel addRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        addRow.setOpaque(false);
+        JButton add = UiKit.primary("Nova saída", "plus");
+        add.addActionListener(e -> frame.expenseDialog(null));
+        addRow.add(add);
+        addRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        top.add(addRow);
+        surface.add(top, BorderLayout.NORTH);
+
+        String[] columns = {"Código", "Data", "Tipo de saída", "Funcionário", "Valor", "Ações"};
+        DefaultTableModel model = readOnlyModel(columns);
+        JTable table = UiKit.modernTable(model);
+        table.setRowHeight(43);
+        table.getColumnModel().getColumn(0).setMaxWidth(115);
+        table.getColumnModel().getColumn(1).setPreferredWidth(145);
+        table.getColumnModel().getColumn(4).setPreferredWidth(165);
+        table.getColumnModel().getColumn(5).setPreferredWidth(225);
+        table.getColumnModel().getColumn(5).setCellRenderer(new DualActionRenderer("Editar", "Excluir", false));
+
+        List<Expense> visible = new ArrayList<>();
+        JLabel totalValue = LivroCaixaView.title(LivroCaixaView.money(BigDecimal.ZERO), 22);
+        totalValue.setForeground(Color.WHITE);
+        Runnable refresh = () -> {
+            LocalDate from = parseDateOr(start.getText(), LocalDate.MIN);
+            LocalDate to = parseDateOr(end.getText(), LocalDate.MAX);
+            String chosenType = String.valueOf(type.getSelectedItem());
+            String chosenEmployee = String.valueOf(employee.getSelectedItem());
+            visible.clear();
+            model.setRowCount(0);
+            BigDecimal[] total = {BigDecimal.ZERO};
+            frame.store.expenses.stream()
+                    .filter(x -> !x.date.isBefore(from) && !x.date.isAfter(to))
+                    .filter(x -> "Todos".equals(chosenType) || x.type.equals(chosenType))
+                    .filter(x -> "Todos".equals(chosenEmployee) || x.employee.equals(chosenEmployee))
+                    .forEach(x -> {
+                        visible.add(x);
+                        total[0] = total[0].add(x.value);
+                        model.addRow(new Object[]{String.format("%03d", x.id), LivroCaixaView.fmt(x.date),
+                                x.type, x.employee, LivroCaixaView.money(x.value), ""});
+                    });
+            totalValue.setText(LivroCaixaView.money(total[0]));
+        };
+        apply.addActionListener(e -> refresh.run());
+        clear.addActionListener(e -> {
+            start.setText("01/11/2026");
+            end.setText("30/11/2026");
+            type.setSelectedIndex(0);
+            employee.setSelectedIndex(0);
+            refresh.run();
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int viewRow = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (viewRow < 0 || col != 5) return;
+                int row = table.convertRowIndexToModel(viewRow);
+                if (row >= visible.size()) return;
+                Expense item = visible.get(row);
+                int action = actionIndex(table, viewRow, col, e);
+                if (action == 0) {
+                    frame.expenseDialog(item);
+                } else if (action == 1 && LivroCaixaView.confirm(frame,
+                        "Excluir a saída \"" + item.type + "\" de " + LivroCaixaView.money(item.value) + "?")) {
+                    frame.store.removeExpense(item);
+                    refresh.run();
+                }
+            }
+        });
+
+        refresh.run();
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(new LineBorder(UiKit.LINE));
+        surface.add(scroll);
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        footer.setOpaque(false);
+        UiKit.RoundPanel totalBox = new UiKit.RoundPanel(13).fill(new Color(244, 248, 255)).shadow(false);
+        totalBox.setLayout(new BorderLayout());
+        totalBox.setBorder(new EmptyBorder(5, 18, 5, 5));
+        JLabel totalLabel = LivroCaixaView.title("Total do período", 18);
+        totalLabel.setBorder(new EmptyBorder(0, 0, 0, 20));
+        totalBox.add(totalLabel);
+        UiKit.RoundPanel blue = new UiKit.RoundPanel(11).fill(new Color(25, 68, 210)).line(null).shadow(false);
+        blue.setBorder(new EmptyBorder(8, 20, 8, 20));
+        blue.add(totalValue);
+        totalBox.add(blue, BorderLayout.EAST);
+        footer.add(totalBox);
+        surface.add(footer, BorderLayout.SOUTH);
+
+        page.add(surface);
+        return page;
     }
 
-    private static UiKit.RoundPanel financialCard(String label,String value,Color color,Color fill,String icon){UiKit.RoundPanel card=new UiKit.RoundPanel(15).fill(fill).line(new Color(color.getRed(),color.getGreen(),color.getBlue(),105)).shadow(false);card.setLayout(new BorderLayout(14,0));card.setBorder(new EmptyBorder(17,22,17,22));JLabel glyph=new JLabel(UiKit.vectorIcon(icon,48,color));glyph.setBorder(new EmptyBorder(0,0,0,18));card.add(glyph,BorderLayout.WEST);JPanel text=new JPanel();text.setOpaque(false);text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));text.add(LivroCaixaView.title(label,20));text.add(Box.createVerticalStrut(8));JLabel amount=LivroCaixaView.title(value,28);amount.setForeground(color);text.add(amount);card.add(text);return card;}
-    private static GridBagConstraints constraints(){GridBagConstraints gc=new GridBagConstraints();gc.gridy=0;gc.weighty=1;gc.fill=GridBagConstraints.HORIZONTAL;gc.anchor=GridBagConstraints.WEST;return gc;}
-    private static void addFilter(JPanel target,GridBagConstraints base,int x,String label,JComponent field,double weight){GridBagConstraints gc=(GridBagConstraints)base.clone();gc.gridx=x;gc.weightx=weight;gc.insets=new Insets(0,x==0?0:8,0,0);JPanel box=new JPanel(new BorderLayout(0,4));box.setOpaque(false);JLabel l=new JLabel(label);l.setFont(new Font("Segoe UI",Font.BOLD,15));box.add(l,BorderLayout.NORTH);field.setPreferredSize(new Dimension(150,39));box.add(field);target.add(box,gc);}
-    private static DefaultTableModel readOnlyModel(String[] columns){return new DefaultTableModel(columns,0){@Override public boolean isCellEditable(int r,int c){return false;}};}
-    private static LocalDate parseDateOr(String value,LocalDate fallback){try{return LivroCaixaView.parseDate(value);}catch(Exception e){return fallback;}}
-    private static String installmentStatus(Installment x){if(x.cancelled)return "Cancelada";if(x.paid.compareTo(x.value)>=0)return "Pago";return x.due.isBefore(REFERENCE_DATE)?"Vencido":"Pendente";}
+    private static UiKit.RoundPanel financialCard(String label, String value, Color color, Color fill, String icon) {
+        UiKit.RoundPanel card = new UiKit.RoundPanel(15).fill(fill)
+                .line(new Color(color.getRed(), color.getGreen(), color.getBlue(), 105)).shadow(false);
+        card.setLayout(new BorderLayout(14, 0));
+        card.setBorder(new EmptyBorder(17, 22, 17, 22));
+        JLabel glyph = new JLabel(UiKit.vectorIcon(icon, 48, color));
+        glyph.setBorder(new EmptyBorder(0, 0, 0, 18));
+        card.add(glyph, BorderLayout.WEST);
+        JPanel text = new JPanel();
+        text.setOpaque(false);
+        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+        text.add(LivroCaixaView.title(label, 20));
+        text.add(Box.createVerticalStrut(8));
+        JLabel amount = LivroCaixaView.title(value, 28);
+        amount.setForeground(color);
+        text.add(amount);
+        card.add(text);
+        return card;
+    }
+
+    private static GridBagConstraints constraints() {
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridy = 0;
+        gc.weighty = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.WEST;
+        return gc;
+    }
+
+    private static void addFilter(JPanel target, GridBagConstraints base, int x, String label,
+                                  JComponent field, double weight) {
+        GridBagConstraints gc = (GridBagConstraints) base.clone();
+        gc.gridx = x;
+        gc.weightx = weight;
+        gc.insets = new Insets(0, x == 0 ? 0 : 8, 0, 0);
+        JPanel box = new JPanel(new BorderLayout(0, 4));
+        box.setOpaque(false);
+        JLabel l = new JLabel(label);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        box.add(l, BorderLayout.NORTH);
+        field.setPreferredSize(new Dimension(150, 39));
+        box.add(field);
+        target.add(box, gc);
+    }
+
+    private static DefaultTableModel readOnlyModel(String[] columns) {
+        return new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+    }
+
+    private static LocalDate parseDateOr(String value, LocalDate fallback) {
+        try {
+            return LivroCaixaView.parseDate(value);
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    private static String installmentStatus(Installment x) {
+        if (x.cancelled) return "Cancelada";
+        if (x.paid.compareTo(x.value) >= 0) return "Pago";
+        return x.due.isBefore(REFERENCE_DATE) ? "Vencido" : "Pendente";
+    }
 
     /** Mantém a área clicável exatamente sobre os dois botões desenhados pelo renderer. */
-    private static int actionIndex(JTable table,int viewRow,int column,MouseEvent event){
-        Rectangle cell=table.getCellRect(viewRow,column,true);
-        TableCellRenderer renderer=table.getCellRenderer(viewRow,column);
-        Component rendered=renderer.getTableCellRendererComponent(table,table.getValueAt(viewRow,column),false,false,viewRow,column);
-        if(!(rendered instanceof Container container))return -1;
-        container.setBounds(0,0,cell.width,cell.height);container.doLayout();
-        Point point=new Point(event.getX()-cell.x,event.getY()-cell.y);
-        Component[] actions=container.getComponents();
-        for(int i=0;i<actions.length;i++)if(actions[i].getBounds().contains(point))return i;
+    private static int actionIndex(JTable table, int viewRow, int column, MouseEvent event) {
+        Rectangle cell = table.getCellRect(viewRow, column, true);
+        TableCellRenderer renderer = table.getCellRenderer(viewRow, column);
+        Component rendered = renderer.getTableCellRendererComponent(
+                table, table.getValueAt(viewRow, column), false, false, viewRow, column);
+        if (!(rendered instanceof Container container)) return -1;
+        container.setBounds(0, 0, cell.width, cell.height);
+        container.doLayout();
+        Point point = new Point(event.getX() - cell.x, event.getY() - cell.y);
+        Component[] actions = container.getComponents();
+        for (int i = 0; i < actions.length; i++) {
+            if (actions[i].getBounds().contains(point)) return i;
+        }
         return -1;
     }
 
     private static final class DualActionRenderer implements TableCellRenderer {
-        private final String first,second;private final boolean primaryFirst;
-        DualActionRenderer(String first,String second,boolean primaryFirst){this.first=first;this.second=second;this.primaryFirst=primaryFirst;}
-        @Override public Component getTableCellRendererComponent(JTable table,Object value,boolean selected,boolean focus,int row,int column){JPanel p=new JPanel(new FlowLayout(FlowLayout.CENTER,7,4));p.setOpaque(true);p.setBackground(selected?table.getSelectionBackground():(row&1)==0?Color.WHITE:new Color(249,251,255));String state=primaryFirst&&table.getColumnCount()>5?String.valueOf(table.getValueAt(row,5)):"";boolean paid="Pago".equals(state),cancelled="Cancelada".equals(state);String firstLabel=cancelled?"Cancelada":paid?"Ver pagamentos":first;JButton a=cancelled?UiKit.secondary(firstLabel,"close"):primaryFirst&&!paid?UiKit.primary(firstLabel,"wallet"):UiKit.secondary(firstLabel,primaryFirst?"wallet":"edit");a.setEnabled(!cancelled);JButton b=primaryFirst?UiKit.secondary(second,"document"):new UiKit.RoundButton(second,UiKit.vectorIcon("trash",16,UiKit.RED),new Color(255,235,237),UiKit.RED);a.setFont(new Font("Segoe UI",Font.BOLD,12));b.setFont(new Font("Segoe UI",Font.BOLD,12));a.setBorder(new EmptyBorder(5,9,5,9));b.setBorder(new EmptyBorder(5,9,5,9));p.add(a);p.add(b);return p;}
+        private final String first, second;
+        private final boolean primaryFirst;
+
+        DualActionRenderer(String first, String second, boolean primaryFirst) {
+            this.first = first;
+            this.second = second;
+            this.primaryFirst = primaryFirst;
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus,
+                                                       int row, int column) {
+            JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, 7, 4));
+            p.setOpaque(true);
+            p.setBackground(selected ? table.getSelectionBackground()
+                    : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
+            String state = primaryFirst && table.getColumnCount() > 5
+                    ? String.valueOf(table.getValueAt(row, 5)) : "";
+            boolean paid = "Pago".equals(state);
+            boolean cancelled = "Cancelada".equals(state);
+            String firstLabel = cancelled ? "Cancelada" : paid ? "Ver pagamentos" : first;
+            JButton a = cancelled ? UiKit.secondary(firstLabel, "close")
+                    : primaryFirst && !paid ? UiKit.primary(firstLabel, "wallet")
+                    : UiKit.secondary(firstLabel, primaryFirst ? "wallet" : "edit");
+            a.setEnabled(!cancelled);
+            JButton b = primaryFirst ? UiKit.secondary(second, "document")
+                    : new UiKit.RoundButton(second, UiKit.vectorIcon("trash", 16, UiKit.RED),
+                    new Color(255, 235, 237), UiKit.RED);
+            a.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            a.setBorder(new EmptyBorder(5, 9, 5, 9));
+            b.setBorder(new EmptyBorder(5, 9, 5, 9));
+            p.add(a);
+            p.add(b);
+            return p;
+        }
     }
 }

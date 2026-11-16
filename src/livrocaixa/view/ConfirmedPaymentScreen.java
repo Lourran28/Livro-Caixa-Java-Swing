@@ -20,7 +20,7 @@ import java.util.List;
 
 /** Tela visual do fluxo 10: confirmação, resumo e desfazer baixa. */
 final class ConfirmedPaymentScreen {
-    private static final LocalDate REFERENCE_DATE = LocalDate.of(2026, 11, 5);
+    private static final LocalDate REFERENCE_DATE = LivroCaixaModel.DEMO_DATE;
 
     private ConfirmedPaymentScreen() {}
 
@@ -392,8 +392,7 @@ final class ConfirmedPaymentScreen {
                 if (row >= payments.size()) return;
                 Payment payment = payments.get(row);
                 if (LivroCaixaView.confirm(frame, "Desfazer a baixa de " + LivroCaixaView.money(payment.value) + " via " + payment.method + "?")) {
-                    payment.reversed = true;
-                    item.paid = item.paid.subtract(payment.value.add(payment.discount)).max(BigDecimal.ZERO);
+                    frame.store.reversePayment(item, payment);
                     frame.paymentConfirmed(item);
                 }
             }
