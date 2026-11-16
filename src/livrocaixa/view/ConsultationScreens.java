@@ -63,7 +63,8 @@ final class ConsultationScreens {
         styleCombo(client); styleCombo(type); styleCombo(employee);
         // O texto mais longo precisa caber também na janela padrão de 1500 px.
         type.setFont(new Font("Segoe UI", Font.PLAIN, 19));
-        JTextField date = LivroCaixaView.modernField(LivroCaixaView.fmt(edit == null ? LocalDate.of(2026, 11, 5) : edit.date));
+        JTextField date = LivroCaixaView.modernField(LivroCaixaView.fmt(
+                edit == null ? LivroCaixaModel.DEMO_DATE : edit.date));
         date.setFont(new Font("Segoe UI", Font.PLAIN, 21));
         JTextArea notes = new JTextArea(edit == null ? "Retorno em 30 dias." : edit.notes, 5, 30);
         notes.setLineWrap(true);
@@ -154,18 +155,9 @@ final class ConsultationScreens {
         save.addActionListener(e -> frame.showPage("Consultas"));
         saveAndBill.addActionListener(e -> {
             try {
-                // Registro temporário usado somente para abrir a próxima etapa do protótipo.
-                Appointment demo = new Appointment(
-                        105,
-                        String.valueOf(client.getSelectedItem()),
-                        String.valueOf(type.getSelectedItem()),
-                        LivroCaixaView.parseDate(date.getText()),
-                        String.valueOf(employee.getSelectedItem()),
-                        new BigDecimal("1400.00"),
-                        notes.getText(),
-                        false
-                );
-                frame.billingDialog(demo);
+                Appointment appointment = saveAppointment(
+                        frame, edit, client, type, date, employee, notes);
+                frame.billingDialog(appointment);
             } catch (Exception ex) {
                 LivroCaixaView.error(frame, "Revise a data informada.");
             }
@@ -176,6 +168,22 @@ final class ConsultationScreens {
 
         page.add(surface);
         frame.showCustom("Consultas", page);
+    }
+
+    private static Appointment saveAppointment(LivroCaixaView.MainFrame frame, Appointment edit,
+                                               JComboBox<String> client, JComboBox<String> type,
+                                               JTextField date, JComboBox<String> employee,
+                                               JTextArea notes) {
+        BigDecimal value = edit == null ? new BigDecimal("1400.00") : edit.value;
+        return frame.store.saveAppointment(
+                edit,
+                String.valueOf(client.getSelectedItem()),
+                String.valueOf(type.getSelectedItem()),
+                LivroCaixaView.parseDate(date.getText()),
+                String.valueOf(employee.getSelectedItem()),
+                value,
+                notes.getText()
+        );
     }
 
     private static void styleCombo(JComboBox<?> combo) {

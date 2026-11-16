@@ -54,25 +54,119 @@ public final class LivroCaixaView {
         private final LivroCaixaController controller;
 
         LoginFrame(LivroCaixaController controller) {
-            super("Livro Caixa");setIconImage(appIcon()); setDefaultCloseOperation(EXIT_ON_CLOSE); setSize(1200, 675); setMinimumSize(new Dimension(980,580)); setLocationRelativeTo(null); setResizable(true);
+            super("Livro Caixa");
+            setIconImage(appIcon());
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
+            setSize(1200, 675);
+            setMinimumSize(new Dimension(980,580));
+            setLocationRelativeTo(null);
+            setResizable(true);
             this.controller = Objects.requireNonNull(controller, "controller");
-            JPanel root = new JPanel(new BorderLayout()); root.setBackground(new Color(246,249,255));
-            UiKit.GradientPanel brand = new UiKit.GradientPanel(new Color(3,39,68), new Color(9,75,115), false); brand.setPreferredSize(new Dimension(340, 0)); brand.setLayout(new GridBagLayout());
-            JPanel brandContent = new JPanel(); brandContent.setOpaque(false); brandContent.setLayout(new BoxLayout(brandContent,BoxLayout.Y_AXIS));
-            JLabel mark = new JLabel(UiKit.vectorIcon("wallet",66,Color.WHITE)); mark.setAlignmentX(.5f); brandContent.add(mark); brandContent.add(Box.createVerticalStrut(20));
-            JLabel logo = new JLabel("Livro Caixa"); logo.setForeground(Color.WHITE); logo.setFont(new Font("Segoe UI", Font.BOLD, 32)); logo.setAlignmentX(.5f); brandContent.add(logo);
-            JLabel brandSub = new JLabel("CONTROLE FINANCEIRO"); brandSub.setForeground(new Color(190,220,240)); brandSub.setFont(new Font("Segoe UI",Font.PLAIN,12)); brandSub.setAlignmentX(.5f); brandContent.add(Box.createVerticalStrut(9)); brandContent.add(brandSub); brand.add(brandContent);
-            JPanel form = new JPanel(new GridBagLayout()); form.setOpaque(false); UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(Color.WHITE); card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS)); card.setBorder(new EmptyBorder(28,38,24,38)); card.setPreferredSize(new Dimension(500, 430));
-            JLabel title = title("Acesso ao sistema", 30); title.setForeground(new Color(13,30,58)); title.setAlignmentX(.5f); card.add(title);
-            JLabel sub = new JLabel("Informe seus dados para continuar"); sub.setAlignmentX(.5f); sub.setForeground(new Color(100,112,132)); card.add(Box.createVerticalStrut(4)); card.add(sub); card.add(Box.createVerticalStrut(26));
-            JTextField user = modernField("Ana Souza"); JPasswordField pass = modernPassword("123456");
-            JPanel userGroup=labeled("Nome do funcionário",user),passGroup=labeled("Senha",pass);Dimension loginFieldSize=new Dimension(424,76);userGroup.setPreferredSize(loginFieldSize);userGroup.setMinimumSize(loginFieldSize);userGroup.setMaximumSize(loginFieldSize);userGroup.setAlignmentX(.5f);passGroup.setPreferredSize(loginFieldSize);passGroup.setMinimumSize(loginFieldSize);passGroup.setMaximumSize(loginFieldSize);passGroup.setAlignmentX(.5f);card.add(userGroup);card.add(Box.createVerticalStrut(8));card.add(passGroup);
-            JCheckBox show = new JCheckBox("Mostrar senha"); show.setOpaque(false); show.setForeground(new Color(70,82,105)); show.addActionListener(e -> pass.setEchoChar(show.isSelected() ? (char)0 : '•'));JPanel checkRow=new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));checkRow.setOpaque(false);checkRow.setPreferredSize(new Dimension(424,28));checkRow.setMinimumSize(new Dimension(424,28));checkRow.setMaximumSize(new Dimension(424,28));checkRow.setAlignmentX(.5f);checkRow.add(show);card.add(checkRow);
-            JButton enter = new UiKit.RoundButton("Entrar",UiKit.vectorIcon("logout",22,Color.WHITE),BLUE,Color.WHITE); enter.setAlignmentX(.5f); enter.setMaximumSize(new Dimension(424, 50)); enter.setPreferredSize(new Dimension(424,50));
-            enter.addActionListener(e -> { if (user.getText().isBlank() || pass.getPassword().length == 0) error(this,"Preencha usuário e senha."); else { dispose(); new MainFrame(controller, user.getText().trim()).setVisible(true); }});
-            card.add(Box.createVerticalStrut(16)); card.add(enter); card.add(Box.createVerticalStrut(18)); JSeparator line=new JSeparator();line.setMaximumSize(new Dimension(Integer.MAX_VALUE,1));card.add(line);card.add(Box.createVerticalStrut(10));
-            JLabel foot=new JLabel("Controle financeiro");foot.setForeground(new Color(135,145,160));foot.setFont(new Font("Segoe UI",Font.PLAIN,12));foot.setAlignmentX(.5f);card.add(foot);
-            form.add(card); root.add(brand, BorderLayout.WEST); root.add(form); setContentPane(root); getRootPane().setDefaultButton(enter);
+            JPanel root = new JPanel(new BorderLayout());
+            root.setBackground(new Color(246,249,255));
+
+            UiKit.GradientPanel brand = new UiKit.GradientPanel(
+                    new Color(3,39,68), new Color(9,75,115), false);
+            brand.setPreferredSize(new Dimension(340, 0));
+            brand.setLayout(new GridBagLayout());
+            JPanel brandContent = new JPanel();
+            brandContent.setOpaque(false);
+            brandContent.setLayout(new BoxLayout(brandContent,BoxLayout.Y_AXIS));
+            JLabel mark = new JLabel(UiKit.vectorIcon("wallet",66,Color.WHITE));
+            mark.setAlignmentX(.5f);
+            brandContent.add(mark);
+            brandContent.add(Box.createVerticalStrut(20));
+            JLabel logo = new JLabel("Livro Caixa");
+            logo.setForeground(Color.WHITE);
+            logo.setFont(new Font("Segoe UI", Font.BOLD, 32));
+            logo.setAlignmentX(.5f);
+            brandContent.add(logo);
+            JLabel brandSub = new JLabel("CONTROLE FINANCEIRO");
+            brandSub.setForeground(new Color(190,220,240));
+            brandSub.setFont(new Font("Segoe UI",Font.PLAIN,12));
+            brandSub.setAlignmentX(.5f);
+            brandContent.add(Box.createVerticalStrut(9));
+            brandContent.add(brandSub);
+            brand.add(brandContent);
+
+            JPanel form = new JPanel(new GridBagLayout());
+            form.setOpaque(false);
+            UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(Color.WHITE);
+            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+            card.setBorder(new EmptyBorder(28,38,24,38));
+            card.setPreferredSize(new Dimension(500, 430));
+            JLabel title = title("Acesso ao sistema", 30);
+            title.setForeground(new Color(13,30,58));
+            title.setAlignmentX(.5f);
+            card.add(title);
+            JLabel sub = new JLabel("Informe seus dados para continuar");
+            sub.setAlignmentX(.5f);
+            sub.setForeground(new Color(100,112,132));
+            card.add(Box.createVerticalStrut(4));
+            card.add(sub);
+            card.add(Box.createVerticalStrut(26));
+
+            JTextField user = modernField("Ana Souza");
+            JPasswordField pass = modernPassword("123456");
+            JPanel userGroup = labeled("Nome do funcionário",user);
+            JPanel passGroup = labeled("Senha",pass);
+            Dimension loginFieldSize = new Dimension(424,76);
+            userGroup.setPreferredSize(loginFieldSize);
+            userGroup.setMinimumSize(loginFieldSize);
+            userGroup.setMaximumSize(loginFieldSize);
+            userGroup.setAlignmentX(.5f);
+            passGroup.setPreferredSize(loginFieldSize);
+            passGroup.setMinimumSize(loginFieldSize);
+            passGroup.setMaximumSize(loginFieldSize);
+            passGroup.setAlignmentX(.5f);
+            card.add(userGroup);
+            card.add(Box.createVerticalStrut(8));
+            card.add(passGroup);
+
+            JCheckBox show = new JCheckBox("Mostrar senha");
+            show.setOpaque(false);
+            show.setForeground(new Color(70,82,105));
+            show.addActionListener(e -> pass.setEchoChar(show.isSelected() ? (char)0 : '•'));
+            JPanel checkRow = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+            checkRow.setOpaque(false);
+            checkRow.setPreferredSize(new Dimension(424,28));
+            checkRow.setMinimumSize(new Dimension(424,28));
+            checkRow.setMaximumSize(new Dimension(424,28));
+            checkRow.setAlignmentX(.5f);
+            checkRow.add(show);
+            card.add(checkRow);
+
+            JButton enter = new UiKit.RoundButton(
+                    "Entrar",UiKit.vectorIcon("logout",22,Color.WHITE),BLUE,Color.WHITE);
+            enter.setAlignmentX(.5f);
+            enter.setMaximumSize(new Dimension(424, 50));
+            enter.setPreferredSize(new Dimension(424,50));
+            enter.addActionListener(e -> {
+                if (user.getText().isBlank() || pass.getPassword().length == 0) {
+                    error(this,"Preencha usuário e senha.");
+                } else {
+                    dispose();
+                    new MainFrame(controller, user.getText().trim()).setVisible(true);
+                }
+            });
+            card.add(Box.createVerticalStrut(16));
+            card.add(enter);
+            card.add(Box.createVerticalStrut(18));
+            JSeparator line = new JSeparator();
+            line.setMaximumSize(new Dimension(Integer.MAX_VALUE,1));
+            card.add(line);
+            card.add(Box.createVerticalStrut(10));
+            JLabel foot = new JLabel("Controle financeiro");
+            foot.setForeground(new Color(135,145,160));
+            foot.setFont(new Font("Segoe UI",Font.PLAIN,12));
+            foot.setAlignmentX(.5f);
+            card.add(foot);
+
+            form.add(card);
+            root.add(brand, BorderLayout.WEST);
+            root.add(form);
+            setContentPane(root);
+            getRootPane().setDefaultButton(enter);
         }
     }
 
@@ -84,26 +178,125 @@ public final class LivroCaixaView {
     static final class MainFrame extends JFrame {
         final LivroCaixaController controller;
         final LivroCaixaModel store;
-        final String employee; final JPanel content = new JPanel(new BorderLayout()); final JLabel pageTitle = title("Painel", 30);
+        final String employee;
+        final JPanel content = new JPanel(new BorderLayout());
+        final JLabel pageTitle = title("Painel", 30);
         final Map<String,JButton> nav = new LinkedHashMap<>();
+
         MainFrame(LivroCaixaController controller, String employee) {
-            super("Livro Caixa");setIconImage(appIcon()); this.controller=Objects.requireNonNull(controller, "controller"); this.store=controller.getModel(); this.employee=employee; setDefaultCloseOperation(EXIT_ON_CLOSE); setMinimumSize(new Dimension(1180,700)); setSize(1500,850); setLocationRelativeTo(null);setExtendedState(JFrame.MAXIMIZED_BOTH);
-            JPanel shell = new JPanel(new BorderLayout()); UiKit.GradientPanel side = new UiKit.GradientPanel(new Color(4,38,67),new Color(9,71,108),false); side.setPreferredSize(new Dimension(280,0)); side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
-            JLabel logo = new JLabel("Livro Caixa"); logo.setIcon(UiKit.vectorIcon("wallet",38,Color.WHITE)); logo.setIconTextGap(13); logo.setForeground(Color.WHITE); logo.setFont(new Font("Segoe UI",Font.BOLD,31)); logo.setBorder(new EmptyBorder(26,24,36,10)); logo.setAlignmentX(LEFT_ALIGNMENT); side.add(logo);
-            addNav(side,"Painel","home"); addNav(side,"Clientes","user"); addNav(side,"Consultas","calendar"); addNav(side,"Contas a receber","coins"); addNav(side,"Saídas","swap"); addNav(side,"Relatórios","chart"); addNav(side,"Configurações","gear");
-            JPanel right = new JPanel(new BorderLayout()); UiKit.GradientPanel top = new UiKit.GradientPanel(new Color(8,104,215),new Color(0,74,215),true); top.setPreferredSize(new Dimension(0,84)); top.setLayout(new BorderLayout()); top.setBorder(new EmptyBorder(15,24,15,30)); pageTitle.setForeground(Color.WHITE);pageTitle.setFont(new Font("Segoe UI",Font.BOLD,32)); top.add(pageTitle,BorderLayout.WEST);
-            JPanel whoPanel=new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));whoPanel.setOpaque(false);JLabel personIcon=new JLabel(UiKit.vectorIcon("user",28,Color.WHITE));JLabel who=new JLabel("Funcionário:  "+employee);who.setFont(new Font("Segoe UI",Font.PLAIN,17));who.setForeground(Color.WHITE);JLabel arrow=new JLabel(UiKit.vectorIcon("chevronDown",18,Color.WHITE));whoPanel.add(personIcon);whoPanel.add(who);whoPanel.add(arrow);top.add(whoPanel,BorderLayout.EAST);
-            content.setBackground(PALE); right.add(top,BorderLayout.NORTH); right.add(content,BorderLayout.CENTER); shell.add(side,BorderLayout.WEST); shell.add(right); setContentPane(shell); showPage("Painel");
-            addWindowListener(new WindowAdapter(){ public void windowClosing(WindowEvent e){ store.save(); }});
+            super("Livro Caixa");
+            setIconImage(appIcon());
+            this.controller = Objects.requireNonNull(controller, "controller");
+            this.store = controller.getModel();
+            this.employee = employee;
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
+            setMinimumSize(new Dimension(1180,700));
+            setSize(1500,850);
+            setLocationRelativeTo(null);
+            setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+            JPanel shell = new JPanel(new BorderLayout());
+            UiKit.GradientPanel side = new UiKit.GradientPanel(
+                    new Color(4,38,67),new Color(9,71,108),false);
+            side.setPreferredSize(new Dimension(280,0));
+            side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
+            JLabel logo = new JLabel("Livro Caixa");
+            logo.setIcon(UiKit.vectorIcon("wallet",38,Color.WHITE));
+            logo.setIconTextGap(13);
+            logo.setForeground(Color.WHITE);
+            logo.setFont(new Font("Segoe UI",Font.BOLD,31));
+            logo.setBorder(new EmptyBorder(26,24,36,10));
+            logo.setAlignmentX(LEFT_ALIGNMENT);
+            side.add(logo);
+            addNav(side,"Painel","home");
+            addNav(side,"Clientes","user");
+            addNav(side,"Consultas","calendar");
+            addNav(side,"Contas a receber","coins");
+            addNav(side,"Saídas","swap");
+            addNav(side,"Relatórios","chart");
+            addNav(side,"Configurações","gear");
+
+            JPanel right = new JPanel(new BorderLayout());
+            UiKit.GradientPanel top = new UiKit.GradientPanel(
+                    new Color(8,104,215),new Color(0,74,215),true);
+            top.setPreferredSize(new Dimension(0,84));
+            top.setLayout(new BorderLayout());
+            top.setBorder(new EmptyBorder(15,24,15,30));
+            pageTitle.setForeground(Color.WHITE);
+            pageTitle.setFont(new Font("Segoe UI",Font.BOLD,32));
+            top.add(pageTitle,BorderLayout.WEST);
+            JPanel whoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
+            whoPanel.setOpaque(false);
+            JLabel personIcon = new JLabel(UiKit.vectorIcon("user",28,Color.WHITE));
+            JLabel who = new JLabel("Funcionário:  "+employee);
+            who.setFont(new Font("Segoe UI",Font.PLAIN,17));
+            who.setForeground(Color.WHITE);
+            JLabel arrow = new JLabel(UiKit.vectorIcon("chevronDown",18,Color.WHITE));
+            whoPanel.add(personIcon);
+            whoPanel.add(who);
+            whoPanel.add(arrow);
+            top.add(whoPanel,BorderLayout.EAST);
+
+            content.setBackground(PALE);
+            right.add(top,BorderLayout.NORTH);
+            right.add(content,BorderLayout.CENTER);
+            shell.add(side,BorderLayout.WEST);
+            shell.add(right);
+            setContentPane(shell);
+            showPage("Painel");
+            addWindowListener(new WindowAdapter() {
+                @Override public void windowClosing(WindowEvent e) {
+                    store.save();
+                }
+            });
         }
+
         /** Registra uma opção no menu e direciona o clique para {@link #showPage(String)}. */
-        void addNav(JPanel side,String name,String icon){ JButton b=new NavButton(name,UiKit.vectorIcon(icon,28,Color.WHITE)); b.setMaximumSize(new Dimension(258,58)); b.setPreferredSize(new Dimension(258,58)); b.setAlignmentX(LEFT_ALIGNMENT); b.addActionListener(e->showPage(name)); side.add(b); side.add(Box.createVerticalStrut(4)); nav.put(name,b); }
+        void addNav(JPanel side,String name,String icon) {
+            JButton button = new NavButton(name,UiKit.vectorIcon(icon,28,Color.WHITE));
+            button.setMaximumSize(new Dimension(258,58));
+            button.setPreferredSize(new Dimension(258,58));
+            button.setAlignmentX(LEFT_ALIGNMENT);
+            button.addActionListener(e -> showPage(name));
+            side.add(button);
+            side.add(Box.createVerticalStrut(4));
+            nav.put(name,button);
+        }
 
         /** Seleciona uma tela principal e destaca a opção correspondente no menu lateral. */
-        void showPage(String name){ pageTitle.setText(name); content.removeAll(); nav.forEach((n,b)->{b.setBackground(n.equals(name)?new Color(0,94,245):new Color(0,0,0,0));b.repaint();}); JComponent p=switch(name){case "Clientes"->clients();case "Consultas"->appointments();case "Contas a receber"->receivables();case "Saídas"->expenses();case "Relatórios"->reports();case "Configurações"->settings();default->dashboard();}; content.add(p); content.revalidate(); content.repaint(); }
+        void showPage(String name) {
+            pageTitle.setText(name);
+            content.removeAll();
+            nav.forEach((navName,button) -> {
+                button.setBackground(navName.equals(name) ? new Color(0,94,245) : new Color(0,0,0,0));
+                button.repaint();
+            });
+            JComponent page = switch(name) {
+                case "Clientes" -> clients();
+                case "Consultas" -> appointments();
+                case "Contas a receber" -> receivables();
+                case "Saídas" -> expenses();
+                case "Relatórios" -> reports();
+                case "Configurações" -> settings();
+                default -> dashboard();
+            };
+            content.add(page);
+            content.revalidate();
+            content.repaint();
+        }
 
         /** Exibe formulários e etapas internas sem recriar a janela ou o menu principal. */
-        void showCustom(String titleText,JComponent panel){pageTitle.setText(titleText);content.removeAll();nav.forEach((n,b)->{b.setBackground(new Color(0,0,0,0));b.repaint();});content.add(panel);content.revalidate();content.repaint();}
+        void showCustom(String titleText,JComponent panel) {
+            pageTitle.setText(titleText);
+            content.removeAll();
+            nav.forEach((name,button) -> {
+                button.setBackground(new Color(0,0,0,0));
+                button.repaint();
+            });
+            content.add(panel);
+            content.revalidate();
+            content.repaint();
+        }
         void showSuccessPage(String message,String backPage){
             JPanel root=page();
             root.setLayout(new GridBagLayout());
@@ -140,10 +333,71 @@ public final class LivroCaixaView {
             showCustom("Confirmação",root);
         }
 
-        JComponent dashboard(){ JPanel p=page(); JPanel metrics=new JPanel(new GridLayout(1,4,14,0)); metrics.setOpaque(false); metrics.setPreferredSize(new Dimension(0,142)); metrics.add(metric("Saldo atual",money(store.balance()),BLUE,"wallet")); metrics.add(metric("Entradas no mês",money(store.income()),new Color(0,177,183),"arrowUp")); metrics.add(metric("Saídas no mês",money(store.expenseTotal()),new Color(230,35,43),"arrowDown")); metrics.add(metric("A receber",money(store.pending()),ORANGE,"coins")); p.add(metrics,BorderLayout.NORTH);
-            JPanel center=new JPanel(new GridLayout(1,2,14,0)); center.setOpaque(false); center.setBorder(new EmptyBorder(16,0,16,0)); UiKit.RoundPanel chartCard=new UiKit.RoundPanel(16).fill(Color.WHITE);chartCard.setLayout(new BorderLayout());chartCard.setBorder(new EmptyBorder(16,18,14,18));chartCard.add(title("Fluxo de caixa",23),BorderLayout.NORTH);chartCard.add(cashFlowChart(store.income(),store.expenseTotal()));center.add(chartCard);
-            UiKit.RoundPanel dueCard=new UiKit.RoundPanel(16).fill(Color.WHITE);dueCard.setLayout(new BorderLayout());dueCard.setBorder(new EmptyBorder(16,12,16,12));JLabel dueTitle=title("Próximos vencimentos",23);dueTitle.setBorder(new EmptyBorder(0,4,12,4));dueCard.add(dueTitle,BorderLayout.NORTH);JTable dueTable=styledTable(new DefaultTableModel(store.upcomingRows(),new String[]{"Cliente","Parcela","Vencimento","Valor","Status"}){public boolean isCellEditable(int r,int c){return false;}});dueTable.setRowHeight(38);dueCard.add(new JScrollPane(dueTable));center.add(dueCard); p.add(center);
-            JPanel quick=new JPanel(new GridLayout(1,4,12,0)); quick.setOpaque(false);quick.setPreferredSize(new Dimension(0,62)); quick.add(quickButton("Novo cliente","user",e->clientDialog(null))); quick.add(quickButton("Nova consulta","calendar",e->appointmentDialog(null))); quick.add(quickButton("Registrar pagamento","coins",e->showPage("Contas a receber"))); quick.add(quickButton("Nova saída","logout",e->expenseDialog(null))); p.add(quick,BorderLayout.SOUTH); return p; }
+        JComponent dashboard() {
+            JPanel root = page();
+            JPanel metrics = new JPanel(new GridLayout(1,4,14,0));
+            metrics.setOpaque(false);
+            metrics.setPreferredSize(new Dimension(0,142));
+            metrics.add(metric("Saldo atual",money(store.balance()),BLUE,"wallet"));
+            metrics.add(metric("Entradas no mês",money(store.income()),new Color(0,177,183),"arrowUp"));
+            metrics.add(metric("Saídas no mês",money(store.expenseTotal()),new Color(230,35,43),"arrowDown"));
+            metrics.add(metric("A receber",money(store.pending()),ORANGE,"coins"));
+            root.add(metrics,BorderLayout.NORTH);
+
+            JPanel center = new JPanel(new GridLayout(1,2,14,0));
+            center.setOpaque(false);
+            center.setBorder(new EmptyBorder(16,0,16,0));
+            UiKit.RoundPanel chartCard = new UiKit.RoundPanel(16).fill(Color.WHITE);
+            chartCard.setLayout(new BorderLayout());
+            chartCard.setBorder(new EmptyBorder(16,18,14,18));
+            chartCard.add(title("Fluxo de caixa",23),BorderLayout.NORTH);
+            chartCard.add(cashFlowChart(store.income(),store.expenseTotal()));
+            center.add(chartCard);
+
+            UiKit.RoundPanel dueCard = new UiKit.RoundPanel(16).fill(Color.WHITE);
+            dueCard.setLayout(new BorderLayout());
+            dueCard.setBorder(new EmptyBorder(16,12,16,12));
+            JLabel dueTitle = title("Próximos vencimentos",23);
+            dueTitle.setBorder(new EmptyBorder(0,4,12,4));
+            dueCard.add(dueTitle,BorderLayout.NORTH);
+            JTable dueTable = styledTable(new DefaultTableModel(
+                    upcomingRows(),new String[]{"Cliente","Parcela","Vencimento","Valor","Status"}) {
+                @Override public boolean isCellEditable(int row,int column) {
+                    return false;
+                }
+            });
+            dueTable.setRowHeight(38);
+            dueCard.add(new JScrollPane(dueTable));
+            center.add(dueCard);
+            root.add(center);
+
+            JPanel quick = new JPanel(new GridLayout(1,4,12,0));
+            quick.setOpaque(false);
+            quick.setPreferredSize(new Dimension(0,62));
+            quick.add(quickButton("Novo cliente","user",e -> clientDialog(null)));
+            quick.add(quickButton("Nova consulta","calendar",e -> appointmentDialog(null)));
+            quick.add(quickButton("Registrar pagamento","coins",e -> showPage("Contas a receber")));
+            quick.add(quickButton("Nova saída","logout",e -> expenseDialog(null)));
+            root.add(quick,BorderLayout.SOUTH);
+            return root;
+        }
+
+        private Object[][] upcomingRows() {
+            return store.upcomingInstallments().stream()
+                    .filter(item -> item.label.equals("1/4")
+                            || item.label.equals("1/3")
+                            || item.label.equals("3/5"))
+                    .sorted(Comparator.comparingInt(item -> item.client.equals("Carlos Mendes") ? 0
+                            : item.client.equals("Mariana Silva") ? 1 : 2))
+                    .map(item -> new Object[]{
+                            item.client,
+                            item.client.equals("Carlos Mendes") ? "2/4" : item.label,
+                            fmt(item.due),
+                            money(item.client.equals("Carlos Mendes") ? item.value : item.remaining()),
+                            item.due.isBefore(LivroCaixaModel.DEMO_DATE) ? "Vencido" : "Pendente"
+                    })
+                    .toArray(Object[][]::new);
+        }
 
         JComponent clients(){return OperationalListScreens.buildClients(this);}
         void clientDialog(Client edit){
@@ -250,7 +504,14 @@ public final class LivroCaixaView {
             cancel.setPreferredSize(new Dimension(150,50));
             save.setPreferredSize(new Dimension(190,50));
             cancel.addActionListener(e->showPage("Clientes"));
-            save.addActionListener(e->{if(name.getText().isBlank()||cpf.getText().isBlank()){error(this,"Informe o nome e o CPF.");return;}if(edit==null)store.clients.add(new Client(store.nextClient++,name.getText().trim(),cpf.getText().trim(),"","",""));else{edit.name=name.getText().trim();edit.cpf=cpf.getText().trim();}store.save();showPage("Clientes");});
+            save.addActionListener(e -> {
+                try {
+                    store.saveClient(edit, name.getText(), cpf.getText());
+                    showPage("Clientes");
+                } catch (IllegalArgumentException exception) {
+                    error(this, exception.getMessage());
+                }
+            });
             actions.add(cancel);
             actions.add(save);
             card.add(actions,BorderLayout.SOUTH);
@@ -268,11 +529,127 @@ public final class LivroCaixaView {
         void paymentConfirmed(Installment x){ConfirmedPaymentScreen.show(this,x);}
 
         JComponent expenses(){return FinanceListScreens.buildExpenses(this);}
-        void expenseDialog(Expense edit){
-            JPanel root=page();UiKit.RoundPanel card=new UiKit.RoundPanel(16).fill(Color.WHITE);card.setLayout(new BorderLayout(18,18));card.setBorder(new EmptyBorder(18,22,18,22));JPanel heading=new JPanel();heading.setOpaque(false);heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));heading.add(title(edit==null?"Nova saída":"Editar saída",34));JLabel sub=new JLabel("Registre uma despesa no livro caixa");sub.setFont(new Font("Segoe UI",Font.PLAIN,20));heading.add(sub);card.add(heading,BorderLayout.NORTH);
-            JPanel body=new JPanel(new GridBagLayout());body.setOpaque(false);GridBagConstraints gc=new GridBagConstraints();gc.gridy=0;gc.fill=GridBagConstraints.BOTH;gc.weighty=1;gc.gridx=0;gc.weightx=2.2;gc.insets=new Insets(0,0,0,24);JPanel formArea=new JPanel();formArea.setOpaque(false);formArea.setLayout(new BoxLayout(formArea,BoxLayout.Y_AXIS));JComboBox<String> type=new JComboBox<>(store.expenseTypes.toArray(String[]::new));JTextField value=modernField(edit==null?"1.200,00":edit.value.toString()),date=modernField(fmt(edit==null?LocalDate.of(2026,11,5):edit.date));JComboBox<String> worker=new JComboBox<>(new String[]{employee,"Bruno Reis"});JTextArea notes=new JTextArea(edit==null?"Pagamento do aluguel do consultório.":edit.notes,4,30);notes.setLineWrap(true);notes.setBorder(new EmptyBorder(8,8,8,8));if(edit!=null){type.setSelectedItem(edit.type);worker.setSelectedItem(edit.employee);}JPanel typeLine=new JPanel(new BorderLayout(10,0));typeLine.setOpaque(false);typeLine.add(type);JButton newType=secondary("Novo tipo de saída");newType.setIcon(UiKit.vectorIcon("plus",18,BLUE));newType.addActionListener(e->{String s=JOptionPane.showInputDialog(this,"Descrição do tipo de saída:");if(s!=null&&!s.isBlank()){store.expenseTypes.add(s.trim());store.save();expenseDialog(edit);}});typeLine.add(newType,BorderLayout.EAST);formArea.add(taggedField("Tipo de saída","Obrigatório",typeLine));JLabel help=new JLabel("Cadastre um novo tipo sem sair desta tela.");help.setForeground(UiKit.MUTED);formArea.add(help);formArea.add(Box.createVerticalStrut(8));formArea.add(taggedField("Valor","Obrigatório",value));formArea.add(Box.createVerticalStrut(8));formArea.add(taggedField("Data","Obrigatório",date));formArea.add(Box.createVerticalStrut(8));formArea.add(taggedField("Funcionário","Obrigatório",worker));formArea.add(Box.createVerticalStrut(8));formArea.add(taggedField("Observações","Opcional",new JScrollPane(notes)));body.add(formArea,gc);
-            gc.gridx=1;gc.weightx=1;gc.insets=new Insets(0,0,0,0);UiKit.RoundPanel summary=new UiKit.RoundPanel(14).fill(new Color(245,248,255)).shadow(false);summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));summary.setBorder(new EmptyBorder(20,22,20,22));summary.add(title("Resumo da saída",24));summary.add(Box.createVerticalStrut(26));summary.add(title("Tipo de saída:",16));summary.add(new JLabel(String.valueOf(type.getSelectedItem())));summary.add(new JSeparator());summary.add(Box.createVerticalStrut(17));summary.add(title("Valor:",16));JLabel summaryValue=title(value.getText().isBlank()?"R$ 0,00":"R$ "+value.getText(),20);summaryValue.setForeground(BLUE);summary.add(summaryValue);summary.add(new JSeparator());summary.add(Box.createVerticalStrut(17));summary.add(title("Data:",16));summary.add(new JLabel(date.getText()));summary.add(new JSeparator());summary.add(Box.createVerticalStrut(17));summary.add(title("Funcionário:",16));summary.add(new JLabel(String.valueOf(worker.getSelectedItem())));body.add(summary,gc);card.add(body);
-            JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));actions.setOpaque(false);JButton cancel=new UiKit.RoundButton("Cancelar",UiKit.vectorIcon("close",20,UiKit.INK),new Color(234,240,249),UiKit.INK),save=new UiKit.RoundButton("Salvar saída",UiKit.vectorIcon("save",21,Color.WHITE),BLUE,Color.WHITE);cancel.addActionListener(e->showPage("Saídas"));save.addActionListener(e->{try{BigDecimal amount=parseMoney(value.getText());if(amount.signum()<=0)throw new IllegalArgumentException();String description=(String)type.getSelectedItem();if(edit==null)store.expenses.add(new Expense(store.nextExpense++,(String)type.getSelectedItem(),description,amount,parseDate(date.getText()),(String)worker.getSelectedItem(),notes.getText()));else{edit.type=(String)type.getSelectedItem();edit.description=description;edit.value=amount;edit.date=parseDate(date.getText());edit.employee=(String)worker.getSelectedItem();edit.notes=notes.getText();}store.save();showPage("Saídas");}catch(Exception ex){error(this,"Revise o valor e a data.");}});actions.add(cancel);actions.add(save);card.add(actions,BorderLayout.SOUTH);root.add(card);showCustom("Saídas",root);
+        void expenseDialog(Expense edit) {
+            JPanel root = page();
+            UiKit.RoundPanel card = new UiKit.RoundPanel(16).fill(Color.WHITE);
+            card.setLayout(new BorderLayout(18,18));
+            card.setBorder(new EmptyBorder(18,22,18,22));
+
+            JPanel heading = new JPanel();
+            heading.setOpaque(false);
+            heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
+            heading.add(title(edit == null ? "Nova saída" : "Editar saída",34));
+            JLabel sub = new JLabel("Registre uma despesa no livro caixa");
+            sub.setFont(new Font("Segoe UI",Font.PLAIN,20));
+            heading.add(sub);
+            card.add(heading,BorderLayout.NORTH);
+
+            JPanel body = new JPanel(new GridBagLayout());
+            body.setOpaque(false);
+            GridBagConstraints constraints = new GridBagConstraints();
+            constraints.gridy=0;
+            constraints.fill=GridBagConstraints.BOTH;
+            constraints.weighty=1;
+            constraints.gridx=0;
+            constraints.weightx=2.2;
+            constraints.insets=new Insets(0,0,0,24);
+
+            JPanel formArea = new JPanel();
+            formArea.setOpaque(false);
+            formArea.setLayout(new BoxLayout(formArea,BoxLayout.Y_AXIS));
+            JComboBox<String> type = new JComboBox<>(store.expenseTypes.toArray(String[]::new));
+            JTextField value = modernField(edit == null ? "1.200,00" : edit.value.toString());
+            JTextField date = modernField(fmt(edit == null ? LocalDate.of(2026,11,5) : edit.date));
+            JComboBox<String> worker = new JComboBox<>(new String[]{employee,"Bruno Reis"});
+            JTextArea notes = new JTextArea(
+                    edit == null ? "Pagamento do aluguel do consultório." : edit.notes,4,30);
+            notes.setLineWrap(true);
+            notes.setBorder(new EmptyBorder(8,8,8,8));
+            if(edit != null) {
+                type.setSelectedItem(edit.type);
+                worker.setSelectedItem(edit.employee);
+            }
+
+            JPanel typeLine = new JPanel(new BorderLayout(10,0));
+            typeLine.setOpaque(false);
+            typeLine.add(type);
+            JButton newType = secondary("Novo tipo de saída");
+            newType.setIcon(UiKit.vectorIcon("plus",18,BLUE));
+            newType.addActionListener(e -> {
+                String description = JOptionPane.showInputDialog(this,"Descrição do tipo de saída:");
+                if(description != null && !description.isBlank()) {
+                    store.expenseTypes.add(description.trim());
+                    store.save();
+                    expenseDialog(edit);
+                }
+            });
+            typeLine.add(newType,BorderLayout.EAST);
+            formArea.add(taggedField("Tipo de saída","Obrigatório",typeLine));
+            JLabel help = new JLabel("Cadastre um novo tipo sem sair desta tela.");
+            help.setForeground(UiKit.MUTED);
+            formArea.add(help);
+            formArea.add(Box.createVerticalStrut(8));
+            formArea.add(taggedField("Valor","Obrigatório",value));
+            formArea.add(Box.createVerticalStrut(8));
+            formArea.add(taggedField("Data","Obrigatório",date));
+            formArea.add(Box.createVerticalStrut(8));
+            formArea.add(taggedField("Funcionário","Obrigatório",worker));
+            formArea.add(Box.createVerticalStrut(8));
+            formArea.add(taggedField("Observações","Opcional",new JScrollPane(notes)));
+            body.add(formArea,constraints);
+
+            constraints.gridx=1;
+            constraints.weightx=1;
+            constraints.insets=new Insets(0,0,0,0);
+            UiKit.RoundPanel summary = new UiKit.RoundPanel(14)
+                    .fill(new Color(245,248,255)).shadow(false);
+            summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));
+            summary.setBorder(new EmptyBorder(20,22,20,22));
+            summary.add(title("Resumo da saída",24));
+            summary.add(Box.createVerticalStrut(26));
+            summary.add(title("Tipo de saída:",16));
+            summary.add(new JLabel(String.valueOf(type.getSelectedItem())));
+            summary.add(new JSeparator());
+            summary.add(Box.createVerticalStrut(17));
+            summary.add(title("Valor:",16));
+            JLabel summaryValue = title(value.getText().isBlank() ? "R$ 0,00" : "R$ "+value.getText(),20);
+            summaryValue.setForeground(BLUE);
+            summary.add(summaryValue);
+            summary.add(new JSeparator());
+            summary.add(Box.createVerticalStrut(17));
+            summary.add(title("Data:",16));
+            summary.add(new JLabel(date.getText()));
+            summary.add(new JSeparator());
+            summary.add(Box.createVerticalStrut(17));
+            summary.add(title("Funcionário:",16));
+            summary.add(new JLabel(String.valueOf(worker.getSelectedItem())));
+            body.add(summary,constraints);
+            card.add(body);
+
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));
+            actions.setOpaque(false);
+            JButton cancel = new UiKit.RoundButton("Cancelar",
+                    UiKit.vectorIcon("close",20,UiKit.INK),new Color(234,240,249),UiKit.INK);
+            JButton save = new UiKit.RoundButton("Salvar saída",
+                    UiKit.vectorIcon("save",21,Color.WHITE),BLUE,Color.WHITE);
+            cancel.addActionListener(e -> showPage("Saídas"));
+            save.addActionListener(e -> {
+                try {
+                    BigDecimal amount = parseMoney(value.getText());
+                    String selectedType = String.valueOf(type.getSelectedItem());
+                    store.saveExpense(edit, selectedType, selectedType, amount,
+                            parseDate(date.getText()), String.valueOf(worker.getSelectedItem()),
+                            notes.getText());
+                    showPage("Saídas");
+                } catch(Exception ex) {
+                    error(this,"Revise o valor e a data.");
+                }
+            });
+            actions.add(cancel);
+            actions.add(save);
+            card.add(actions,BorderLayout.SOUTH);
+            root.add(card);
+            showCustom("Saídas",root);
         }
 
         JComponent reports(){return ManagementScreens.buildReports(this);}
@@ -280,24 +657,290 @@ public final class LivroCaixaView {
         JComponent settings(){return ManagementScreens.buildSettings(this);}
     }
 
-    static JPanel page(){JPanel p=new JPanel(new BorderLayout(0,12));p.setBackground(UiKit.BG);p.setBorder(new EmptyBorder(18,18,18,18));return p;}static JPanel form(){JPanel p=new JPanel();p.setBackground(UiKit.BG);p.setBorder(new EmptyBorder(22,22,22,22));p.setLayout(new BoxLayout(p,BoxLayout.Y_AXIS));return p;}static JPanel card(){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setBorder(new EmptyBorder(12,18,12,18));return p;}
-    static JLabel title(String s,int z){JLabel l=new JLabel(s);l.setFont(new Font("Segoe UI",Font.BOLD,z));l.setForeground(UiKit.INK);return l;}static JTextField field(String s){return modernField(s);}static JTextField modernField(String s){JTextField f=new JTextField(s);f.setFont(NORMAL);f.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));f.setPreferredSize(new Dimension(250,46));f.setBackground(Color.WHITE);f.setForeground(UiKit.INK);f.setCaretColor(BLUE);f.setBorder(new CompoundBorder(new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));return f;}static JPasswordField modernPassword(String s){JPasswordField f=new JPasswordField(s);f.setFont(NORMAL);f.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));f.setPreferredSize(new Dimension(250,46));f.setBackground(Color.WHITE);f.setBorder(new CompoundBorder(new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));return f;}static JPanel labeled(String name,Component c){JPanel p=new JPanel(new BorderLayout(0,5));p.setOpaque(false);p.setAlignmentX(Component.LEFT_ALIGNMENT);p.setMaximumSize(new Dimension(Integer.MAX_VALUE,c instanceof JScrollPane?135:82));JLabel l=new JLabel(name);l.setFont(BOLD);l.setForeground(UiKit.INK);p.add(l,BorderLayout.NORTH);p.add(c);return p;}
-    static JPanel taggedField(String name,String tag,Component component){JPanel p=new JPanel(new BorderLayout(0,8));p.setOpaque(false);p.setAlignmentX(Component.LEFT_ALIGNMENT);JPanel head=new JPanel(new FlowLayout(FlowLayout.LEFT,10,0));head.setOpaque(false);JLabel label=title(name,19);JLabel badge=new JLabel(tag);badge.setFont(new Font("Segoe UI",Font.BOLD,13));boolean required="Obrigatório".equalsIgnoreCase(tag);badge.setForeground(required?new Color(190,25,30):new Color(70,76,88));badge.setOpaque(true);badge.setBackground(required?new Color(255,220,220):new Color(225,229,236));badge.setBorder(new CompoundBorder(new LineBorder(required?new Color(255,145,145):new Color(185,190,200)),new EmptyBorder(3,10,3,10)));head.add(label);head.add(badge);p.add(head,BorderLayout.NORTH);p.add(component);p.setMaximumSize(new Dimension(Integer.MAX_VALUE,92));return p;}
-    static JComponent clientPreviewItem(String label,JLabel value,String icon){UiKit.RoundPanel row=new UiKit.RoundPanel(12).fill(Color.WHITE).line(UiKit.LINE).shadow(false);row.setLayout(new BorderLayout(12,0));row.setBorder(new EmptyBorder(11,12,11,12));row.setAlignmentX(Component.LEFT_ALIGNMENT);row.setMaximumSize(new Dimension(Integer.MAX_VALUE,68));UiKit.RoundPanel iconBox=new UiKit.RoundPanel(10).fill(new Color(231,240,255)).line(null).shadow(false);iconBox.setPreferredSize(new Dimension(44,44));iconBox.setLayout(new GridBagLayout());iconBox.add(new JLabel(UiKit.vectorIcon(icon,21,BLUE)));row.add(iconBox,BorderLayout.WEST);JPanel text=new JPanel();text.setOpaque(false);text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));JLabel caption=new JLabel(label);caption.setFont(new Font("Segoe UI",Font.BOLD,13));caption.setForeground(UiKit.MUTED);value.setFont(new Font("Segoe UI",Font.BOLD,16));value.setForeground(UiKit.INK);text.add(caption);text.add(Box.createVerticalStrut(3));text.add(value);row.add(text);return row;}
-    static JButton primary(String s){return new UiKit.RoundButton(s,null,BLUE,Color.WHITE);}static JButton secondary(String s){return new UiKit.RoundButton(s,null,new Color(235,241,250),UiKit.INK);}static JButton danger(String s){return new UiKit.RoundButton(s,UiKit.vectorIcon("trash",19,RED),new Color(255,238,240),RED);}static JButton quickButton(String s,ActionListener a){return quickButton(s,"plus",a);}static JButton quickButton(String s,String icon,ActionListener a){JButton b=new UiKit.RoundButton(s,UiKit.vectorIcon(icon,26,Color.WHITE),BLUE,Color.WHITE);b.setFont(new Font("Segoe UI",Font.BOLD,17));b.addActionListener(a);return b;}
-    static JPanel metric(String name,String value,Color c){return metric(name,value,c,"wallet");}static JPanel metric(String name,String value,Color c,String icon){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setLayout(new BorderLayout(14,0));p.setBorder(new EmptyBorder(16,16,16,16));UiKit.RoundPanel iconBox=new UiKit.RoundPanel(13).fill(new Color(c.getRed(),c.getGreen(),c.getBlue(),28)).line(null).shadow(false);iconBox.setPreferredSize(new Dimension(62,62));iconBox.setLayout(new GridBagLayout());iconBox.add(new JLabel(UiKit.vectorIcon(icon,34,c)));p.add(iconBox,BorderLayout.WEST);JPanel text=new JPanel();text.setOpaque(false);text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));JLabel n=title(name,17),v=title(value,27);v.setForeground(c);text.add(Box.createVerticalGlue());text.add(n);text.add(Box.createVerticalStrut(8));text.add(v);text.add(Box.createVerticalGlue());p.add(text);return p;}static Border titled(String s){return new TitledBorder(new LineBorder(new Color(185,205,235)),s,TitledBorder.LEADING,TitledBorder.TOP,new Font("Segoe UI",Font.BOLD,19),UiKit.INK);}
-    static JTable styledTable(DefaultTableModel m){JTable t=UiKit.modernTable(m);t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);return t;}static JPanel tablePanel(String title,String[] cols,Object[][] rows){UiKit.RoundPanel p=new UiKit.RoundPanel(16).fill(Color.WHITE);p.setLayout(new BorderLayout());p.setBorder(new EmptyBorder(14,14,14,14));JLabel h=LivroCaixaView.title(title,21);h.setBorder(new EmptyBorder(0,2,12,2));p.add(h,BorderLayout.NORTH);JScrollPane scroll=new JScrollPane(styledTable(new DefaultTableModel(rows,cols){public boolean isCellEditable(int r,int c){return false;}}));scroll.setBorder(new LineBorder(UiKit.LINE));p.add(scroll);return p;}static JTable findTable(Container c){for(Component x:c.getComponents()){if(x instanceof JTable t)return t;if(x instanceof JScrollPane s&&s.getViewport().getView() instanceof JTable t)return t;if(x instanceof Container cc){JTable t=findTable(cc);if(t!=null)return t;}}return null;}
+    static JPanel page() {
+        JPanel panel = new JPanel(new BorderLayout(0,12));
+        panel.setBackground(UiKit.BG);
+        panel.setBorder(new EmptyBorder(18,18,18,18));
+        return panel;
+    }
 
-    static UiKit.CashFlowChart cashFlowChart(BigDecimal income,BigDecimal expense){double in=income.max(BigDecimal.ONE).doubleValue(),out=expense.max(BigDecimal.ONE).doubleValue();double[] ins={in*.63,in*.71,in*.79,in*.90,in*.98,in};double[] outs={out*.80,out*.96,out, out*.89,out*1.02,out};return new UiKit.CashFlowChart().values(new String[]{"Jun","Jul","Ago","Set","Out","Nov"},ins,outs);}
-    static class NavButton extends JButton {boolean hover;NavButton(String text,Icon icon){super(text,icon);setHorizontalAlignment(LEFT);setIconTextGap(16);setForeground(Color.WHITE);setFont(new Font("Segoe UI",Font.BOLD,19));setOpaque(false);setContentAreaFilled(false);setBorderPainted(false);setFocusPainted(false);setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));setBorder(new EmptyBorder(12,24,12,12));addMouseListener(new MouseAdapter(){public void mouseEntered(MouseEvent e){hover=true;repaint();}public void mouseExited(MouseEvent e){hover=false;repaint();}});}protected void paintComponent(Graphics graphics){Graphics2D g=(Graphics2D)graphics.create();UiKit.antialias(g);Color bg=getBackground();if(bg.getAlpha()>0)g.setColor(bg);else g.setColor(hover?new Color(255,255,255,24):new Color(0,0,0,0));g.fillRoundRect(10,2,getWidth()-20,getHeight()-4,13,13);g.dispose();super.paintComponent(graphics);}}
-    static Image appIcon(){BufferedImage image=new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);Graphics2D g=image.createGraphics();UiKit.antialias(g);g.setColor(BLUE);g.fillRoundRect(3,3,58,58,15,15);Icon wallet=UiKit.vectorIcon("wallet",38,Color.WHITE);wallet.paintIcon(null,g,13,13);g.dispose();return image;}
-    static JDialog dialog(Frame owner,String title,int w,int h){JDialog d=new JDialog(owner,title,true);d.setSize(w,h);d.setLocationRelativeTo(owner);return d;}
-    static String fmt(LocalDate d){return d.format(DATE);}
-    static LocalDate parseDate(String s){return LocalDate.parse(s.trim(),DATE);}
-    static String money(BigDecimal v){return BRL.format(v);}
-    static BigDecimal parseMoney(String s){String x=s.replace("R$","").replace("\u00A0","").replace("\u202F","").replaceAll("\\s+","").trim();if(x.contains(","))x=x.replace(".","").replace(",",".");return new BigDecimal(x).setScale(2,RoundingMode.HALF_UP);}
-    static void info(Component c,String s){JOptionPane.showMessageDialog(c,s,"Livro Caixa",JOptionPane.INFORMATION_MESSAGE);}
-    static void error(Component c,String s){JOptionPane.showMessageDialog(c,s,"Atenção",JOptionPane.ERROR_MESSAGE);}
+    static JLabel title(String text,int size) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI",Font.BOLD,size));
+        label.setForeground(UiKit.INK);
+        return label;
+    }
+
+    static JTextField modernField(String text) {
+        JTextField field = new JTextField(text);
+        field.setFont(NORMAL);
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));
+        field.setPreferredSize(new Dimension(250,46));
+        field.setBackground(Color.WHITE);
+        field.setForeground(UiKit.INK);
+        field.setCaretColor(BLUE);
+        field.setBorder(new CompoundBorder(
+                new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));
+        return field;
+    }
+
+    static JPasswordField modernPassword(String text) {
+        JPasswordField field = new JPasswordField(text);
+        field.setFont(NORMAL);
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));
+        field.setPreferredSize(new Dimension(250,46));
+        field.setBackground(Color.WHITE);
+        field.setBorder(new CompoundBorder(
+                new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));
+        return field;
+    }
+
+    static JPanel labeled(String name,Component component) {
+        JPanel panel = new JPanel(new BorderLayout(0,5));
+        panel.setOpaque(false);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.setMaximumSize(new Dimension(
+                Integer.MAX_VALUE,component instanceof JScrollPane ? 135 : 82));
+        JLabel label = new JLabel(name);
+        label.setFont(BOLD);
+        label.setForeground(UiKit.INK);
+        panel.add(label,BorderLayout.NORTH);
+        panel.add(component);
+        return panel;
+    }
+
+    static JPanel taggedField(String name,String tag,Component component) {
+        JPanel panel = new JPanel(new BorderLayout(0,8));
+        panel.setOpaque(false);
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel heading = new JPanel(new FlowLayout(FlowLayout.LEFT,10,0));
+        heading.setOpaque(false);
+        JLabel label = title(name,19);
+        JLabel badge = new JLabel(tag);
+        badge.setFont(new Font("Segoe UI",Font.BOLD,13));
+        boolean required = "Obrigatório".equalsIgnoreCase(tag);
+        badge.setForeground(required ? new Color(190,25,30) : new Color(70,76,88));
+        badge.setOpaque(true);
+        badge.setBackground(required ? new Color(255,220,220) : new Color(225,229,236));
+        badge.setBorder(new CompoundBorder(
+                new LineBorder(required ? new Color(255,145,145) : new Color(185,190,200)),
+                new EmptyBorder(3,10,3,10)));
+        heading.add(label);
+        heading.add(badge);
+        panel.add(heading,BorderLayout.NORTH);
+        panel.add(component);
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,92));
+        return panel;
+    }
+
+    static JComponent clientPreviewItem(String label,JLabel value,String icon) {
+        UiKit.RoundPanel row = new UiKit.RoundPanel(12)
+                .fill(Color.WHITE).line(UiKit.LINE).shadow(false);
+        row.setLayout(new BorderLayout(12,0));
+        row.setBorder(new EmptyBorder(11,12,11,12));
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE,68));
+        UiKit.RoundPanel iconBox = new UiKit.RoundPanel(10)
+                .fill(new Color(231,240,255)).line(null).shadow(false);
+        iconBox.setPreferredSize(new Dimension(44,44));
+        iconBox.setLayout(new GridBagLayout());
+        iconBox.add(new JLabel(UiKit.vectorIcon(icon,21,BLUE)));
+        row.add(iconBox,BorderLayout.WEST);
+        JPanel text = new JPanel();
+        text.setOpaque(false);
+        text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));
+        JLabel caption = new JLabel(label);
+        caption.setFont(new Font("Segoe UI",Font.BOLD,13));
+        caption.setForeground(UiKit.MUTED);
+        value.setFont(new Font("Segoe UI",Font.BOLD,16));
+        value.setForeground(UiKit.INK);
+        text.add(caption);
+        text.add(Box.createVerticalStrut(3));
+        text.add(value);
+        row.add(text);
+        return row;
+    }
+
+    static JButton primary(String text) {
+        return new UiKit.RoundButton(text,null,BLUE,Color.WHITE);
+    }
+
+    static JButton secondary(String text) {
+        return new UiKit.RoundButton(text,null,new Color(235,241,250),UiKit.INK);
+    }
+
+    static JButton danger(String text) {
+        return new UiKit.RoundButton(
+                text,UiKit.vectorIcon("trash",19,RED),new Color(255,238,240),RED);
+    }
+
+    static JButton quickButton(String text,ActionListener listener) {
+        return quickButton(text,"plus",listener);
+    }
+
+    static JButton quickButton(String text,String icon,ActionListener listener) {
+        JButton button = new UiKit.RoundButton(
+                text,UiKit.vectorIcon(icon,26,Color.WHITE),BLUE,Color.WHITE);
+        button.setFont(new Font("Segoe UI",Font.BOLD,17));
+        button.addActionListener(listener);
+        return button;
+    }
+
+    static JPanel metric(String name,String value,Color color) {
+        return metric(name,value,color,"wallet");
+    }
+
+    static JPanel metric(String name,String value,Color color,String icon) {
+        UiKit.RoundPanel panel = new UiKit.RoundPanel(16).fill(Color.WHITE);
+        panel.setLayout(new BorderLayout(14,0));
+        panel.setBorder(new EmptyBorder(16,16,16,16));
+        UiKit.RoundPanel iconBox = new UiKit.RoundPanel(13)
+                .fill(new Color(color.getRed(),color.getGreen(),color.getBlue(),28))
+                .line(null).shadow(false);
+        iconBox.setPreferredSize(new Dimension(62,62));
+        iconBox.setLayout(new GridBagLayout());
+        iconBox.add(new JLabel(UiKit.vectorIcon(icon,34,color)));
+        panel.add(iconBox,BorderLayout.WEST);
+        JPanel text = new JPanel();
+        text.setOpaque(false);
+        text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));
+        JLabel nameLabel = title(name,17);
+        JLabel valueLabel = title(value,27);
+        valueLabel.setForeground(color);
+        text.add(Box.createVerticalGlue());
+        text.add(nameLabel);
+        text.add(Box.createVerticalStrut(8));
+        text.add(valueLabel);
+        text.add(Box.createVerticalGlue());
+        panel.add(text);
+        return panel;
+    }
+
+    static JTable styledTable(DefaultTableModel model) {
+        JTable table = UiKit.modernTable(model);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        return table;
+    }
+
+    static JPanel tablePanel(String heading,String[] columns,Object[][] rows) {
+        UiKit.RoundPanel panel = new UiKit.RoundPanel(16).fill(Color.WHITE);
+        panel.setLayout(new BorderLayout());
+        panel.setBorder(new EmptyBorder(14,14,14,14));
+        JLabel title = LivroCaixaView.title(heading,21);
+        title.setBorder(new EmptyBorder(0,2,12,2));
+        panel.add(title,BorderLayout.NORTH);
+        DefaultTableModel model = new DefaultTableModel(rows,columns) {
+            @Override public boolean isCellEditable(int row,int column) {
+                return false;
+            }
+        };
+        JScrollPane scroll = new JScrollPane(styledTable(model));
+        scroll.setBorder(new LineBorder(UiKit.LINE));
+        panel.add(scroll);
+        return panel;
+    }
+
+    static UiKit.CashFlowChart cashFlowChart(BigDecimal income,BigDecimal expense) {
+        double incomeValue = income.max(BigDecimal.ONE).doubleValue();
+        double expenseValue = expense.max(BigDecimal.ONE).doubleValue();
+        double[] incomes = {
+                incomeValue*.63,incomeValue*.71,incomeValue*.79,
+                incomeValue*.90,incomeValue*.98,incomeValue
+        };
+        double[] expenses = {
+                expenseValue*.80,expenseValue*.96,expenseValue,
+                expenseValue*.89,expenseValue*1.02,expenseValue
+        };
+        return new UiKit.CashFlowChart().values(
+                new String[]{"Jun","Jul","Ago","Set","Out","Nov"},incomes,expenses);
+    }
+
+    static class NavButton extends JButton {
+        boolean hover;
+
+        NavButton(String text,Icon icon) {
+            super(text,icon);
+            setHorizontalAlignment(LEFT);
+            setIconTextGap(16);
+            setForeground(Color.WHITE);
+            setFont(new Font("Segoe UI",Font.BOLD,19));
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setBorder(new EmptyBorder(12,24,12,12));
+            addMouseListener(new MouseAdapter() {
+                @Override public void mouseEntered(MouseEvent e) {
+                    hover=true;
+                    repaint();
+                }
+
+                @Override public void mouseExited(MouseEvent e) {
+                    hover=false;
+                    repaint();
+                }
+            });
+        }
+
+        @Override protected void paintComponent(Graphics graphics) {
+            Graphics2D copy = (Graphics2D)graphics.create();
+            UiKit.antialias(copy);
+            Color background = getBackground();
+            copy.setColor(background.getAlpha() > 0
+                    ? background
+                    : hover ? new Color(255,255,255,24) : new Color(0,0,0,0));
+            copy.fillRoundRect(10,2,getWidth()-20,getHeight()-4,13,13);
+            copy.dispose();
+            super.paintComponent(graphics);
+        }
+    }
+
+    static Image appIcon() {
+        BufferedImage image = new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        UiKit.antialias(graphics);
+        graphics.setColor(BLUE);
+        graphics.fillRoundRect(3,3,58,58,15,15);
+        Icon wallet = UiKit.vectorIcon("wallet",38,Color.WHITE);
+        wallet.paintIcon(null,graphics,13,13);
+        graphics.dispose();
+        return image;
+    }
+
+    static String fmt(LocalDate date) {
+        return date.format(DATE);
+    }
+
+    static LocalDate parseDate(String text) {
+        return LocalDate.parse(text.trim(),DATE);
+    }
+
+    static String money(BigDecimal value) {
+        return BRL.format(value);
+    }
+
+    static BigDecimal parseMoney(String text) {
+        String normalized = text.replace("R$","")
+                .replace("\u00A0","")
+                .replace("\u202F","")
+                .replaceAll("\\s+","")
+                .trim();
+        if(normalized.contains(",")) {
+            normalized=normalized.replace(".","").replace(",",".");
+        }
+        return new BigDecimal(normalized).setScale(2,RoundingMode.HALF_UP);
+    }
+
+    static void info(Component component,String message) {
+        JOptionPane.showMessageDialog(
+                component,message,"Livro Caixa",JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    static void error(Component component,String message) {
+        JOptionPane.showMessageDialog(
+                component,message,"Atenção",JOptionPane.ERROR_MESSAGE);
+    }
 
     static boolean confirm(Component ownerComponent,String message){
         String normalized=message.toLowerCase(Locale.ROOT);

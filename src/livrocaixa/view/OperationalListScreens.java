@@ -93,7 +93,8 @@ final class OperationalListScreens {
                 Rectangle cell = table.getCellRect(viewRow, col, true);
                 if (e.getX() - cell.x < cell.width / 2) frame.clientDialog(client);
                 else if (LivroCaixaView.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
-                    frame.store.clients.remove(client); frame.store.save(); frame.showPage("Clientes");
+                    frame.store.removeClient(client);
+                    frame.showPage("Clientes");
                 }
             }
         });
@@ -172,7 +173,14 @@ final class OperationalListScreens {
             });
         };
         apply.addActionListener(e -> applyFilters.run());
-        clear.addActionListener(e -> {initial.setText("01/11/2026");end.setText("30/11/2026");client.setSelectedIndex(0);type.setSelectedIndex(0);employee.setSelectedIndex(0);sorter.setRowFilter(null);});
+        clear.addActionListener(e -> {
+            initial.setText("01/11/2026");
+            end.setText("30/11/2026");
+            client.setSelectedIndex(0);
+            type.setSelectedIndex(0);
+            employee.setSelectedIndex(0);
+            sorter.setRowFilter(null);
+        });
         table.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
@@ -199,23 +207,83 @@ final class OperationalListScreens {
     }
 
     private static JPanel dateField(JTextField field) {
-        JPanel panel = new JPanel(new BorderLayout()); panel.setBackground(Color.WHITE); panel.setBorder(new LineBorder(new Color(163, 181, 211)));
-        field.setBorder(new EmptyBorder(7, 10, 7, 3)); panel.add(field); JLabel icon = new JLabel(UiKit.vectorIcon("calendar", 22, UiKit.INK)); icon.setBorder(new EmptyBorder(0, 8, 0, 10)); panel.add(icon, BorderLayout.EAST); return panel;
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new LineBorder(new Color(163, 181, 211)));
+        field.setBorder(new EmptyBorder(7, 10, 7, 3));
+        panel.add(field);
+        JLabel icon = new JLabel(UiKit.vectorIcon("calendar", 22, UiKit.INK));
+        icon.setBorder(new EmptyBorder(0, 8, 0, 10));
+        panel.add(icon, BorderLayout.EAST);
+        return panel;
     }
 
     private static JComboBox<String> combo(List<String> values) {
         JComboBox<String> box = new JComboBox<>(values.toArray(String[]::new)); box.setFont(new Font("Segoe UI", Font.PLAIN, 17)); return box;
     }
 
-    private static List<String> withAll(List<String> values) {List<String> result = new ArrayList<>(); result.add("Todos"); result.addAll(values); return result;}
-    private static LocalDate safeDate(String value, LocalDate fallback) {try {return LivroCaixaView.parseDate(value);} catch (Exception ignored) {return fallback;}}
+    private static List<String> withAll(List<String> values) {
+        List<String> result = new ArrayList<>();
+        result.add("Todos");
+        result.addAll(values);
+        return result;
+    }
 
-    @SuppressWarnings("unchecked") private static TableRowSorter<DefaultTableModel> castSorter(JTable table) {return (TableRowSorter<DefaultTableModel>) table.getRowSorter();}
-    private static JButton primary(String text, String icon) {return new UiKit.RoundButton(text, listIcon(icon, 22, Color.WHITE), UiKit.BLUE, Color.WHITE);}
-    private static JButton secondary(String text, String icon) {return new UiKit.RoundButton(text, listIcon(icon, 21, UiKit.INK), new Color(233, 240, 250), UiKit.INK);}
-    private static Icon listIcon(String name,int size,Color color){
-        if(!name.equals("filter")&&!name.equals("clear")&&!name.equals("newDocument"))return UiKit.vectorIcon(name,size,color);
-        return new Icon(){public int getIconWidth(){return size;}public int getIconHeight(){return size;}public void paintIcon(Component c,Graphics graphics,int x,int y){Graphics2D g=(Graphics2D)graphics.create();UiKit.antialias(g);g.translate(x,y);g.scale(size/24d,size/24d);g.setColor(color);g.setStroke(new BasicStroke(2f,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));if(name.equals("filter")){Polygon p=new Polygon(new int[]{2,22,14,14,10,10},new int[]{3,3,11,20,22,11},6);g.drawPolygon(p);}else if(name.equals("clear")){g.drawLine(5,5,19,19);g.drawLine(19,5,5,19);}else{g.drawRoundRect(4,2,13,20,2,2);g.drawLine(8,7,14,7);g.drawLine(8,11,14,11);g.drawLine(19,13,19,23);g.drawLine(14,18,24,18);}g.dispose();}};
+    private static LocalDate safeDate(String value, LocalDate fallback) {
+        try {
+            return LivroCaixaView.parseDate(value);
+        } catch (Exception ignored) {
+            return fallback;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static TableRowSorter<DefaultTableModel> castSorter(JTable table) {
+        return (TableRowSorter<DefaultTableModel>) table.getRowSorter();
+    }
+
+    private static JButton primary(String text, String icon) {
+        return new UiKit.RoundButton(text, listIcon(icon, 22, Color.WHITE), UiKit.BLUE, Color.WHITE);
+    }
+
+    private static JButton secondary(String text, String icon) {
+        return new UiKit.RoundButton(text, listIcon(icon, 21, UiKit.INK),
+                new Color(233, 240, 250), UiKit.INK);
+    }
+
+    private static Icon listIcon(String name, int size, Color color) {
+        if (!name.equals("filter") && !name.equals("clear") && !name.equals("newDocument")) {
+            return UiKit.vectorIcon(name, size, color);
+        }
+        return new Icon() {
+            @Override public int getIconWidth() { return size; }
+            @Override public int getIconHeight() { return size; }
+
+            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
+                Graphics2D g = (Graphics2D) graphics.create();
+                UiKit.antialias(g);
+                g.translate(x, y);
+                g.scale(size / 24d, size / 24d);
+                g.setColor(color);
+                g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                if (name.equals("filter")) {
+                    Polygon polygon = new Polygon(
+                            new int[]{2, 22, 14, 14, 10, 10},
+                            new int[]{3, 3, 11, 20, 22, 11}, 6);
+                    g.drawPolygon(polygon);
+                } else if (name.equals("clear")) {
+                    g.drawLine(5, 5, 19, 19);
+                    g.drawLine(19, 5, 5, 19);
+                } else {
+                    g.drawRoundRect(4, 2, 13, 20, 2, 2);
+                    g.drawLine(8, 7, 14, 7);
+                    g.drawLine(8, 11, 14, 11);
+                    g.drawLine(19, 13, 19, 23);
+                    g.drawLine(14, 18, 24, 18);
+                }
+                g.dispose();
+            }
+        };
     }
     private static void dimension(JComponent c, int width, int height) {Dimension d = new Dimension(width, height); c.setPreferredSize(d); c.setMinimumSize(d);}
     private static void setWidths(TableColumnModel columns, int[] widths) {for(int i=0;i<widths.length;i++) columns.getColumn(i).setPreferredWidth(widths[i]);}
@@ -227,12 +295,19 @@ final class OperationalListScreens {
         @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus, int row, int column) {
             JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0)); panel.setBorder(new EmptyBorder(7, 12, 7, 12)); panel.setOpaque(true);
             panel.setBackground(selected ? table.getSelectionBackground() : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
-            JButton first = new UiKit.RoundButton("Editar", UiKit.vectorIcon("edit", 17, kind == ActionKind.CLIENT ? UiKit.BLUE : UiKit.INK), new Color(231, 240, 252), kind == ActionKind.CLIENT ? UiKit.BLUE : UiKit.INK);
+            Color editColor = kind == ActionKind.CLIENT ? UiKit.BLUE : UiKit.INK;
+            JButton first = new UiKit.RoundButton("Editar", UiKit.vectorIcon("edit", 17, editColor),
+                    new Color(231, 240, 252), editColor);
             JButton second = kind == ActionKind.CLIENT
                     ? new UiKit.RoundButton("Excluir", UiKit.vectorIcon("trash", 17, UiKit.RED), new Color(255, 230, 232), UiKit.RED)
                     : new UiKit.RoundButton("Faturar", UiKit.vectorIcon("save", 17, Color.WHITE), UiKit.BLUE, Color.WHITE);
-            first.setFont(new Font("Segoe UI", Font.BOLD, 14)); second.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            first.setBorder(new EmptyBorder(6, 10, 6, 10)); second.setBorder(new EmptyBorder(6, 10, 6, 10)); panel.add(first); panel.add(second); return panel;
+            first.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            second.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            first.setBorder(new EmptyBorder(6, 10, 6, 10));
+            second.setBorder(new EmptyBorder(6, 10, 6, 10));
+            panel.add(first);
+            panel.add(second);
+            return panel;
         }
     }
 }
