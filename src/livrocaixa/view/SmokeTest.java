@@ -181,8 +181,14 @@ public final class SmokeTest {
 
         frame.showPage("Configurações");
         render(frame, "14-configuracoes");
+        frame.setSize(1180, 700);
+        render(frame, "14b-configuracoes-minimo");
+        frame.setSize(1500, 850);
         clickNthButton(frame, "Gerenciar", 0);
         render(frame, "15-funcionarios-perfis");
+        frame.setSize(1180, 700);
+        render(frame, "15b-funcionarios-perfis-minimo");
+        frame.setSize(1500, 850);
         exerciseButton(frame, "Voltar");
         frame.showPage("Configurações");
         clickNthButton(frame, "Gerenciar", 2);

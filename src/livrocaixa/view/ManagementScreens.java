@@ -290,7 +290,19 @@ final class ManagementScreens {
                 "logout", new Color(255, 247, 210), new Color(235, 189, 49), 3));
         cards.add(settingsCard(frame, "Formas de pagamento", frame.store.paymentMethods.size() + " cadastradas",
                 "card", new Color(239, 232, 255), new Color(162, 125, 231), 4));
-        body.add(cards);
+        cards.setMinimumSize(new Dimension(0, 315));
+        cards.setPreferredSize(new Dimension(0, 390));
+        JPanel cardsArea = new JPanel(new GridBagLayout());
+        cardsArea.setOpaque(false);
+        GridBagConstraints cardsPosition = new GridBagConstraints();
+        cardsPosition.gridx = 0;
+        cardsPosition.gridy = 0;
+        cardsPosition.weightx = 1;
+        cardsPosition.weighty = 1;
+        cardsPosition.fill = GridBagConstraints.HORIZONTAL;
+        cardsPosition.anchor = GridBagConstraints.FIRST_LINE_START;
+        cardsArea.add(cards, cardsPosition);
+        body.add(cardsArea);
 
         UiKit.RoundPanel info = new UiKit.RoundPanel(13).fill(new Color(231, 240, 255)).shadow(false);
         info.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 12));
@@ -308,17 +320,32 @@ final class ManagementScreens {
                                            String icon, Color fill, Color line, int route) {
         UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(fill).line(line).shadow(false);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(24, 14, 20, 14));
-        JLabel glyph = new JLabel(UiKit.vectorIcon(icon, 58, new Color(23, 46, 176)));
+        card.setBorder(new EmptyBorder(20, 14, 18, 14));
+        JLabel glyph = new JLabel(UiKit.vectorIcon(icon, 52, new Color(23, 46, 176)));
         glyph.setAlignmentX(.5f);
-        JLabel title = LivroCaixaView.title("<html><center>" + name + "</center></html>", 20);
+        String displayName = switch (name) {
+            case "Tipos de consulta" -> "Tipos de<br>consulta";
+            case "Tipos de saída" -> "Tipos de<br>saída";
+            case "Formas de pagamento" -> "Formas de<br>pagamento";
+            default -> name;
+        };
+        JLabel title = LivroCaixaView.title(
+                "<html><center>" + displayName + "</center></html>", 20);
         title.setAlignmentX(.5f);
+        title.setHorizontalAlignment(SwingConstants.CENTER);
+        title.setMinimumSize(new Dimension(0, 52));
+        title.setPreferredSize(new Dimension(180, 52));
+        title.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
         JLabel amount = new JLabel(count);
         amount.setFont(new Font("Segoe UI", Font.PLAIN, 17));
         amount.setAlignmentX(.5f);
         JButton manage = UiKit.primary("Gerenciar", "default");
         manage.setAlignmentX(.5f);
-        manage.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        manage.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        manage.setIconTextGap(6);
+        manage.setBorder(new EmptyBorder(10, 6, 10, 6));
+        manage.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        manage.setPreferredSize(new Dimension(0, 48));
         manage.addActionListener(e -> {
             if (route <= 1) {
                 frame.showCustom("Configurações", employeesAndProfiles(frame, route));
@@ -326,15 +353,13 @@ final class ManagementScreens {
                 frame.showCustom("Configurações", auxiliary(frame, route - 2));
             }
         });
-        card.add(Box.createVerticalGlue());
         card.add(glyph);
-        card.add(Box.createVerticalStrut(20));
+        card.add(Box.createVerticalStrut(14));
         card.add(title);
-        card.add(Box.createVerticalStrut(18));
+        card.add(Box.createVerticalStrut(8));
         card.add(amount);
-        card.add(Box.createVerticalStrut(28));
-        card.add(manage);
         card.add(Box.createVerticalGlue());
+        card.add(manage);
         return card;
     }
 
@@ -412,12 +437,18 @@ final class ManagementScreens {
         fields.add(fieldBlock("Perfil", profile));
         fields.add(Box.createVerticalStrut(9));
         fields.add(fieldBlock("Senha", password));
+        fields.add(Box.createVerticalGlue());
         p.add(fields);
 
         JPanel actions = new JPanel(new GridLayout(1, 2, 10, 0));
         actions.setOpaque(false);
         JButton cancel = UiKit.secondary("Cancelar", "default");
         JButton save = UiKit.primary("Salvar", "save");
+        for (JButton button : new JButton[]{cancel, save}) {
+            button.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            button.setIconTextGap(6);
+            button.setBorder(new EmptyBorder(10, 8, 10, 8));
+        }
         save.addActionListener(e -> {
             if (!name.getText().isBlank()) {
                 EMPLOYEES.add(new EmployeeRow(EMPLOYEES.size() + 1, name.getText().trim(),
@@ -434,8 +465,15 @@ final class ManagementScreens {
 
     private static JComponent profileSummary(LivroCaixaView.MainFrame frame) {
         UiKit.RoundPanel p = panelCard("Perfis cadastrados");
-        p.add(tableCard("", new String[]{"Código", "Perfil"},
-                new Object[][]{{"001", "Administrador"}, {"002", "Atendente"}}, ""));
+        JTable table = UiKit.modernTable(new DefaultTableModel(
+                new Object[][]{{"001", "Administrador"}, {"002", "Atendente"}},
+                new String[]{"Código", "Perfil"}) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        });
+        table.setRowHeight(32);
+        p.add(new JScrollPane(table));
         JButton manage = UiKit.primary("Gerenciar perfis", "gear");
         manage.addActionListener(e -> frame.showCustom(
                 "Configurações", employeesAndProfiles(frame, 1)));
@@ -579,7 +617,8 @@ final class ManagementScreens {
                                        java.util.function.IntConsumer delete) {
         int col = table.getColumnCount() - 1;
         table.getColumnModel().getColumn(col).setCellRenderer(new ActionRenderer(locked));
-        table.getColumnModel().getColumn(col).setPreferredWidth(220);
+        table.getColumnModel().getColumn(col).setMinWidth(150);
+        table.getColumnModel().getColumn(col).setPreferredWidth(170);
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -704,6 +743,12 @@ final class ManagementScreens {
     private static JComponent fieldBlock(String label, JComponent field) {
         JPanel p = new JPanel(new BorderLayout(0, 4));
         p.setOpaque(false);
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.setMinimumSize(new Dimension(0, 72));
+        p.setPreferredSize(new Dimension(250, 72));
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
+        field.setPreferredSize(new Dimension(250, 46));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
         JLabel l = new JLabel(label);
         l.setFont(new Font("Segoe UI", Font.BOLD, 15));
         p.add(l, BorderLayout.NORTH);
@@ -759,7 +804,8 @@ final class ManagementScreens {
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean selected,
                                                        boolean focus, int row, int column) {
-            JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 3));
+            JPanel p = new JPanel(new GridLayout(1, 2, 6, 0));
+            p.setBorder(new EmptyBorder(3, 4, 3, 4));
             p.setBackground(selected ? table.getSelectionBackground()
                     : row % 2 == 0 ? Color.WHITE : new Color(249, 251, 255));
             JButton edit = new UiKit.RoundButton(
@@ -773,8 +819,10 @@ final class ManagementScreens {
                     isLocked ? Color.GRAY : UiKit.RED);
             edit.setFont(new Font("Segoe UI", Font.BOLD, 12));
             del.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            edit.setBorder(new EmptyBorder(5, 9, 5, 9));
-            del.setBorder(new EmptyBorder(5, 9, 5, 9));
+            edit.setIconTextGap(5);
+            del.setIconTextGap(5);
+            edit.setBorder(new EmptyBorder(4, 6, 4, 6));
+            del.setBorder(new EmptyBorder(4, 6, 4, 6));
             p.add(edit);
             p.add(del);
             return p;
