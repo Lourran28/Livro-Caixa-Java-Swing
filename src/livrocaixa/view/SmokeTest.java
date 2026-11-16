@@ -35,6 +35,8 @@ public final class SmokeTest {
         LivroCaixaView.LoginFrame login = new LivroCaixaView.LoginFrame(controller);
         login.setVisible(true);
         render(login, "00-login");
+        login.setSize(980, 580);
+        render(login, "00b-login-minimo");
         login.dispose();
 
         LivroCaixaView.MainFrame frame = new LivroCaixaView.MainFrame(controller, "Ana Souza");
