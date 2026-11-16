@@ -93,9 +93,9 @@ public final class LivroCaixaView {
             form.setOpaque(false);
             UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(Color.WHITE);
             card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-            card.setBorder(new EmptyBorder(28,38,24,38));
-            card.setPreferredSize(new Dimension(500, 430));
-            JLabel title = title("Acesso ao sistema", 30);
+            card.setBorder(new EmptyBorder(32,40,26,40));
+            card.setPreferredSize(new Dimension(600, 500));
+            JLabel title = title("Acesso ao sistema", 32);
             title.setForeground(new Color(13,30,58));
             title.setAlignmentX(.5f);
             card.add(title);
@@ -110,7 +110,7 @@ public final class LivroCaixaView {
             JPasswordField pass = modernPassword("123456");
             JPanel userGroup = labeled("Nome do funcionário",user);
             JPanel passGroup = labeled("Senha",pass);
-            Dimension loginFieldSize = new Dimension(424,76);
+            Dimension loginFieldSize = new Dimension(520,82);
             userGroup.setPreferredSize(loginFieldSize);
             userGroup.setMinimumSize(loginFieldSize);
             userGroup.setMaximumSize(loginFieldSize);
@@ -129,9 +129,10 @@ public final class LivroCaixaView {
             show.addActionListener(e -> pass.setEchoChar(show.isSelected() ? (char)0 : '•'));
             JPanel checkRow = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
             checkRow.setOpaque(false);
-            checkRow.setPreferredSize(new Dimension(424,28));
-            checkRow.setMinimumSize(new Dimension(424,28));
-            checkRow.setMaximumSize(new Dimension(424,28));
+            Dimension checkRowSize = new Dimension(520,30);
+            checkRow.setPreferredSize(checkRowSize);
+            checkRow.setMinimumSize(checkRowSize);
+            checkRow.setMaximumSize(checkRowSize);
             checkRow.setAlignmentX(.5f);
             checkRow.add(show);
             card.add(checkRow);
@@ -139,8 +140,9 @@ public final class LivroCaixaView {
             JButton enter = new UiKit.RoundButton(
                     "Entrar",UiKit.vectorIcon("logout",22,Color.WHITE),BLUE,Color.WHITE);
             enter.setAlignmentX(.5f);
-            enter.setMaximumSize(new Dimension(424, 50));
-            enter.setPreferredSize(new Dimension(424,50));
+            Dimension loginButtonSize = new Dimension(520,54);
+            enter.setMaximumSize(loginButtonSize);
+            enter.setPreferredSize(loginButtonSize);
             enter.addActionListener(e -> {
                 if (user.getText().isBlank() || pass.getPassword().length == 0) {
                     error(this,"Preencha usuário e senha.");
