@@ -48,7 +48,7 @@ public final class SmokeTest {
         exercisePayments(frame);
         exerciseExpenses(frame);
         exerciseReportsAndSettings(frame);
-        frame.dispose();
+        exerciseLogout(frame);
     }
 
     private static void verifySampleData(LivroCaixaView.MainFrame frame) {
@@ -185,6 +185,60 @@ public final class SmokeTest {
         frame.showPage("Configurações");
         clickNthButton(frame, "Gerenciar", 2);
         render(frame, "16-cadastros-auxiliares");
+    }
+
+    private static void exerciseLogout(LivroCaixaView.MainFrame frame) {
+        exerciseButton(frame, "Funcionário:  Ana Souza");
+        JPopupMenu menu = selectedPopupMenu();
+        expect(menu != null && menu.isShowing(), "menu da conta deve ser exibido");
+        render(frame, "17-menu-da-conta");
+
+        JMenuItem logout = find(menu, JMenuItem.class);
+        expect(logout != null && "Sair da conta".equals(logout.getText()),
+                "menu deve oferecer a opção de sair da conta");
+
+        AtomicReference<Throwable> captureError = new AtomicReference<>();
+        Timer timer = new Timer(250, event -> {
+            JDialog dialog = findShowingDialog();
+            try {
+                expect(dialog != null, "confirmação de saída deve ser exibida");
+                renderWindow(dialog, "18-confirmar-saida-da-conta");
+                exerciseButton(dialog, "Sair da conta");
+            } catch (Throwable error) {
+                captureError.set(error);
+                if (dialog != null) {
+                    dialog.dispose();
+                }
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
+        logout.doClick();
+
+        if (captureError.get() != null) {
+            throw new AssertionError("Falha ao testar saída da conta", captureError.get());
+        }
+        expect(!frame.isDisplayable(), "janela principal deve ser encerrada após sair");
+
+        LivroCaixaView.LoginFrame login = null;
+        for (Window window : Window.getWindows()) {
+            if (window instanceof LivroCaixaView.LoginFrame candidate && candidate.isShowing()) {
+                login = candidate;
+                break;
+            }
+        }
+        expect(login != null, "tela de login deve reaparecer após sair da conta");
+        render(login, "19-login-apos-sair");
+        login.dispose();
+    }
+
+    private static JPopupMenu selectedPopupMenu() {
+        for (MenuElement element : MenuSelectionManager.defaultManager().getSelectedPath()) {
+            if (element instanceof JPopupMenu popup) {
+                return popup;
+            }
+        }
+        return null;
     }
 
     private static void exerciseFilter(
@@ -327,13 +381,7 @@ public final class SmokeTest {
         AtomicReference<Throwable> captureError = new AtomicReference<>();
         Timer timer = new Timer(250, event -> {
             try {
-                JDialog dialog = null;
-                for (Window window : Window.getWindows()) {
-                    if (window instanceof JDialog candidate && candidate.isShowing()) {
-                        dialog = candidate;
-                        break;
-                    }
-                }
+                JDialog dialog = findShowingDialog();
                 if (dialog == null) {
                     throw new AssertionError("Diálogo de confirmação não foi exibido");
                 }
@@ -351,6 +399,15 @@ public final class SmokeTest {
         if (captureError.get() != null) {
             throw new AssertionError("Falha ao capturar diálogo", captureError.get());
         }
+    }
+
+    private static JDialog findShowingDialog() {
+        for (Window window : Window.getWindows()) {
+            if (window instanceof JDialog dialog && dialog.isShowing()) {
+                return dialog;
+            }
+        }
+        return null;
     }
 
     private static void render(JFrame frame, String name) {
