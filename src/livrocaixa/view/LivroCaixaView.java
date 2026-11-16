@@ -225,17 +225,7 @@ public final class LivroCaixaView {
             pageTitle.setForeground(Color.WHITE);
             pageTitle.setFont(new Font("Segoe UI",Font.BOLD,32));
             top.add(pageTitle,BorderLayout.WEST);
-            JPanel whoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
-            whoPanel.setOpaque(false);
-            JLabel personIcon = new JLabel(UiKit.vectorIcon("user",28,Color.WHITE));
-            JLabel who = new JLabel("Funcionário:  "+employee);
-            who.setFont(new Font("Segoe UI",Font.PLAIN,17));
-            who.setForeground(Color.WHITE);
-            JLabel arrow = new JLabel(UiKit.vectorIcon("chevronDown",18,Color.WHITE));
-            whoPanel.add(personIcon);
-            whoPanel.add(who);
-            whoPanel.add(arrow);
-            top.add(whoPanel,BorderLayout.EAST);
+            top.add(createAccountButton(),BorderLayout.EAST);
 
             content.setBackground(PALE);
             right.add(top,BorderLayout.NORTH);
@@ -249,6 +239,85 @@ public final class LivroCaixaView {
                     store.save();
                 }
             });
+        }
+
+        /** Cria o menu da conta exibido no canto direito do cabeçalho. */
+        private JButton createAccountButton() {
+            Icon chevron = UiKit.vectorIcon("chevronDown",18,Color.WHITE);
+            JButton button = new JButton(
+                    "Funcionário:  " + employee,
+                    UiKit.vectorIcon("user",28,Color.WHITE)) {
+                @Override protected void paintComponent(Graphics graphics) {
+                    if (getModel().isRollover() || getModel().isPressed()) {
+                        Graphics2D g = (Graphics2D) graphics.create();
+                        UiKit.antialias(g);
+                        int alpha = getModel().isPressed() ? 42 : 26;
+                        g.setColor(new Color(255,255,255,alpha));
+                        g.fillRoundRect(0,0,getWidth(),getHeight(),14,14);
+                        g.dispose();
+                    }
+                    super.paintComponent(graphics);
+                    chevron.paintIcon(
+                            this,
+                            graphics,
+                            getWidth()-chevron.getIconWidth()-10,
+                            (getHeight()-chevron.getIconHeight())/2);
+                }
+            };
+            button.setName("accountMenuButton");
+            button.setFont(new Font("Segoe UI",Font.PLAIN,17));
+            button.setForeground(Color.WHITE);
+            button.setIconTextGap(12);
+            button.setBorder(new EmptyBorder(10,12,10,38));
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.setFocusPainted(false);
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            button.setToolTipText("Abrir opções da conta");
+
+            JPopupMenu menu = createAccountMenu();
+            button.addActionListener(e -> {
+                int x = Math.max(0,button.getWidth()-menu.getPreferredSize().width);
+                menu.show(button,x,button.getHeight()+4);
+            });
+            return button;
+        }
+
+        /** Mantém as ações da conta reunidas em um menu curto e acessível. */
+        private JPopupMenu createAccountMenu() {
+            JPopupMenu menu = new JPopupMenu();
+            menu.setBackground(Color.WHITE);
+            menu.setBorder(new CompoundBorder(
+                    new LineBorder(UiKit.LINE),
+                    new EmptyBorder(6,6,6,6)));
+
+            JMenuItem logout = new JMenuItem(
+                    "Sair da conta",UiKit.vectorIcon("logout",21,UiKit.RED));
+            logout.setName("logoutMenuItem");
+            logout.setFont(new Font("Segoe UI",Font.BOLD,15));
+            logout.setForeground(UiKit.RED);
+            logout.setBackground(Color.WHITE);
+            logout.setOpaque(true);
+            logout.setBorder(new EmptyBorder(11,13,11,30));
+            logout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            logout.addActionListener(e -> requestLogout());
+            menu.add(logout);
+            return menu;
+        }
+
+        private void requestLogout() {
+            if (confirm(this,"Sair da conta de " + employee + "?")) {
+                returnToLogin();
+            }
+        }
+
+        /** Salva o estado atual e retorna ao acesso usando a mesma sessão de dados. */
+        private void returnToLogin() {
+            store.save();
+            LoginFrame login = new LoginFrame(controller);
+            login.setLocationRelativeTo(this);
+            dispose();
+            login.setVisible(true);
         }
 
         /** Registra uma opção no menu e direciona o clique para {@link #showPage(String)}. */
@@ -950,6 +1019,11 @@ public final class LivroCaixaView {
             actionLabel=normalized.contains("cliente")?"Excluir cliente":normalized.contains("saída")?"Excluir saída":normalized.contains("funcionário")?"Excluir funcionário":normalized.contains("cadastro")?"Excluir cadastro":"Excluir";
             detail="O registro será removido e esta ação não poderá ser desfeita.";
             icon="trash";
+        }else if(normalized.startsWith("sair da conta")){
+            dialogTitle="Sair da conta";
+            actionLabel="Sair da conta";
+            detail="Você voltará à tela de acesso e poderá entrar novamente.";
+            icon="logout";
         }else if(normalized.startsWith("cancelar")){
             dialogTitle="Confirmar cancelamento";
             actionLabel="Cancelar parcela";
