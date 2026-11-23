@@ -509,55 +509,9 @@ public final class LivroCaixaView {
             formCard.add(Box.createVerticalStrut(8));
             formCard.add(help);
 
-            UiKit.RoundPanel summary=new UiKit.RoundPanel(14).fill(new Color(244,248,255)).shadow(false);
-            summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));
-            summary.setBorder(new EmptyBorder(20,22,20,22));
-            JPanel summaryHeading=new JPanel(new BorderLayout(10,0));
-            summaryHeading.setOpaque(false);
-            JLabel summaryIcon=new JLabel(UiKit.vectorIcon("user",24,BLUE));
-            summaryHeading.add(summaryIcon,BorderLayout.WEST);
-            JPanel summaryText=new JPanel();
-            summaryText.setOpaque(false);
-            summaryText.setLayout(new BoxLayout(summaryText,BoxLayout.Y_AXIS));
-            summaryText.add(title("Pré-visualização",22));
-            JLabel summaryHint=new JLabel("Confira os dados antes de salvar");
-            summaryHint.setFont(new Font("Segoe UI",Font.PLAIN,14));
-            summaryHint.setForeground(UiKit.MUTED);
-            summaryText.add(summaryHint);
-            summaryHeading.add(summaryText);
-            summaryHeading.setAlignmentX(Component.LEFT_ALIGNMENT);
-            summaryHeading.setMaximumSize(new Dimension(Integer.MAX_VALUE,52));
-            summary.add(summaryHeading);
-            summary.add(Box.createVerticalStrut(16));
-            JLabel summaryName=new JLabel(name.getText().isBlank()?"Ainda não informado":name.getText().trim());
-            JLabel summaryCpf=new JLabel(cpf.getText().isBlank()?"Ainda não informado":cpf.getText().trim());
-            summary.add(clientPreviewItem("Nome",summaryName,"user"));
-            summary.add(Box.createVerticalStrut(10));
-            summary.add(clientPreviewItem("CPF",summaryCpf,"document"));
-
-            Runnable refreshPreview=()->{
-                String nameValue=name.getText().trim(),cpfValue=cpf.getText().trim();
-                summaryName.setText(nameValue.isBlank()?"Ainda não informado":nameValue);
-                summaryCpf.setText(cpfValue.isBlank()?"Ainda não informado":cpfValue);
-            };
-            UiKit.onDocumentChange(name.getDocument(),refreshPreview);
-            UiKit.onDocumentChange(cpf.getDocument(),refreshPreview);
-
-            JPanel body=new JPanel(new GridBagLayout());
+            JPanel body=new JPanel(new BorderLayout());
             body.setOpaque(false);
-            GridBagConstraints gc=new GridBagConstraints();
-            gc.gridy=0;
-            gc.fill=GridBagConstraints.HORIZONTAL;
-            gc.anchor=GridBagConstraints.NORTH;
-            gc.weighty=0;
-            gc.gridx=0;
-            gc.weightx=1.8;
-            gc.insets=new Insets(0,0,0,20);
-            body.add(formCard,gc);
-            gc.gridx=1;
-            gc.weightx=1;
-            gc.insets=new Insets(0,0,0,0);
-            body.add(summary,gc);
+            body.add(formCard,BorderLayout.NORTH);
             JPanel bodyHolder=new JPanel(new BorderLayout());
             bodyHolder.setOpaque(false);
             bodyHolder.add(body,BorderLayout.NORTH);
@@ -642,14 +596,7 @@ public final class LivroCaixaView {
             typeLine.add(type);
             JButton newType = secondary("Novo tipo de saída");
             newType.setIcon(UiKit.vectorIcon("plus",18,BLUE));
-            newType.addActionListener(e -> {
-                String description = JOptionPane.showInputDialog(this,"Descrição do tipo de saída:");
-                if(description != null && !description.isBlank()) {
-                    store.expenseTypes.add(description.trim());
-                    store.save();
-                    expenseDialog(edit);
-                }
-            });
+            newType.addActionListener(e -> newExpenseTypeScreen(root,type));
             typeLine.add(newType,BorderLayout.EAST);
             formArea.add(taggedField("Tipo de saída","Obrigatório",typeLine));
             JLabel help = new JLabel("Cadastre um novo tipo sem sair desta tela.");
@@ -673,23 +620,43 @@ public final class LivroCaixaView {
             summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));
             summary.setBorder(new EmptyBorder(20,22,20,22));
             summary.add(title("Resumo da saída",24));
-            summary.add(Box.createVerticalStrut(26));
-            summary.add(title("Tipo de saída:",16));
-            summary.add(new JLabel(String.valueOf(type.getSelectedItem())));
-            summary.add(new JSeparator());
-            summary.add(Box.createVerticalStrut(17));
-            summary.add(title("Valor:",16));
-            JLabel summaryValue = title(value.getText().isBlank() ? "R$ 0,00" : "R$ "+value.getText(),20);
+            JLabel summaryHint = new JLabel("Confira os dados antes de salvar");
+            summaryHint.setFont(new Font("Segoe UI",Font.PLAIN,15));
+            summaryHint.setForeground(UiKit.MUTED);
+            summary.add(summaryHint);
+            summary.add(Box.createVerticalStrut(18));
+
+            JLabel summaryValue = title("R$ "+value.getText(),25);
             summaryValue.setForeground(BLUE);
-            summary.add(summaryValue);
-            summary.add(new JSeparator());
-            summary.add(Box.createVerticalStrut(17));
-            summary.add(title("Data:",16));
-            summary.add(new JLabel(date.getText()));
-            summary.add(new JSeparator());
-            summary.add(Box.createVerticalStrut(17));
-            summary.add(title("Funcionário:",16));
-            summary.add(new JLabel(String.valueOf(worker.getSelectedItem())));
+            UiKit.RoundPanel amountCard = expenseSummaryItem(
+                    "Valor da saída",summaryValue,"wallet",BLUE,new Color(232,241,255));
+            summary.add(amountCard);
+            summary.add(Box.createVerticalStrut(12));
+
+            JLabel summaryType = title(String.valueOf(type.getSelectedItem()),17);
+            JLabel summaryDate = title(date.getText(),17);
+            JLabel summaryWorker = title(String.valueOf(worker.getSelectedItem()),17);
+            summary.add(expenseSummaryItem("Tipo de saída",summaryType,"document",
+                    new Color(122,76,210),new Color(244,238,255)));
+            summary.add(Box.createVerticalStrut(10));
+            summary.add(expenseSummaryItem("Data do lançamento",summaryDate,"calendar",
+                    new Color(222,126,0),new Color(255,245,225)));
+            summary.add(Box.createVerticalStrut(10));
+            summary.add(expenseSummaryItem("Responsável",summaryWorker,"user",
+                    new Color(0,135,82),new Color(231,248,239)));
+            summary.add(Box.createVerticalGlue());
+
+            Runnable refreshSummary = () -> {
+                String amount = value.getText().trim();
+                summaryValue.setText(amount.isBlank() ? "R$ 0,00" : "R$ "+amount);
+                summaryType.setText(String.valueOf(type.getSelectedItem()));
+                summaryDate.setText(date.getText().isBlank() ? "Não informada" : date.getText());
+                summaryWorker.setText(String.valueOf(worker.getSelectedItem()));
+            };
+            UiKit.onDocumentChange(value.getDocument(),refreshSummary);
+            UiKit.onDocumentChange(date.getDocument(),refreshSummary);
+            type.addActionListener(e -> refreshSummary.run());
+            worker.addActionListener(e -> refreshSummary.run());
             body.add(summary,constraints);
             card.add(body);
 
@@ -717,6 +684,124 @@ public final class LivroCaixaView {
             card.add(actions,BorderLayout.SOUTH);
             root.add(card);
             showCustom("Saídas",root);
+        }
+
+        private UiKit.RoundPanel expenseSummaryItem(String label,JLabel valueLabel,String icon,
+                                                     Color accent,Color background) {
+            UiKit.RoundPanel item = new UiKit.RoundPanel(13).fill(background).shadow(false);
+            item.setLayout(new BorderLayout(14,0));
+            item.setBorder(new EmptyBorder(13,14,13,14));
+            UiKit.RoundPanel iconBox = new UiKit.RoundPanel(10)
+                    .fill(new Color(accent.getRed(),accent.getGreen(),accent.getBlue(),28))
+                    .line(null).shadow(false);
+            iconBox.setPreferredSize(new Dimension(48,48));
+            iconBox.setLayout(new GridBagLayout());
+            iconBox.add(new JLabel(UiKit.vectorIcon(icon,24,accent)));
+            item.add(iconBox,BorderLayout.WEST);
+            JPanel text = new JPanel();
+            text.setOpaque(false);
+            text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));
+            JLabel caption = new JLabel(label);
+            caption.setFont(new Font("Segoe UI",Font.BOLD,14));
+            caption.setForeground(UiKit.MUTED);
+            text.add(caption);
+            text.add(Box.createVerticalStrut(3));
+            valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            text.add(valueLabel);
+            item.add(text);
+            return item;
+        }
+
+        private void newExpenseTypeScreen(JPanel returnPage,JComboBox<String> typeSelector) {
+            JPanel root = page();
+            UiKit.RoundPanel surface = new UiKit.RoundPanel(16).fill(Color.WHITE).shadow(false);
+            surface.setLayout(new BorderLayout(0,22));
+            surface.setBorder(new EmptyBorder(24,28,24,28));
+
+            JPanel heading = new JPanel();
+            heading.setOpaque(false);
+            heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
+            heading.add(title("Novo tipo de saída",34));
+            JLabel subtitle = new JLabel("Crie uma categoria para organizar os lançamentos financeiros");
+            subtitle.setFont(new Font("Segoe UI",Font.PLAIN,18));
+            subtitle.setForeground(UiKit.MUTED);
+            heading.add(Box.createVerticalStrut(4));
+            heading.add(subtitle);
+            surface.add(heading,BorderLayout.NORTH);
+
+            JPanel content = new JPanel(new GridLayout(1,2,22,0));
+            content.setOpaque(false);
+            UiKit.RoundPanel form = new UiKit.RoundPanel(14)
+                    .fill(new Color(248,250,255)).shadow(false);
+            form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
+            form.setBorder(new EmptyBorder(24,24,24,24));
+            form.add(title("Dados da categoria",23));
+            form.add(Box.createVerticalStrut(18));
+            JTextField description = modernField("");
+            description.setMaximumSize(new Dimension(Integer.MAX_VALUE,52));
+            form.add(taggedField("Nome do tipo","Obrigatório",description));
+            form.add(Box.createVerticalStrut(12));
+            JLabel guidance = new JLabel("Exemplos: Aluguel, Energia, Internet ou Manutenção.");
+            guidance.setFont(new Font("Segoe UI",Font.PLAIN,15));
+            guidance.setForeground(UiKit.MUTED);
+            form.add(guidance);
+            form.add(Box.createVerticalGlue());
+
+            UiKit.RoundPanel preview = new UiKit.RoundPanel(14)
+                    .fill(new Color(244,248,255)).shadow(false);
+            preview.setLayout(new BorderLayout(0,18));
+            preview.setBorder(new EmptyBorder(24,24,24,24));
+            JPanel previewTop = new JPanel();
+            previewTop.setOpaque(false);
+            previewTop.setLayout(new BoxLayout(previewTop,BoxLayout.Y_AXIS));
+            previewTop.add(title("Prévia",23));
+            JLabel previewHint = new JLabel("Assim o novo tipo aparecerá no cadastro de saídas");
+            previewHint.setFont(new Font("Segoe UI",Font.PLAIN,15));
+            previewHint.setForeground(UiKit.MUTED);
+            previewTop.add(Box.createVerticalStrut(4));
+            previewTop.add(previewHint);
+            preview.add(previewTop,BorderLayout.NORTH);
+            JLabel previewName = title("Nome da categoria",22);
+            previewName.setForeground(BLUE);
+            previewName.setHorizontalAlignment(SwingConstants.CENTER);
+            preview.add(previewName);
+            UiKit.onDocumentChange(description.getDocument(),() -> {
+                String text = description.getText().trim();
+                previewName.setText(text.isBlank() ? "Nome da categoria" : text);
+            });
+            content.add(form);
+            content.add(preview);
+            surface.add(content);
+
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));
+            actions.setOpaque(false);
+            JButton back = secondary("Voltar");
+            back.setIcon(UiKit.vectorIcon("back",20,UiKit.INK));
+            JButton save = primary("Salvar tipo");
+            save.setIcon(UiKit.vectorIcon("save",20,Color.WHITE));
+            back.addActionListener(e -> showCustom("Saídas",returnPage));
+            save.addActionListener(e -> {
+                String name = description.getText().trim();
+                if(name.isBlank()) {
+                    error(this,"Informe o nome do novo tipo de saída.");
+                    return;
+                }
+                if(store.expenseTypes.stream().anyMatch(item -> item.equalsIgnoreCase(name))) {
+                    error(this,"Este tipo de saída já está cadastrado.");
+                    return;
+                }
+                store.expenseTypes.add(name);
+                store.save();
+                typeSelector.addItem(name);
+                typeSelector.setSelectedItem(name);
+                showCustom("Saídas",returnPage);
+            });
+            actions.add(back);
+            actions.add(save);
+            surface.add(actions,BorderLayout.SOUTH);
+            root.add(surface);
+            showCustom("Saídas",root);
+            SwingUtilities.invokeLater(description::requestFocusInWindow);
         }
 
         JComponent reports(){return ManagementScreens.buildReports(this);}
@@ -798,34 +883,6 @@ public final class LivroCaixaView {
         panel.add(component);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,92));
         return panel;
-    }
-
-    static JComponent clientPreviewItem(String label,JLabel value,String icon) {
-        UiKit.RoundPanel row = new UiKit.RoundPanel(12)
-                .fill(Color.WHITE).line(UiKit.LINE).shadow(false);
-        row.setLayout(new BorderLayout(12,0));
-        row.setBorder(new EmptyBorder(11,12,11,12));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE,68));
-        UiKit.RoundPanel iconBox = new UiKit.RoundPanel(10)
-                .fill(new Color(231,240,255)).line(null).shadow(false);
-        iconBox.setPreferredSize(new Dimension(44,44));
-        iconBox.setLayout(new GridBagLayout());
-        iconBox.add(new JLabel(UiKit.vectorIcon(icon,21,BLUE)));
-        row.add(iconBox,BorderLayout.WEST);
-        JPanel text = new JPanel();
-        text.setOpaque(false);
-        text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));
-        JLabel caption = new JLabel(label);
-        caption.setFont(new Font("Segoe UI",Font.BOLD,13));
-        caption.setForeground(UiKit.MUTED);
-        value.setFont(new Font("Segoe UI",Font.BOLD,16));
-        value.setForeground(UiKit.INK);
-        text.add(caption);
-        text.add(Box.createVerticalStrut(3));
-        text.add(value);
-        row.add(text);
-        return row;
     }
 
     static JButton primary(String text) {
