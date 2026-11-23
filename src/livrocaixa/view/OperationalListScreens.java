@@ -64,7 +64,6 @@ final class OperationalListScreens {
         JTable table = UiKit.modernTable(model);
         table.setRowHeight(62);
         table.getTableHeader().setPreferredSize(new Dimension(0, 54));
-        UiKit.centerColumns(table, 0, 1, 2);
         table.getColumnModel().getColumn(3).setCellRenderer(new ActionRenderer(ActionKind.CLIENT));
         setWidths(table.getColumnModel(), new int[]{130, 360, 310, 340});
 
@@ -262,7 +261,7 @@ final class OperationalListScreens {
         private final ActionKind kind;
         ActionRenderer(ActionKind kind) {this.kind = kind;}
         @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus, int row, int column) {
-            JPanel panel = new JPanel(new GridLayout(1, 2, 10, 0)); panel.setBorder(new EmptyBorder(7, 12, 7, 12)); panel.setOpaque(true);
+            JPanel panel = new JPanel(new GridBagLayout()); panel.setBorder(new EmptyBorder(7, 12, 7, 12)); panel.setOpaque(true);
             panel.setBackground(selected ? table.getSelectionBackground() : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
             Color editColor = kind == ActionKind.CLIENT ? UiKit.BLUE : UiKit.INK;
             JButton first = new UiKit.RoundButton("Editar", UiKit.vectorIcon("edit", 17, editColor),
@@ -274,8 +273,7 @@ final class OperationalListScreens {
             second.setFont(new Font("Segoe UI", Font.BOLD, 14));
             first.setBorder(new EmptyBorder(6, 10, 6, 10));
             second.setBorder(new EmptyBorder(6, 10, 6, 10));
-            panel.add(first);
-            panel.add(second);
+            UiKit.addActionPair(panel, first, second);
             return panel;
         }
     }

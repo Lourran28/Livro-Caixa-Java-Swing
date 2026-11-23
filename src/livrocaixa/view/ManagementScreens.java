@@ -782,7 +782,7 @@ final class ManagementScreens {
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean selected,
                                                        boolean focus, int row, int column) {
-            JPanel p = new JPanel(new GridLayout(1, 2, 6, 0));
+            JPanel p = new JPanel(new GridBagLayout());
             p.setBorder(new EmptyBorder(3, 4, 3, 4));
             p.setBackground(selected ? table.getSelectionBackground()
                     : row % 2 == 0 ? Color.WHITE : new Color(249, 251, 255));
@@ -801,8 +801,7 @@ final class ManagementScreens {
             del.setIconTextGap(5);
             edit.setBorder(new EmptyBorder(4, 6, 4, 6));
             del.setBorder(new EmptyBorder(4, 6, 4, 6));
-            p.add(edit);
-            p.add(del);
+            UiKit.addActionPair(p, edit, del);
             return p;
         }
     }

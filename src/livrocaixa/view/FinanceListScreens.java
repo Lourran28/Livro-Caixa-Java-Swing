@@ -342,9 +342,11 @@ final class FinanceListScreens {
         container.setBounds(0, 0, cell.width, cell.height);
         container.doLayout();
         Point point = new Point(event.getX() - cell.x, event.getY() - cell.y);
-        Component[] actions = container.getComponents();
-        for (int i = 0; i < actions.length; i++) {
-            if (actions[i].getBounds().contains(point)) return i;
+        int action = 0;
+        for (Component component : container.getComponents()) {
+            if (!(component instanceof AbstractButton)) continue;
+            if (component.getBounds().contains(point)) return action;
+            action++;
         }
         return -1;
     }
@@ -362,7 +364,8 @@ final class FinanceListScreens {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus,
                                                        int row, int column) {
-            JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, 7, 4));
+            JPanel p = new JPanel(new GridBagLayout());
+            p.setBorder(new EmptyBorder(4, 7, 4, 7));
             p.setOpaque(true);
             p.setBackground(selected ? table.getSelectionBackground()
                     : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
@@ -382,8 +385,7 @@ final class FinanceListScreens {
             b.setFont(new Font("Segoe UI", Font.BOLD, 12));
             a.setBorder(new EmptyBorder(5, 9, 5, 9));
             b.setBorder(new EmptyBorder(5, 9, 5, 9));
-            p.add(a);
-            p.add(b);
+            UiKit.addActionPair(p, a, b);
             return p;
         }
     }

@@ -237,6 +237,29 @@ final class UiKit {
         document.addDocumentListener(new DocumentChangeListener(action));
     }
 
+    /** Organiza duas ações com a mesma largura e um divisor discreto entre elas. */
+    static void addActionPair(JPanel panel, JButton first, JButton second) {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridy = 0;
+        constraints.weightx = 1;
+        constraints.weighty = 1;
+        constraints.fill = GridBagConstraints.BOTH;
+        panel.add(first, constraints);
+
+        JSeparator divider = new JSeparator(SwingConstants.VERTICAL);
+        divider.setForeground(new Color(183, 198, 221));
+        divider.setPreferredSize(new Dimension(1, 27));
+        constraints.weightx = 0;
+        constraints.fill = GridBagConstraints.VERTICAL;
+        constraints.insets = new Insets(4, 7, 4, 7);
+        panel.add(divider, constraints);
+
+        constraints.weightx = 1;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.insets = new Insets(0, 0, 0, 0);
+        panel.add(second, constraints);
+    }
+
     /** Cria tabelas com cabeçalho, seleção, ordenação e linhas alternadas padronizadas. */
     static JTable modernTable(TableModel model) {
         JTable table = new JTable(model);
@@ -263,13 +286,6 @@ final class UiKit {
 
     static TableCellRenderer headerRenderer(int fontSize) {
         return new HeaderRenderer(fontSize);
-    }
-
-    static void centerColumns(JTable table, int... columns) {
-        TableCellRenderer centered = new CellRenderer(SwingConstants.CENTER);
-        for (int column : columns) {
-            table.getColumnModel().getColumn(column).setCellRenderer(centered);
-        }
     }
 
     private static final class ViewTableModel extends DefaultTableModel {
@@ -341,7 +357,7 @@ final class UiKit {
         private Color pillColor;
 
         CellRenderer() {
-            this(LEFT);
+            this(CENTER);
         }
 
         CellRenderer(int baseAlignment) {
@@ -363,7 +379,6 @@ final class UiKit {
             if (text.startsWith("R$")) {
                 setForeground(BLUE_2);
                 setFont(SEMIBOLD);
-                setHorizontalAlignment(RIGHT);
             }
             String status = text.toLowerCase();
             if (status.matches(
