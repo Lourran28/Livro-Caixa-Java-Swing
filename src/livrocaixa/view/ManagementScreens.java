@@ -493,7 +493,14 @@ final class ManagementScreens {
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
         heading.add(LivroCaixaView.title("Cadastros auxiliares", 32));
         heading.add(new JLabel("Escolha uma categoria para consultar, cadastrar ou editar."));
-        body.add(heading, BorderLayout.NORTH);
+        JPanel headingBar = new JPanel(new BorderLayout());
+        headingBar.setOpaque(false);
+        headingBar.add(heading);
+        JButton back = UiKit.secondary("Voltar para configurações", "back");
+        back.setPreferredSize(new Dimension(285, 48));
+        back.addActionListener(e -> frame.showPage("Configurações"));
+        headingBar.add(back, BorderLayout.EAST);
+        body.add(headingBar, BorderLayout.NORTH);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Segoe UI", Font.BOLD, 18));

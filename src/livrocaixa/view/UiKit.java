@@ -757,6 +757,11 @@ final class UiKit {
                     g.drawLine(5, 5, 19, 19);
                     g.drawLine(19, 5, 5, 19);
                 }
+                case "back" -> {
+                    g.drawLine(4, 12, 21, 12);
+                    g.drawLine(4, 12, 10, 6);
+                    g.drawLine(4, 12, 10, 18);
+                }
                 case "chevronDown" -> {
                     g.drawLine(5, 8, 12, 15);
                     g.drawLine(12, 15, 19, 8);

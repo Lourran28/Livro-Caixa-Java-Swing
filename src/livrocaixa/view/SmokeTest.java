@@ -200,6 +200,8 @@ public final class SmokeTest {
         frame.showPage("Configurações");
         clickNthButton(frame, "Gerenciar", 2);
         render(frame, "16-cadastros-auxiliares");
+        exerciseButton(frame, "Voltar para configurações");
+        render(frame, "16b-cadastros-auxiliares-voltar");
     }
 
     private static void exerciseLogout(LivroCaixaView.MainFrame frame) {
