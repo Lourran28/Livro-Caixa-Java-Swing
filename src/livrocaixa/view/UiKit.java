@@ -288,9 +288,13 @@ final class UiKit {
 
         @Override
         protected JButton createArrowButton() {
-            JButton button = super.createArrowButton();
-            button.setBackground(Color.WHITE);
-            button.setOpaque(true);
+            JButton button = new JButton(vectorIcon("chevronDown", 17, new Color(74, 94, 121)));
+            button.setRolloverIcon(vectorIcon("chevronDown", 17, BLUE));
+            button.setContentAreaFilled(false);
+            button.setOpaque(false);
+            button.setFocusPainted(false);
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            button.setPreferredSize(new Dimension(42, 42));
             button.setBorder(BorderFactory.createMatteBorder(
                     0, 1, 0, 0, new Color(185, 201, 224)));
             return button;
