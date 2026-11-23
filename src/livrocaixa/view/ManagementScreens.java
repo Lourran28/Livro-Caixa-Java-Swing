@@ -521,10 +521,10 @@ final class ManagementScreens {
         UiKit.RoundPanel tips = new UiKit.RoundPanel(12).fill(new Color(231, 240, 255)).shadow(false);
         tips.setLayout(new GridLayout(1, 4, 10, 0));
         tips.setBorder(new EmptyBorder(10, 14, 10, 14));
-        tips.add(new JLabel("ⓘ Registros em uso não podem ser excluídos."));
-        tips.add(new JLabel("① Escolha a categoria"));
-        tips.add(new JLabel("② Clique em Novo ou Editar"));
-        tips.add(new JLabel("③ Salve"));
+        tips.add(flowTip("Registros em uso são protegidos", "shield", UiKit.RED));
+        tips.add(flowTip("Escolha uma categoria", "card", new Color(111, 76, 205)));
+        tips.add(flowTip("Clique em Novo ou Editar", "edit", UiKit.BLUE));
+        tips.add(flowTip("Salve as alterações", "save", UiKit.GREEN));
         body.add(tips, BorderLayout.SOUTH);
         root.add(body);
         return root;
@@ -539,7 +539,7 @@ final class ManagementScreens {
 
         UiKit.RoundPanel left = panelCard(capitalize(singular) + " cadastrados");
         JLabel helper = new JLabel(
-                hint, UiKit.vectorIcon("default", 22, UiKit.BLUE), SwingConstants.LEFT);
+                hint, UiKit.vectorIcon("info", 22, UiKit.BLUE), SwingConstants.LEFT);
         helper.setForeground(new Color(23, 54, 178));
         left.add(helper, BorderLayout.NORTH);
         DefaultTableModel model = listModel(values);
@@ -560,7 +560,7 @@ final class ManagementScreens {
         right.add(form);
         JPanel actions = new JPanel(new GridLayout(1, 2, 10, 0));
         actions.setOpaque(false);
-        JButton cancel = UiKit.secondary("Cancelar", "default");
+        JButton cancel = UiKit.secondary("Cancelar", "close");
         JButton save = UiKit.primary("Salvar", "save");
         actions.add(cancel);
         actions.add(save);
@@ -612,6 +612,14 @@ final class ManagementScreens {
         content.add(left);
         content.add(right);
         return content;
+    }
+
+    private static JLabel flowTip(String text, String icon, Color color) {
+        JLabel tip = new JLabel(text, UiKit.vectorIcon(icon, 22, color), SwingConstants.LEFT);
+        tip.setIconTextGap(9);
+        tip.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tip.setForeground(UiKit.INK);
+        return tip;
     }
 
     private static void installActions(JTable table, IntPredicate locked,
