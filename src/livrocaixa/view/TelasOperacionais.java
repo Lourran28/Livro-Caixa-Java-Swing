@@ -17,30 +17,30 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /** Telas de listagem desenhadas individualmente conforme os protótipos 02 e 04. */
-final class OperationalListScreens {
+final class TelasOperacionais {
     private static final Color FILTER_BG = new Color(242, 247, 255);
     private static final Color HEADER_BG = new Color(225, 235, 249);
 
-    private OperationalListScreens() {}
+    private TelasOperacionais() {}
 
-    static JComponent buildClients(LivroCaixaView.MainFrame frame) {
-        JPanel root = LivroCaixaView.page();
+    static JComponent buildClients(TelaLivroCaixa.JanelaPrincipal frame) {
+        JPanel root = TelaLivroCaixa.page();
         root.setBorder(new EmptyBorder(18, 18, 18, 18));
 
         JPanel north = new JPanel(new BorderLayout(0, 16));
         north.setOpaque(false);
-        north.add(LivroCaixaView.title("Cadastro de clientes", 28), BorderLayout.NORTH);
+        north.add(TelaLivroCaixa.title("Cadastro de clientes", 28), BorderLayout.NORTH);
 
-        UiKit.RoundPanel filters = new UiKit.RoundPanel(15).fill(FILTER_BG).shadow(false);
+        ComponentesVisuais.RoundPanel filters = new ComponentesVisuais.RoundPanel(15).fill(FILTER_BG).shadow(false);
         filters.setLayout(new GridBagLayout());
         filters.setBorder(new EmptyBorder(17, 20, 17, 20));
         GridBagConstraints g = baseGrid();
 
-        JLabel filterLabel = LivroCaixaView.title("Nome ou CPF", 18);
+        JLabel filterLabel = TelaLivroCaixa.title("Nome ou CPF", 18);
         g.gridx = 0; g.weightx = 0; g.insets = new Insets(0, 0, 0, 14);
         filters.add(filterLabel, g);
 
-        JTextField search = LivroCaixaView.modernField("");
+        JTextField search = TelaLivroCaixa.modernField("");
         search.setPreferredSize(new Dimension(370, 48));
         g.gridx = 1; g.weightx = 1; g.fill = GridBagConstraints.HORIZONTAL; g.insets = new Insets(0, 0, 0, 16);
         filters.add(search, g);
@@ -58,10 +58,10 @@ final class OperationalListScreens {
 
         List<Client> source = new ArrayList<>(frame.store.clients);
         source.sort(Comparator.comparingInt(c -> c.id));
-        DefaultTableModel model = UiKit.readOnlyModel("Código", "Nome", "CPF", "Ações");
+        DefaultTableModel model = ComponentesVisuais.readOnlyModel("Código", "Nome", "CPF", "Ações");
         for (Client c : source) model.addRow(new Object[]{String.format("%03d", c.id), c.name, c.cpf, ""});
 
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setRowHeight(62);
         table.getTableHeader().setPreferredSize(new Dimension(0, 54));
         table.getColumnModel().getColumn(3).setCellRenderer(new ActionRenderer(ActionKind.CLIENT));
@@ -77,7 +77,7 @@ final class OperationalListScreens {
         clear.addActionListener(e -> { search.setText(""); applyFilter.run(); });
         add.addActionListener(e -> frame.clientDialog(null));
 
-        UiKit.onClick(table, e -> {
+        ComponentesVisuais.onClick(table, e -> {
             int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
             if (viewRow < 0 || col != 3) return;
             int row = table.convertRowIndexToModel(viewRow);
@@ -86,21 +86,21 @@ final class OperationalListScreens {
             if (client == null) return;
             Rectangle cell = table.getCellRect(viewRow, col, true);
             if (e.getX() - cell.x < cell.width / 2) frame.clientDialog(client);
-            else if (LivroCaixaView.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
+            else if (TelaLivroCaixa.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
                 frame.store.removeClient(client);
                 frame.showPage("Clientes");
             }
         });
 
-        UiKit.RoundPanel tableCard = new UiKit.RoundPanel(15).fill(Color.WHITE).shadow(false);
+        ComponentesVisuais.RoundPanel tableCard = new ComponentesVisuais.RoundPanel(15).fill(Color.WHITE).shadow(false);
         tableCard.setLayout(new BorderLayout());
         tableCard.setBorder(new EmptyBorder(0, 0, 0, 0));
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(new LineBorder(UiKit.LINE));
+        scroll.setBorder(new LineBorder(ComponentesVisuais.LINE));
         tableCard.add(scroll);
         JLabel footer = new JLabel(frame.store.clients.size() + " clientes cadastrados");
         footer.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        footer.setForeground(UiKit.INK);
+        footer.setForeground(ComponentesVisuais.INK);
         footer.setOpaque(true); footer.setBackground(HEADER_BG); footer.setBorder(new EmptyBorder(13, 18, 13, 18));
         tableCard.add(footer, BorderLayout.SOUTH);
         JPanel holder = new JPanel(new BorderLayout()); holder.setOpaque(false); holder.setBorder(new EmptyBorder(16, 0, 0, 0)); holder.add(tableCard);
@@ -108,17 +108,17 @@ final class OperationalListScreens {
         return root;
     }
 
-    static JComponent buildAppointments(LivroCaixaView.MainFrame frame) {
-        JPanel root = LivroCaixaView.page();
+    static JComponent buildAppointments(TelaLivroCaixa.JanelaPrincipal frame) {
+        JPanel root = TelaLivroCaixa.page();
         root.setBorder(new EmptyBorder(18, 18, 18, 18));
 
         JPanel upper = new JPanel(new BorderLayout(0, 16)); upper.setOpaque(false);
-        UiKit.RoundPanel filters = new UiKit.RoundPanel(15).fill(FILTER_BG).shadow(false);
+        ComponentesVisuais.RoundPanel filters = new ComponentesVisuais.RoundPanel(15).fill(FILTER_BG).shadow(false);
         filters.setLayout(new GridBagLayout()); filters.setBorder(new EmptyBorder(17, 18, 17, 18));
         GridBagConstraints g = baseGrid();
 
-        JTextField initial = LivroCaixaView.modernField("01/11/2026");
-        JTextField end = LivroCaixaView.modernField("30/11/2026");
+        JTextField initial = TelaLivroCaixa.modernField("01/11/2026");
+        JTextField end = TelaLivroCaixa.modernField("30/11/2026");
         JComboBox<String> client = combo(withAll(frame.store.clients.stream().map(c -> c.name).toList()));
         JComboBox<String> type = combo(withAll(frame.store.appointmentTypes));
         JComboBox<String> employee = combo(List.of("Todos", frame.employee, "Bruno Reis"));
@@ -128,7 +128,7 @@ final class OperationalListScreens {
         for (int i = 0; i < labels.length; i++) {
             g.gridx = i; g.gridy = 0; g.weightx = weights[i]; g.fill = GridBagConstraints.HORIZONTAL;
             g.insets = new Insets(0, 0, 7, i == labels.length - 1 ? 0 : 16);
-            filters.add(LivroCaixaView.title(labels[i], 17), g);
+            filters.add(TelaLivroCaixa.title(labels[i], 17), g);
             g.gridy = 1; g.insets = new Insets(0, 0, 0, i == labels.length - 1 ? 0 : 16);
             controls[i].setPreferredSize(new Dimension(190, 48)); filters.add(controls[i], g);
         }
@@ -144,10 +144,10 @@ final class OperationalListScreens {
 
         List<Appointment> source = new ArrayList<>(frame.store.appointments);
         source.sort(Comparator.comparingInt((Appointment a) -> a.id).reversed());
-        DefaultTableModel model = UiKit.readOnlyModel(
+        DefaultTableModel model = ComponentesVisuais.readOnlyModel(
                 "Código", "Data", "Cliente", "Tipo", "Funcionário", "Ações");
-        for (Appointment a : source) model.addRow(new Object[]{a.id, LivroCaixaView.fmt(a.date), a.client, a.type, a.employee, ""});
-        JTable table = UiKit.modernTable(model); table.setRowHeight(62); table.getTableHeader().setPreferredSize(new Dimension(0, 54));
+        for (Appointment a : source) model.addRow(new Object[]{a.id, TelaLivroCaixa.fmt(a.date), a.client, a.type, a.employee, ""});
+        JTable table = ComponentesVisuais.modernTable(model); table.setRowHeight(62); table.getTableHeader().setPreferredSize(new Dimension(0, 54));
         table.getColumnModel().getColumn(5).setCellRenderer(new ActionRenderer(ActionKind.APPOINTMENT));
         setWidths(table.getColumnModel(), new int[]{105, 145, 225, 250, 215, 340});
         TableRowSorter<DefaultTableModel> sorter = castSorter(table);
@@ -173,7 +173,7 @@ final class OperationalListScreens {
             employee.setSelectedIndex(0);
             sorter.setRowFilter(null);
         });
-        UiKit.onClick(table, e -> {
+        ComponentesVisuais.onClick(table, e -> {
             int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
             if (viewRow < 0 || col != 5) return;
             int row = table.convertRowIndexToModel(viewRow);
@@ -185,11 +185,11 @@ final class OperationalListScreens {
             if (appointment == null) return;
             Rectangle cell = table.getCellRect(viewRow, col, true);
             if (e.getX() - cell.x < cell.width / 2) frame.appointmentDialog(appointment);
-            else if (appointment.billed) LivroCaixaView.error(frame, "Esta consulta já foi faturada.");
+            else if (appointment.billed) TelaLivroCaixa.error(frame, "Esta consulta já foi faturada.");
             else frame.billingDialog(appointment);
         });
-        UiKit.RoundPanel tableCard = new UiKit.RoundPanel(15).fill(Color.WHITE).shadow(false); tableCard.setLayout(new BorderLayout());
-        JScrollPane scroll = new JScrollPane(table); scroll.setBorder(new LineBorder(UiKit.LINE)); tableCard.add(scroll);
+        ComponentesVisuais.RoundPanel tableCard = new ComponentesVisuais.RoundPanel(15).fill(Color.WHITE).shadow(false); tableCard.setLayout(new BorderLayout());
+        JScrollPane scroll = new JScrollPane(table); scroll.setBorder(new LineBorder(ComponentesVisuais.LINE)); tableCard.add(scroll);
         JPanel holder = new JPanel(new BorderLayout()); holder.setOpaque(false); holder.setBorder(new EmptyBorder(16, 0, 0, 0)); holder.add(tableCard);
         root.add(holder);
         return root;
@@ -206,7 +206,7 @@ final class OperationalListScreens {
         panel.setBorder(new LineBorder(new Color(163, 181, 211)));
         field.setBorder(new EmptyBorder(7, 10, 7, 3));
         panel.add(field);
-        JLabel icon = new JLabel(UiKit.vectorIcon("calendar", 22, UiKit.INK));
+        JLabel icon = new JLabel(ComponentesVisuais.vectorIcon("calendar", 22, ComponentesVisuais.INK));
         icon.setBorder(new EmptyBorder(0, 8, 0, 10));
         panel.add(icon, BorderLayout.EAST);
         return panel;
@@ -225,7 +225,7 @@ final class OperationalListScreens {
 
     private static LocalDate safeDate(String value, LocalDate fallback) {
         try {
-            return LivroCaixaView.parseDate(value);
+            return TelaLivroCaixa.parseDate(value);
         } catch (Exception ignored) {
             return fallback;
         }
@@ -237,12 +237,12 @@ final class OperationalListScreens {
     }
 
     private static JButton primary(String text, String icon) {
-        return new UiKit.RoundButton(text, listIcon(icon, 22, Color.WHITE), UiKit.BLUE, Color.WHITE);
+        return new ComponentesVisuais.RoundButton(text, listIcon(icon, 22, Color.WHITE), ComponentesVisuais.BLUE, Color.WHITE);
     }
 
     private static JButton secondary(String text, String icon) {
-        return new UiKit.RoundButton(text, listIcon(icon, 21, UiKit.INK),
-                new Color(233, 240, 250), UiKit.INK);
+        return new ComponentesVisuais.RoundButton(text, listIcon(icon, 21, ComponentesVisuais.INK),
+                new Color(233, 240, 250), ComponentesVisuais.INK);
     }
 
     private static Icon listIcon(String name, int size, Color color) {
@@ -251,7 +251,7 @@ final class OperationalListScreens {
             case "newDocument" -> "document";
             default -> name;
         };
-        return UiKit.vectorIcon(sharedName, size, color);
+        return ComponentesVisuais.vectorIcon(sharedName, size, color);
     }
     private static void dimension(JComponent c, int width, int height) {Dimension d = new Dimension(width, height); c.setPreferredSize(d); c.setMinimumSize(d);}
     private static void setWidths(TableColumnModel columns, int[] widths) {for(int i=0;i<widths.length;i++) columns.getColumn(i).setPreferredWidth(widths[i]);}
@@ -263,17 +263,17 @@ final class OperationalListScreens {
         @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focus, int row, int column) {
             JPanel panel = new JPanel(new GridBagLayout()); panel.setBorder(new EmptyBorder(7, 12, 7, 12)); panel.setOpaque(true);
             panel.setBackground(selected ? table.getSelectionBackground() : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
-            Color editColor = kind == ActionKind.CLIENT ? UiKit.BLUE : UiKit.INK;
-            JButton first = new UiKit.RoundButton("Editar", UiKit.vectorIcon("edit", 17, editColor),
+            Color editColor = kind == ActionKind.CLIENT ? ComponentesVisuais.BLUE : ComponentesVisuais.INK;
+            JButton first = new ComponentesVisuais.RoundButton("Editar", ComponentesVisuais.vectorIcon("edit", 17, editColor),
                     new Color(231, 240, 252), editColor);
             JButton second = kind == ActionKind.CLIENT
-                    ? new UiKit.RoundButton("Excluir", UiKit.vectorIcon("trash", 17, UiKit.RED), new Color(255, 230, 232), UiKit.RED)
-                    : new UiKit.RoundButton("Faturar", UiKit.vectorIcon("save", 17, Color.WHITE), UiKit.BLUE, Color.WHITE);
+                    ? new ComponentesVisuais.RoundButton("Excluir", ComponentesVisuais.vectorIcon("trash", 17, ComponentesVisuais.RED), new Color(255, 230, 232), ComponentesVisuais.RED)
+                    : new ComponentesVisuais.RoundButton("Faturar", ComponentesVisuais.vectorIcon("save", 17, Color.WHITE), ComponentesVisuais.BLUE, Color.WHITE);
             first.setFont(new Font("Segoe UI", Font.BOLD, 14));
             second.setFont(new Font("Segoe UI", Font.BOLD, 14));
             first.setBorder(new EmptyBorder(6, 10, 6, 10));
             second.setBorder(new EmptyBorder(6, 10, 6, 10));
-            UiKit.addActionPair(panel, first, second);
+            ComponentesVisuais.addActionPair(panel, first, second);
             return panel;
         }
     }

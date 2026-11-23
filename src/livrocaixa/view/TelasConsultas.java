@@ -15,17 +15,17 @@ import java.time.LocalDate;
  * sincronizado com os campos visíveis. Nesta versão, os botões demonstram o fluxo
  * entre telas sem gravar dados em banco.
  */
-final class ConsultationScreens {
-    private ConsultationScreens() {}
+final class TelasConsultas {
+    private TelasConsultas() {}
 
-    static void showForm(LivroCaixaView.MainFrame frame, Appointment edit) {
+    static void showForm(TelaLivroCaixa.JanelaPrincipal frame, Appointment edit) {
         if (frame.store.clients.isEmpty()) {
-            LivroCaixaView.error(frame, "Cadastre um cliente primeiro.");
+            TelaLivroCaixa.error(frame, "Cadastre um cliente primeiro.");
             return;
         }
 
-        JPanel page = LivroCaixaView.page();
-        UiKit.RoundPanel surface = new UiKit.RoundPanel(17)
+        JPanel page = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel surface = new ComponentesVisuais.RoundPanel(17)
                 .fill(new Color(252, 253, 255))
                 .line(new Color(185, 205, 237))
                 .shadow(false);
@@ -35,7 +35,7 @@ final class ConsultationScreens {
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
-        JLabel title = LivroCaixaView.title(edit == null ? "Nova consulta" : "Editar consulta", 42);
+        JLabel title = TelaLivroCaixa.title(edit == null ? "Nova consulta" : "Editar consulta", 42);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         heading.add(title);
         heading.add(Box.createVerticalStrut(3));
@@ -45,7 +45,7 @@ final class ConsultationScreens {
         subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         heading.add(subtitle);
         heading.add(Box.createVerticalStrut(9));
-        JLabel hint = new JLabel("Cadastre uma nova opção sem sair desta tela.", UiKit.vectorIcon("info", 23, new Color(24, 67, 164)), SwingConstants.LEFT);
+        JLabel hint = new JLabel("Cadastre uma nova opção sem sair desta tela.", ComponentesVisuais.vectorIcon("info", 23, new Color(24, 67, 164)), SwingConstants.LEFT);
         hint.setIconTextGap(9);
         hint.setFont(new Font("Segoe UI", Font.ITALIC, 18));
         hint.setForeground(new Color(34, 59, 106));
@@ -61,14 +61,14 @@ final class ConsultationScreens {
         styleCombo(client); styleCombo(type); styleCombo(employee);
         // O texto mais longo precisa caber também na janela padrão de 1500 px.
         type.setFont(new Font("Segoe UI", Font.PLAIN, 19));
-        JTextField date = LivroCaixaView.modernField(LivroCaixaView.fmt(
+        JTextField date = TelaLivroCaixa.modernField(TelaLivroCaixa.fmt(
                 edit == null ? LivroCaixaModel.DEMO_DATE : edit.date));
         date.setFont(new Font("Segoe UI", Font.PLAIN, 21));
         JTextArea notes = new JTextArea(edit == null ? "Retorno em 30 dias." : edit.notes, 5, 30);
         notes.setLineWrap(true);
         notes.setWrapStyleWord(true);
         notes.setFont(new Font("Segoe UI", Font.PLAIN, 20));
-        notes.setForeground(UiKit.INK);
+        notes.setForeground(ComponentesVisuais.INK);
         notes.setBorder(new EmptyBorder(12, 14, 12, 14));
         if (edit != null) {
             client.setSelectedItem(edit.client);
@@ -78,7 +78,7 @@ final class ConsultationScreens {
 
         JButton newClient = largeSecondary("Novo cliente", "plus", 190);
         JButton newType = largeSecondary("Novo tipo", "plus", 170);
-        newClient.addActionListener(e -> LivroCaixaView.quickEntry(
+        newClient.addActionListener(e -> TelaLivroCaixa.quickEntry(
                 frame,
                 "Novo cliente",
                 "Cadastre o cliente sem sair da consulta.",
@@ -88,7 +88,7 @@ final class ConsultationScreens {
                     client.addItem(created.name);
                     client.setSelectedItem(created.name);
                 }));
-        newType.addActionListener(e -> LivroCaixaView.quickEntry(
+        newType.addActionListener(e -> TelaLivroCaixa.quickEntry(
                 frame,
                 "Novo tipo de consulta",
                 "Crie uma opção sem perder os dados do atendimento.",
@@ -163,7 +163,7 @@ final class ConsultationScreens {
         client.addActionListener(e -> refreshSummary.run());
         type.addActionListener(e -> refreshSummary.run());
         employee.addActionListener(e -> refreshSummary.run());
-        UiKit.onDocumentChange(date.getDocument(), refreshSummary);
+        ComponentesVisuais.onDocumentChange(date.getDocument(), refreshSummary);
 
         JPanel footer = new JPanel(new BorderLayout(0, 12));
         footer.setOpaque(false);
@@ -181,7 +181,7 @@ final class ConsultationScreens {
                         frame, edit, client, type, date, employee, notes);
                 frame.billingDialog(appointment);
             } catch (Exception ex) {
-                LivroCaixaView.error(frame, "Revise a data informada.");
+                TelaLivroCaixa.error(frame, "Revise a data informada.");
             }
         });
         actions.add(cancel); actions.add(save); actions.add(saveAndBill);
@@ -192,7 +192,7 @@ final class ConsultationScreens {
         frame.showCustom("Consultas", page);
     }
 
-    private static Appointment saveAppointment(LivroCaixaView.MainFrame frame, Appointment edit,
+    private static Appointment saveAppointment(TelaLivroCaixa.JanelaPrincipal frame, Appointment edit,
                                                JComboBox<String> client, JComboBox<String> type,
                                                JTextField date, JComboBox<String> employee,
                                                JTextArea notes) {
@@ -201,7 +201,7 @@ final class ConsultationScreens {
                 edit,
                 String.valueOf(client.getSelectedItem()),
                 String.valueOf(type.getSelectedItem()),
-                LivroCaixaView.parseDate(date.getText()),
+                TelaLivroCaixa.parseDate(date.getText()),
                 String.valueOf(employee.getSelectedItem()),
                 value,
                 notes.getText()
@@ -211,7 +211,7 @@ final class ConsultationScreens {
     static void styleCombo(JComboBox<?> combo) {
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 21));
         combo.setBackground(Color.WHITE);
-        combo.setForeground(UiKit.INK);
+        combo.setForeground(ComponentesVisuais.INK);
         combo.setPreferredSize(new Dimension(220, 50));
         combo.setMinimumSize(new Dimension(120, 50));
     }
@@ -231,7 +231,7 @@ final class ConsultationScreens {
         field.setBorder(new EmptyBorder(8, 12, 8, 6));
         field.setPreferredSize(new Dimension(180, 50));
         box.add(field);
-        JLabel glyph = new JLabel(UiKit.vectorIcon(icon, 28, new Color(13, 42, 88)));
+        JLabel glyph = new JLabel(ComponentesVisuais.vectorIcon(icon, 28, new Color(13, 42, 88)));
         glyph.setBorder(new EmptyBorder(0, 9, 0, 12));
         box.add(glyph, BorderLayout.EAST);
         return box;
@@ -249,7 +249,7 @@ final class ConsultationScreens {
     }
 
     static JButton largeSecondary(String text, String icon, int width) {
-        JButton button = new UiKit.RoundButton(text, UiKit.vectorIcon(icon, 23, UiKit.BLUE), new Color(235, 241, 251), UiKit.INK);
+        JButton button = new ComponentesVisuais.RoundButton(text, ComponentesVisuais.vectorIcon(icon, 23, ComponentesVisuais.BLUE), new Color(235, 241, 251), ComponentesVisuais.INK);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));
         button.setPreferredSize(new Dimension(width, 50));
         return button;
@@ -263,7 +263,7 @@ final class ConsultationScreens {
     }
 
     static JComponent summaryPanel(String title, String[] labels, JLabel... values) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(15)
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(15)
                 .fill(new Color(246, 249, 255))
                 .line(new Color(145, 174, 224))
                 .shadow(false);
@@ -272,7 +272,7 @@ final class ConsultationScreens {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(225, 236, 252));
         header.setBorder(new EmptyBorder(14, 18, 14, 18));
-        header.add(LivroCaixaView.title(title, 26));
+        header.add(TelaLivroCaixa.title(title, 26));
         card.add(header, BorderLayout.NORTH);
         JPanel rows = new JPanel();
         rows.setOpaque(false);
@@ -303,12 +303,12 @@ final class ConsultationScreens {
     }
 
     static JButton actionButton(String text, String icon, boolean primary, int width) {
-        Color iconColor = primary ? Color.WHITE : UiKit.INK;
-        JButton button = new UiKit.RoundButton(
+        Color iconColor = primary ? Color.WHITE : ComponentesVisuais.INK;
+        JButton button = new ComponentesVisuais.RoundButton(
                 text,
-                UiKit.vectorIcon(icon, 27, iconColor),
-                primary ? UiKit.BLUE : new Color(235, 241, 251),
-                primary ? Color.WHITE : UiKit.INK
+                ComponentesVisuais.vectorIcon(icon, 27, iconColor),
+                primary ? ComponentesVisuais.BLUE : new Color(235, 241, 251),
+                primary ? Color.WHITE : ComponentesVisuais.INK
         );
         button.setFont(new Font("Segoe UI", Font.BOLD, 21));
         button.setPreferredSize(new Dimension(width, 56));

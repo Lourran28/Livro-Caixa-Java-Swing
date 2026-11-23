@@ -13,7 +13,7 @@ import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** Verificação rápida de construção de todas as telas, sem interação do usuário. */
-public final class SmokeTest {
+public final class TesteInicializacao {
     public static void main(String[] args) throws Exception {
         Path isolatedHome = Files.createTempDirectory("livro-caixa-smoke-");
         System.setProperty("user.home", isolatedHome.toString());
@@ -21,7 +21,7 @@ public final class SmokeTest {
         Thread.setDefaultUncaughtExceptionHandler(
                 (thread, error) -> uncaught.compareAndSet(null, error));
 
-        SwingUtilities.invokeAndWait(SmokeTest::runVisualFlow);
+        SwingUtilities.invokeAndWait(TesteInicializacao::runVisualFlow);
 
         if (uncaught.get() != null) {
             throw new AssertionError("Exceção não capturada na EDT", uncaught.get());
@@ -32,14 +32,14 @@ public final class SmokeTest {
 
     private static void runVisualFlow() {
         LivroCaixaController controller = new LivroCaixaController();
-        LivroCaixaView.LoginFrame login = new LivroCaixaView.LoginFrame(controller);
+        TelaLivroCaixa.JanelaLogin login = new TelaLivroCaixa.JanelaLogin(controller);
         login.setVisible(true);
         render(login, "00-login");
         login.setSize(980, 580);
         render(login, "00b-login-minimo");
         login.dispose();
 
-        LivroCaixaView.MainFrame frame = new LivroCaixaView.MainFrame(controller, "Ana Souza");
+        TelaLivroCaixa.JanelaPrincipal frame = new TelaLivroCaixa.JanelaPrincipal(controller, "Ana Souza");
         frame.setExtendedState(JFrame.NORMAL);
         frame.setSize(1500, 850);
         frame.setVisible(true);
@@ -53,7 +53,7 @@ public final class SmokeTest {
         exerciseLogout(frame);
     }
 
-    private static void verifySampleData(LivroCaixaView.MainFrame frame) {
+    private static void verifySampleData(TelaLivroCaixa.JanelaPrincipal frame) {
         expect(frame.store.clients.size() == 5, "amostra deve ter 5 clientes");
         expect(frame.store.appointments.size() == 3, "amostra deve ter 3 consultas");
         expect(frame.store.expenses.size() == 7, "amostra deve ter 7 saídas");
@@ -63,7 +63,7 @@ public final class SmokeTest {
         expectMoney(frame.store.pending(), "3180.00", "a receber");
     }
 
-    private static void exerciseMainRecords(LivroCaixaView.MainFrame frame) {
+    private static void exerciseMainRecords(TelaLivroCaixa.JanelaPrincipal frame) {
         frame.showPage("Painel");
         render(frame, "01-painel");
 
@@ -89,7 +89,7 @@ public final class SmokeTest {
         exerciseButton(frame, "Cancelar");
     }
 
-    private static void exerciseBilling(LivroCaixaView.MainFrame frame) {
+    private static void exerciseBilling(TelaLivroCaixa.JanelaPrincipal frame) {
         Appointment invoiceAppointment = frame.store.appointments.get(0);
         int paymentCount = frame.store.payments.size();
         int installmentCount = frame.store.installments.size();
@@ -140,7 +140,7 @@ public final class SmokeTest {
         exerciseButton(frame, "OK");
     }
 
-    private static void exercisePayments(LivroCaixaView.MainFrame frame) {
+    private static void exercisePayments(TelaLivroCaixa.JanelaPrincipal frame) {
         frame.showPage("Contas a receber");
         render(frame, "08-contas-a-receber");
         exerciseButton(frame, "Aplicar filtros");
@@ -161,7 +161,7 @@ public final class SmokeTest {
         frame.store.installments.get(0).paid = new BigDecimal("100.00");
     }
 
-    private static void exerciseExpenses(LivroCaixaView.MainFrame frame) {
+    private static void exerciseExpenses(TelaLivroCaixa.JanelaPrincipal frame) {
         frame.showPage("Saídas");
         render(frame, "11-saidas-lista");
         exerciseButton(frame, "Aplicar filtros");
@@ -176,7 +176,7 @@ public final class SmokeTest {
         exerciseButton(frame, "Cancelar");
     }
 
-    private static void exerciseReportsAndSettings(LivroCaixaView.MainFrame frame) {
+    private static void exerciseReportsAndSettings(TelaLivroCaixa.JanelaPrincipal frame) {
         frame.showPage("Relatórios");
         render(frame, "13a-relatorios-visao-geral");
         exerciseReportTab(frame, "Saídas");
@@ -204,7 +204,7 @@ public final class SmokeTest {
         render(frame, "16b-cadastros-auxiliares-voltar");
     }
 
-    private static void exerciseLogout(LivroCaixaView.MainFrame frame) {
+    private static void exerciseLogout(TelaLivroCaixa.JanelaPrincipal frame) {
         exerciseButton(frame, "Funcionário:  Ana Souza");
         JPopupMenu menu = selectedPopupMenu();
         expect(menu != null && menu.isShowing(), "menu da conta deve ser exibido");
@@ -237,9 +237,9 @@ public final class SmokeTest {
         }
         expect(!frame.isDisplayable(), "janela principal deve ser encerrada após sair");
 
-        LivroCaixaView.LoginFrame login = null;
+        TelaLivroCaixa.JanelaLogin login = null;
         for (Window window : Window.getWindows()) {
-            if (window instanceof LivroCaixaView.LoginFrame candidate && candidate.isShowing()) {
+            if (window instanceof TelaLivroCaixa.JanelaLogin candidate && candidate.isShowing()) {
                 login = candidate;
                 break;
             }
@@ -411,7 +411,7 @@ public final class SmokeTest {
         timer.setRepeats(false);
         timer.start();
 
-        boolean confirmed = LivroCaixaView.confirm(frame, message);
+        boolean confirmed = TelaLivroCaixa.confirm(frame, message);
         expect(!confirmed, "o teste visual não deve confirmar a exclusão");
         if (captureError.get() != null) {
             throw new AssertionError("Falha ao capturar diálogo", captureError.get());

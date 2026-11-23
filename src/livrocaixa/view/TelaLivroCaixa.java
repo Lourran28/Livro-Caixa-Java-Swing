@@ -27,7 +27,7 @@ import java.util.function.Consumer;
  * Os dados usados na interface são amostras mantidas apenas em memória; não há
  * banco de dados nem persistência de cadastro nesta versão.</p>
  */
-public final class LivroCaixaView {
+public final class TelaLivroCaixa {
     static final Color NAVY = new Color(5, 46, 78), BLUE = new Color(0, 91, 234), PALE = new Color(244, 248, 255);
     static final Color GREEN = new Color(18, 150, 73), RED = new Color(220, 38, 38), ORANGE = new Color(245, 145, 0);
     static final Font NORMAL = new Font("Segoe UI", Font.PLAIN, 17), BOLD = new Font("Segoe UI", Font.BOLD, 17);
@@ -45,18 +45,18 @@ public final class LivroCaixaView {
     public static void start(LivroCaixaController controller) {
         Objects.requireNonNull(controller, "controller");
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignored) {}
-        UiKit.installDefaults();
+        ComponentesVisuais.installDefaults();
         UIManager.put("Label.font", NORMAL); UIManager.put("Button.font", BOLD); UIManager.put("TextField.font", NORMAL);
         UIManager.put("PasswordField.font", NORMAL); UIManager.put("ComboBox.font", NORMAL); UIManager.put("Table.font", NORMAL); UIManager.put("TableHeader.font", BOLD);
         UIManager.put("TabbedPane.font", BOLD); UIManager.put("OptionPane.messageFont", NORMAL); UIManager.put("OptionPane.buttonFont", BOLD);
-        new LoginFrame(controller).setVisible(true);
+        new JanelaLogin(controller).setVisible(true);
     }
 
     /** Janela inicial demonstrativa. A autenticação apenas valida campos preenchidos. */
-    static final class LoginFrame extends JFrame {
+    static final class JanelaLogin extends JFrame {
         private final LivroCaixaController controller;
 
-        LoginFrame(LivroCaixaController controller) {
+        JanelaLogin(LivroCaixaController controller) {
             super("Livro Caixa");
             setIconImage(appIcon());
             setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -68,14 +68,14 @@ public final class LivroCaixaView {
             JPanel root = new JPanel(new BorderLayout());
             root.setBackground(new Color(246,249,255));
 
-            UiKit.GradientPanel brand = new UiKit.GradientPanel(
+            ComponentesVisuais.GradientPanel brand = new ComponentesVisuais.GradientPanel(
                     new Color(3,39,68), new Color(9,75,115), false);
             brand.setPreferredSize(new Dimension(340, 0));
             brand.setLayout(new GridBagLayout());
             JPanel brandContent = new JPanel();
             brandContent.setOpaque(false);
             brandContent.setLayout(new BoxLayout(brandContent,BoxLayout.Y_AXIS));
-            JLabel mark = new JLabel(UiKit.vectorIcon("wallet",66,Color.WHITE));
+            JLabel mark = new JLabel(ComponentesVisuais.vectorIcon("wallet",66,Color.WHITE));
             mark.setAlignmentX(.5f);
             brandContent.add(mark);
             brandContent.add(Box.createVerticalStrut(20));
@@ -94,7 +94,7 @@ public final class LivroCaixaView {
 
             JPanel form = new JPanel(new GridBagLayout());
             form.setOpaque(false);
-            UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(Color.WHITE);
+            ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(18).fill(Color.WHITE);
             card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
             card.setBorder(new EmptyBorder(32,40,26,40));
             card.setPreferredSize(new Dimension(600, 500));
@@ -140,8 +140,8 @@ public final class LivroCaixaView {
             checkRow.add(show);
             card.add(checkRow);
 
-            JButton enter = new UiKit.RoundButton(
-                    "Entrar",UiKit.vectorIcon("logout",22,Color.WHITE),BLUE,Color.WHITE);
+            JButton enter = new ComponentesVisuais.RoundButton(
+                    "Entrar",ComponentesVisuais.vectorIcon("logout",22,Color.WHITE),BLUE,Color.WHITE);
             enter.setAlignmentX(.5f);
             Dimension loginButtonSize = new Dimension(520,54);
             enter.setMaximumSize(loginButtonSize);
@@ -151,7 +151,7 @@ public final class LivroCaixaView {
                     error(this,"Preencha usuário e senha.");
                 } else {
                     dispose();
-                    new MainFrame(controller, user.getText().trim()).setVisible(true);
+                    new JanelaPrincipal(controller, user.getText().trim()).setVisible(true);
                 }
             });
             card.add(Box.createVerticalStrut(16));
@@ -180,7 +180,7 @@ public final class LivroCaixaView {
      * Mantém o menu lateral e o cabeçalho fixos; somente {@code content} é trocado
      * quando o usuário navega pelo sistema.
      */
-    static final class MainFrame extends JFrame {
+    static final class JanelaPrincipal extends JFrame {
         final LivroCaixaController controller;
         final LivroCaixaModel store;
         final String employee;
@@ -188,7 +188,7 @@ public final class LivroCaixaView {
         final JLabel pageTitle = title("Painel", 30);
         final Map<String,JButton> nav = new LinkedHashMap<>();
 
-        MainFrame(LivroCaixaController controller, String employee) {
+        JanelaPrincipal(LivroCaixaController controller, String employee) {
             super("Livro Caixa");
             setIconImage(appIcon());
             this.controller = Objects.requireNonNull(controller, "controller");
@@ -201,12 +201,12 @@ public final class LivroCaixaView {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
 
             JPanel shell = new JPanel(new BorderLayout());
-            UiKit.GradientPanel side = new UiKit.GradientPanel(
+            ComponentesVisuais.GradientPanel side = new ComponentesVisuais.GradientPanel(
                     new Color(4,38,67),new Color(9,71,108),false);
             side.setPreferredSize(new Dimension(280,0));
             side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
             JLabel logo = new JLabel("Livro Caixa");
-            logo.setIcon(UiKit.vectorIcon("wallet",38,Color.WHITE));
+            logo.setIcon(ComponentesVisuais.vectorIcon("wallet",38,Color.WHITE));
             logo.setIconTextGap(13);
             logo.setForeground(Color.WHITE);
             logo.setFont(new Font("Segoe UI",Font.BOLD,31));
@@ -222,7 +222,7 @@ public final class LivroCaixaView {
             addNav(side,"Configurações","gear");
 
             JPanel right = new JPanel(new BorderLayout());
-            UiKit.GradientPanel top = new UiKit.GradientPanel(
+            ComponentesVisuais.GradientPanel top = new ComponentesVisuais.GradientPanel(
                     new Color(8,104,215),new Color(0,74,215),true);
             top.setPreferredSize(new Dimension(0,84));
             top.setLayout(new BorderLayout());
@@ -251,14 +251,14 @@ public final class LivroCaixaView {
 
         /** Cria o menu da conta exibido no canto direito do cabeçalho. */
         private JButton createAccountButton() {
-            Icon chevron = UiKit.vectorIcon("chevronDown",18,Color.WHITE);
+            Icon chevron = ComponentesVisuais.vectorIcon("chevronDown",18,Color.WHITE);
             JButton button = new JButton(
                     "Funcionário:  " + employee,
-                    UiKit.vectorIcon("user",28,Color.WHITE)) {
+                    ComponentesVisuais.vectorIcon("user",28,Color.WHITE)) {
                 @Override protected void paintComponent(Graphics graphics) {
                     if (getModel().isRollover() || getModel().isPressed()) {
                         Graphics2D g = (Graphics2D) graphics.create();
-                        UiKit.antialias(g);
+                        ComponentesVisuais.antialias(g);
                         int alpha = getModel().isPressed() ? 42 : 26;
                         g.setColor(new Color(255,255,255,alpha));
                         g.fillRoundRect(0,0,getWidth(),getHeight(),14,14);
@@ -296,14 +296,14 @@ public final class LivroCaixaView {
             JPopupMenu menu = new JPopupMenu();
             menu.setBackground(Color.WHITE);
             menu.setBorder(new CompoundBorder(
-                    new LineBorder(UiKit.LINE),
+                    new LineBorder(ComponentesVisuais.LINE),
                     new EmptyBorder(6,6,6,6)));
 
             JMenuItem logout = new JMenuItem(
-                    "Sair da conta",UiKit.vectorIcon("logout",21,UiKit.RED));
+                    "Sair da conta",ComponentesVisuais.vectorIcon("logout",21,ComponentesVisuais.RED));
             logout.setName("logoutMenuItem");
             logout.setFont(new Font("Segoe UI",Font.BOLD,15));
-            logout.setForeground(UiKit.RED);
+            logout.setForeground(ComponentesVisuais.RED);
             logout.setBackground(Color.WHITE);
             logout.setOpaque(true);
             logout.setBorder(new EmptyBorder(11,13,11,30));
@@ -322,7 +322,7 @@ public final class LivroCaixaView {
         /** Salva o estado atual e retorna ao acesso usando a mesma sessão de dados. */
         private void returnToLogin() {
             store.save();
-            LoginFrame login = new LoginFrame(controller);
+            JanelaLogin login = new JanelaLogin(controller);
             login.setLocationRelativeTo(this);
             dispose();
             login.setVisible(true);
@@ -330,7 +330,7 @@ public final class LivroCaixaView {
 
         /** Registra uma opção no menu e direciona o clique para {@link #showPage(String)}. */
         void addNav(JPanel side,String name,String icon) {
-            JButton button = new NavButton(name,UiKit.vectorIcon(icon,28,Color.WHITE));
+            JButton button = new NavButton(name,ComponentesVisuais.vectorIcon(icon,28,Color.WHITE));
             button.setMaximumSize(new Dimension(258,58));
             button.setPreferredSize(new Dimension(258,58));
             button.setAlignmentX(LEFT_ALIGNMENT);
@@ -357,7 +357,7 @@ public final class LivroCaixaView {
                 case "Configurações" -> settings();
                 default -> dashboard();
             };
-            UiKit.styleChoices(page);
+            ComponentesVisuais.styleChoices(page);
             content.add(page);
             content.revalidate();
             content.repaint();
@@ -371,7 +371,7 @@ public final class LivroCaixaView {
                 button.setBackground(new Color(0,0,0,0));
                 button.repaint();
             });
-            UiKit.styleChoices(panel);
+            ComponentesVisuais.styleChoices(panel);
             content.add(panel);
             content.revalidate();
             content.repaint();
@@ -379,18 +379,18 @@ public final class LivroCaixaView {
         void showSuccessPage(String message,String backPage){
             JPanel root=page();
             root.setLayout(new GridBagLayout());
-            UiKit.RoundPanel box=new UiKit.RoundPanel(20).fill(Color.WHITE);
+            ComponentesVisuais.RoundPanel box=new ComponentesVisuais.RoundPanel(20).fill(Color.WHITE);
             box.setPreferredSize(new Dimension(520,330));
             box.setLayout(new BoxLayout(box,BoxLayout.Y_AXIS));
             box.setBorder(new EmptyBorder(30,45,30,45));
 
             Color success=new Color(8,139,38);
-            UiKit.RoundPanel iconBox=new UiKit.RoundPanel(22).fill(new Color(218,247,224)).line(null).shadow(false);
+            ComponentesVisuais.RoundPanel iconBox=new ComponentesVisuais.RoundPanel(22).fill(new Color(218,247,224)).line(null).shadow(false);
             iconBox.setLayout(new GridBagLayout());
             iconBox.setAlignmentX(.5f);
             iconBox.setPreferredSize(new Dimension(86,86));
             iconBox.setMaximumSize(new Dimension(86,86));
-            iconBox.add(new JLabel(UiKit.vectorIcon("coins",46,success)));
+            iconBox.add(new JLabel(ComponentesVisuais.vectorIcon("coins",46,success)));
             box.add(iconBox);
             box.add(Box.createVerticalStrut(18));
 
@@ -399,7 +399,7 @@ public final class LivroCaixaView {
             box.add(heading);
             box.add(Box.createVerticalStrut(8));
             JLabel sub=new JLabel("Os dados foram registrados com sucesso.");
-            sub.setForeground(UiKit.MUTED);
+            sub.setForeground(ComponentesVisuais.MUTED);
             sub.setAlignmentX(.5f);
             box.add(sub);
             box.add(Box.createVerticalStrut(26));
@@ -426,20 +426,20 @@ public final class LivroCaixaView {
             JPanel center = new JPanel(new GridLayout(1,2,14,0));
             center.setOpaque(false);
             center.setBorder(new EmptyBorder(16,0,16,0));
-            UiKit.RoundPanel chartCard = new UiKit.RoundPanel(16).fill(Color.WHITE);
+            ComponentesVisuais.RoundPanel chartCard = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
             chartCard.setLayout(new BorderLayout());
             chartCard.setBorder(new EmptyBorder(16,18,14,18));
             chartCard.add(title("Fluxo de caixa",23),BorderLayout.NORTH);
             chartCard.add(cashFlowChart(store.income(),store.expenseTotal()));
             center.add(chartCard);
 
-            UiKit.RoundPanel dueCard = new UiKit.RoundPanel(16).fill(Color.WHITE);
+            ComponentesVisuais.RoundPanel dueCard = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
             dueCard.setLayout(new BorderLayout());
             dueCard.setBorder(new EmptyBorder(16,12,16,12));
             JLabel dueTitle = title("Próximos vencimentos",23);
             dueTitle.setBorder(new EmptyBorder(0,4,12,4));
             dueCard.add(dueTitle,BorderLayout.NORTH);
-            JTable dueTable = styledTable(UiKit.readOnlyModel(
+            JTable dueTable = styledTable(ComponentesVisuais.readOnlyModel(
                     upcomingRows(),"Cliente","Parcela","Vencimento","Valor","Status"));
             dueTable.setRowHeight(38);
             dueCard.add(new JScrollPane(dueTable));
@@ -474,10 +474,10 @@ public final class LivroCaixaView {
                     .toArray(Object[][]::new);
         }
 
-        JComponent clients(){return OperationalListScreens.buildClients(this);}
+        JComponent clients(){return TelasOperacionais.buildClients(this);}
         void clientDialog(Client edit){
             JPanel root=page();
-            UiKit.RoundPanel card=new UiKit.RoundPanel(16).fill(Color.WHITE);
+            ComponentesVisuais.RoundPanel card=new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
             card.setLayout(new BorderLayout(0,22));
             card.setBorder(new EmptyBorder(24,26,22,26));
 
@@ -487,7 +487,7 @@ public final class LivroCaixaView {
             heading.add(title(edit==null?"Novo cliente":"Editar cliente",32));
             JLabel subtitle=new JLabel(edit==null?"Preencha os dados para cadastrar um novo cliente.":"Atualize os dados cadastrais do cliente.");
             subtitle.setFont(new Font("Segoe UI",Font.PLAIN,18));
-            subtitle.setForeground(UiKit.MUTED);
+            subtitle.setForeground(ComponentesVisuais.MUTED);
             heading.add(Box.createVerticalStrut(5));
             heading.add(subtitle);
             card.add(heading,BorderLayout.NORTH);
@@ -497,16 +497,16 @@ public final class LivroCaixaView {
             name.setFont(new Font("Segoe UI",Font.PLAIN,19));
             cpf.setFont(new Font("Segoe UI",Font.PLAIN,19));
 
-            UiKit.RoundPanel formCard=new UiKit.RoundPanel(14).fill(new Color(248,250,255)).shadow(false);
+            ComponentesVisuais.RoundPanel formCard=new ComponentesVisuais.RoundPanel(14).fill(new Color(248,250,255)).shadow(false);
             formCard.setLayout(new BoxLayout(formCard,BoxLayout.Y_AXIS));
             formCard.setBorder(new EmptyBorder(22,24,22,24));
             formCard.add(taggedField("Nome completo","Obrigatório",name));
             formCard.add(Box.createVerticalStrut(17));
             formCard.add(taggedField("CPF","Obrigatório",cpf));
             JLabel help=new JLabel("Use o formato 000.000.000-00");
-            help.setIcon(UiKit.vectorIcon("info",16,UiKit.MUTED));
+            help.setIcon(ComponentesVisuais.vectorIcon("info",16,ComponentesVisuais.MUTED));
             help.setIconTextGap(8);
-            help.setForeground(UiKit.MUTED);
+            help.setForeground(ComponentesVisuais.MUTED);
             help.setFont(new Font("Segoe UI",Font.PLAIN,15));
             help.setAlignmentX(Component.LEFT_ALIGNMENT);
             formCard.add(Box.createVerticalStrut(8));
@@ -522,9 +522,9 @@ public final class LivroCaixaView {
 
             JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
             actions.setOpaque(false);
-            actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(16,0,0,0)));
-            JButton cancel=new UiKit.RoundButton("Cancelar",UiKit.vectorIcon("close",19,UiKit.INK),new Color(234,240,249),UiKit.INK);
-            JButton save=new UiKit.RoundButton("Salvar cliente",UiKit.vectorIcon("save",20,Color.WHITE),BLUE,Color.WHITE);
+            actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,ComponentesVisuais.LINE),new EmptyBorder(16,0,0,0)));
+            JButton cancel=new ComponentesVisuais.RoundButton("Cancelar",ComponentesVisuais.vectorIcon("close",19,ComponentesVisuais.INK),new Color(234,240,249),ComponentesVisuais.INK);
+            JButton save=new ComponentesVisuais.RoundButton("Salvar cliente",ComponentesVisuais.vectorIcon("save",20,Color.WHITE),BLUE,Color.WHITE);
             cancel.setPreferredSize(new Dimension(150,50));
             save.setPreferredSize(new Dimension(190,50));
             cancel.addActionListener(e->showPage("Clientes"));
@@ -543,19 +543,19 @@ public final class LivroCaixaView {
             showCustom("Clientes",root);
         }
 
-        JComponent appointments(){return OperationalListScreens.buildAppointments(this);}
-        void appointmentDialog(Appointment edit){ConsultationScreens.showForm(this,edit);}
+        JComponent appointments(){return TelasOperacionais.buildAppointments(this);}
+        void appointmentDialog(Appointment edit){TelasConsultas.showForm(this,edit);}
 
-        void billingDialog(Appointment a){BillingScreen.show(this,a);}
+        void billingDialog(Appointment a){TelaFaturamento.show(this,a);}
 
-        JComponent receivables(){return FinanceListScreens.buildReceivables(this);}
-        void paymentDialog(Installment x){PaymentScreens.showPayment(this,x);}
-        void paymentConfirmed(Installment x){ConfirmedPaymentScreen.show(this,x);}
+        JComponent receivables(){return TelasFinanceiras.buildReceivables(this);}
+        void paymentDialog(Installment x){TelasPagamentos.showPayment(this,x);}
+        void paymentConfirmed(Installment x){TelaPagamentoConfirmado.show(this,x);}
 
-        JComponent expenses(){return FinanceListScreens.buildExpenses(this);}
+        JComponent expenses(){return TelasFinanceiras.buildExpenses(this);}
         void expenseDialog(Expense edit) {
             JPanel root = page();
-            UiKit.RoundPanel card = new UiKit.RoundPanel(17)
+            ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(17)
                     .fill(new Color(252,253,255))
                     .line(new Color(185,205,237)).shadow(false);
             card.setLayout(new BorderLayout(0,14));
@@ -572,7 +572,7 @@ public final class LivroCaixaView {
             heading.add(sub);
             heading.add(Box.createVerticalStrut(9));
             JLabel hint = new JLabel("Cadastre uma nova opção sem sair desta tela.",
-                    UiKit.vectorIcon("info",23,new Color(24,67,164)),SwingConstants.LEFT);
+                    ComponentesVisuais.vectorIcon("info",23,new Color(24,67,164)),SwingConstants.LEFT);
             hint.setIconTextGap(9);
             hint.setFont(new Font("Segoe UI",Font.ITALIC,18));
             hint.setForeground(new Color(34,59,106));
@@ -594,8 +594,8 @@ public final class LivroCaixaView {
             JTextField value = modernField(edit == null ? "1.200,00" : edit.value.toString());
             JTextField date = modernField(fmt(edit == null ? LocalDate.of(2026,11,5) : edit.date));
             JComboBox<String> worker = new JComboBox<>(new String[]{employee,"Bruno Reis"});
-            ConsultationScreens.styleCombo(type);
-            ConsultationScreens.styleCombo(worker);
+            TelasConsultas.styleCombo(type);
+            TelasConsultas.styleCombo(worker);
             value.setFont(new Font("Segoe UI",Font.PLAIN,21));
             date.setFont(new Font("Segoe UI",Font.PLAIN,21));
             JTextArea notes = new JTextArea(
@@ -609,7 +609,7 @@ public final class LivroCaixaView {
                 worker.setSelectedItem(edit.employee);
             }
 
-            JButton newType = ConsultationScreens.largeSecondary(
+            JButton newType = TelasConsultas.largeSecondary(
                     "Novo tipo","plus",190);
             newType.addActionListener(e -> quickEntry(
                     this,
@@ -629,7 +629,7 @@ public final class LivroCaixaView {
                         type.addItem(name);
                         type.setSelectedItem(name);
                     }));
-            JPanel typeLine = ConsultationScreens.lineWithButton(type,newType);
+            JPanel typeLine = TelasConsultas.lineWithButton(type,newType);
             JScrollPane notesScroll = new JScrollPane(notes);
             notesScroll.setBorder(new LineBorder(new Color(133,164,219),1,true));
             notesScroll.setPreferredSize(new Dimension(0,190));
@@ -640,28 +640,28 @@ public final class LivroCaixaView {
             field.fill=GridBagConstraints.BOTH;
             field.weightx=1;
             field.gridx=0; field.gridy=0; field.insets=new Insets(0,0,16,16);
-            formArea.add(ConsultationScreens.fieldBlock("Tipo de saída",typeLine),field);
+            formArea.add(TelasConsultas.fieldBlock("Tipo de saída",typeLine),field);
             field.gridx=1; field.insets=new Insets(0,0,16,0);
-            formArea.add(ConsultationScreens.fieldBlock("Valor",value),field);
+            formArea.add(TelasConsultas.fieldBlock("Valor",value),field);
             field.gridx=0; field.gridy=1; field.insets=new Insets(0,0,16,16);
-            formArea.add(ConsultationScreens.fieldBlock("Data",date),field);
+            formArea.add(TelasConsultas.fieldBlock("Data",date),field);
             field.gridx=1; field.insets=new Insets(0,0,16,0);
-            formArea.add(ConsultationScreens.fieldBlock("Funcionário",worker),field);
+            formArea.add(TelasConsultas.fieldBlock("Funcionário",worker),field);
             field.gridx=0; field.gridy=2; field.gridwidth=2; field.weighty=1;
             field.insets=new Insets(0,0,0,0);
-            formArea.add(ConsultationScreens.fieldBlock("Observações",notesScroll),field);
+            formArea.add(TelasConsultas.fieldBlock("Observações",notesScroll),field);
             body.add(formArea,constraints);
 
             constraints.gridx=1;
             constraints.weightx=1;
             constraints.insets=new Insets(0,0,0,0);
-            JLabel summaryType = ConsultationScreens.summaryValue(
+            JLabel summaryType = TelasConsultas.summaryValue(
                     String.valueOf(type.getSelectedItem()));
-            JLabel summaryValue = ConsultationScreens.summaryValue("R$ "+value.getText());
-            JLabel summaryDate = ConsultationScreens.summaryValue(date.getText());
-            JLabel summaryWorker = ConsultationScreens.summaryValue(
+            JLabel summaryValue = TelasConsultas.summaryValue("R$ "+value.getText());
+            JLabel summaryDate = TelasConsultas.summaryValue(date.getText());
+            JLabel summaryWorker = TelasConsultas.summaryValue(
                     String.valueOf(worker.getSelectedItem()));
-            JComponent summary = ConsultationScreens.summaryPanel(
+            JComponent summary = TelasConsultas.summaryPanel(
                     "Resumo da saída",
                     new String[]{"Tipo de saída","Valor","Data","Funcionário"},
                     summaryType,summaryValue,summaryDate,summaryWorker);
@@ -676,8 +676,8 @@ public final class LivroCaixaView {
                 summaryDate.setText(date.getText().isBlank() ? "Não informada" : date.getText());
                 summaryWorker.setText(String.valueOf(worker.getSelectedItem()));
             };
-            UiKit.onDocumentChange(value.getDocument(),refreshSummary);
-            UiKit.onDocumentChange(date.getDocument(),refreshSummary);
+            ComponentesVisuais.onDocumentChange(value.getDocument(),refreshSummary);
+            ComponentesVisuais.onDocumentChange(date.getDocument(),refreshSummary);
             type.addActionListener(e -> refreshSummary.run());
             worker.addActionListener(e -> refreshSummary.run());
             body.add(summarySlot,constraints);
@@ -688,9 +688,9 @@ public final class LivroCaixaView {
             footer.add(new JSeparator(),BorderLayout.NORTH);
             JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
             actions.setOpaque(false);
-            JButton cancel = ConsultationScreens.actionButton(
+            JButton cancel = TelasConsultas.actionButton(
                     "Cancelar","close",false,215);
-            JButton save = ConsultationScreens.actionButton(
+            JButton save = TelasConsultas.actionButton(
                     "Salvar saída","save",true,250);
             cancel.addActionListener(e -> showPage("Saídas"));
             save.addActionListener(e -> {
@@ -713,14 +713,14 @@ public final class LivroCaixaView {
             showCustom("Saídas",root);
         }
 
-        JComponent reports(){return ManagementScreens.buildReports(this);}
+        JComponent reports(){return TelasGerenciamento.buildReports(this);}
 
-        JComponent settings(){return ManagementScreens.buildSettings(this);}
+        JComponent settings(){return TelasGerenciamento.buildSettings(this);}
     }
 
     static JPanel page() {
         JPanel panel = new JPanel(new BorderLayout(0,12));
-        panel.setBackground(UiKit.BG);
+        panel.setBackground(ComponentesVisuais.BG);
         panel.setBorder(new EmptyBorder(18,18,18,18));
         return panel;
     }
@@ -728,7 +728,7 @@ public final class LivroCaixaView {
     static JLabel title(String text,int size) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Segoe UI",Font.BOLD,size));
-        label.setForeground(UiKit.INK);
+        label.setForeground(ComponentesVisuais.INK);
         return label;
     }
 
@@ -738,7 +738,7 @@ public final class LivroCaixaView {
         field.setMaximumSize(new Dimension(Integer.MAX_VALUE,46));
         field.setPreferredSize(new Dimension(250,46));
         field.setBackground(Color.WHITE);
-        field.setForeground(UiKit.INK);
+        field.setForeground(ComponentesVisuais.INK);
         field.setCaretColor(BLUE);
         field.setBorder(new CompoundBorder(
                 new LineBorder(new Color(163,181,211)),new EmptyBorder(8,10,8,10)));
@@ -764,7 +764,7 @@ public final class LivroCaixaView {
                 Integer.MAX_VALUE,component instanceof JScrollPane ? 135 : 82));
         JLabel label = new JLabel(name);
         label.setFont(BOLD);
-        label.setForeground(UiKit.INK);
+        label.setForeground(ComponentesVisuais.INK);
         panel.add(label,BorderLayout.NORTH);
         panel.add(component);
         return panel;
@@ -795,16 +795,16 @@ public final class LivroCaixaView {
     }
 
     static JButton primary(String text) {
-        return new UiKit.RoundButton(text,null,BLUE,Color.WHITE);
+        return new ComponentesVisuais.RoundButton(text,null,BLUE,Color.WHITE);
     }
 
     static JButton secondary(String text) {
-        return new UiKit.RoundButton(text,null,new Color(235,241,250),UiKit.INK);
+        return new ComponentesVisuais.RoundButton(text,null,new Color(235,241,250),ComponentesVisuais.INK);
     }
 
     static JButton danger(String text) {
-        return new UiKit.RoundButton(
-                text,UiKit.vectorIcon("trash",19,RED),new Color(255,238,240),RED);
+        return new ComponentesVisuais.RoundButton(
+                text,ComponentesVisuais.vectorIcon("trash",19,RED),new Color(255,238,240),RED);
     }
 
     static JButton quickButton(String text,ActionListener listener) {
@@ -812,8 +812,8 @@ public final class LivroCaixaView {
     }
 
     static JButton quickButton(String text,String icon,ActionListener listener) {
-        JButton button = new UiKit.RoundButton(
-                text,UiKit.vectorIcon(icon,26,Color.WHITE),BLUE,Color.WHITE);
+        JButton button = new ComponentesVisuais.RoundButton(
+                text,ComponentesVisuais.vectorIcon(icon,26,Color.WHITE),BLUE,Color.WHITE);
         button.setFont(new Font("Segoe UI",Font.BOLD,17));
         button.addActionListener(listener);
         return button;
@@ -824,15 +824,15 @@ public final class LivroCaixaView {
     }
 
     static JPanel metric(String name,String value,Color color,String icon) {
-        UiKit.RoundPanel panel = new UiKit.RoundPanel(16).fill(Color.WHITE);
+        ComponentesVisuais.RoundPanel panel = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
         panel.setLayout(new BorderLayout(14,0));
         panel.setBorder(new EmptyBorder(16,16,16,16));
-        UiKit.RoundPanel iconBox = new UiKit.RoundPanel(13)
+        ComponentesVisuais.RoundPanel iconBox = new ComponentesVisuais.RoundPanel(13)
                 .fill(new Color(color.getRed(),color.getGreen(),color.getBlue(),28))
                 .line(null).shadow(false);
         iconBox.setPreferredSize(new Dimension(62,62));
         iconBox.setLayout(new GridBagLayout());
-        iconBox.add(new JLabel(UiKit.vectorIcon(icon,34,color)));
+        iconBox.add(new JLabel(ComponentesVisuais.vectorIcon(icon,34,color)));
         panel.add(iconBox,BorderLayout.WEST);
         JPanel text = new JPanel();
         text.setOpaque(false);
@@ -850,26 +850,26 @@ public final class LivroCaixaView {
     }
 
     static JTable styledTable(DefaultTableModel model) {
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         return table;
     }
 
     static JPanel tablePanel(String heading,String[] columns,Object[][] rows) {
-        UiKit.RoundPanel panel = new UiKit.RoundPanel(16).fill(Color.WHITE);
+        ComponentesVisuais.RoundPanel panel = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
         panel.setLayout(new BorderLayout());
         panel.setBorder(new EmptyBorder(14,14,14,14));
-        JLabel title = LivroCaixaView.title(heading,21);
+        JLabel title = TelaLivroCaixa.title(heading,21);
         title.setBorder(new EmptyBorder(0,2,12,2));
         panel.add(title,BorderLayout.NORTH);
-        DefaultTableModel model = UiKit.readOnlyModel(rows,columns);
+        DefaultTableModel model = ComponentesVisuais.readOnlyModel(rows,columns);
         JScrollPane scroll = new JScrollPane(styledTable(model));
-        scroll.setBorder(new LineBorder(UiKit.LINE));
+        scroll.setBorder(new LineBorder(ComponentesVisuais.LINE));
         panel.add(scroll);
         return panel;
     }
 
-    static UiKit.CashFlowChart cashFlowChart(BigDecimal income,BigDecimal expense) {
+    static ComponentesVisuais.CashFlowChart cashFlowChart(BigDecimal income,BigDecimal expense) {
         double incomeValue = income.max(BigDecimal.ONE).doubleValue();
         double expenseValue = expense.max(BigDecimal.ONE).doubleValue();
         double[] incomes = {
@@ -880,7 +880,7 @@ public final class LivroCaixaView {
                 expenseValue*.80,expenseValue*.96,expenseValue,
                 expenseValue*.89,expenseValue*1.02,expenseValue
         };
-        return new UiKit.CashFlowChart().values(
+        return new ComponentesVisuais.CashFlowChart().values(
                 new String[]{"Jun","Jul","Ago","Set","Out","Nov"},incomes,expenses);
     }
 
@@ -901,7 +901,7 @@ public final class LivroCaixaView {
 
         @Override protected void paintComponent(Graphics graphics) {
             Graphics2D copy = (Graphics2D)graphics.create();
-            UiKit.antialias(copy);
+            ComponentesVisuais.antialias(copy);
             Color background = getBackground();
             copy.setColor(background.getAlpha() > 0
                     ? background
@@ -917,10 +917,10 @@ public final class LivroCaixaView {
     static Image appIcon() {
         BufferedImage image = new BufferedImage(64,64,BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
-        UiKit.antialias(graphics);
+        ComponentesVisuais.antialias(graphics);
         graphics.setColor(BLUE);
         graphics.fillRoundRect(3,3,58,58,15,15);
-        Icon wallet = UiKit.vectorIcon("wallet",38,Color.WHITE);
+        Icon wallet = ComponentesVisuais.vectorIcon("wallet",38,Color.WHITE);
         wallet.paintIcon(null,graphics,13,13);
         graphics.dispose();
         return image;
@@ -969,7 +969,7 @@ public final class LivroCaixaView {
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setResizable(false);
 
-        UiKit.RoundPanel root=new UiKit.RoundPanel(18).fill(Color.WHITE)
+        ComponentesVisuais.RoundPanel root=new ComponentesVisuais.RoundPanel(18).fill(Color.WHITE)
                 .line(new Color(170,192,226)).shadow(true);
         root.setLayout(new BorderLayout(0,18));
         root.setBorder(new EmptyBorder(22,24,20,24));
@@ -984,10 +984,10 @@ public final class LivroCaixaView {
         copy.add(Box.createVerticalStrut(4));
         JLabel description=new JLabel(subtitle);
         description.setFont(new Font("Segoe UI",Font.PLAIN,15));
-        description.setForeground(UiKit.MUTED);
+        description.setForeground(ComponentesVisuais.MUTED);
         copy.add(description);
         header.add(copy);
-        JButton close=new JButton(UiKit.vectorIcon("close",18,UiKit.MUTED));
+        JButton close=new JButton(ComponentesVisuais.vectorIcon("close",18,ComponentesVisuais.MUTED));
         close.setBorder(new EmptyBorder(5,8,5,8));
         close.setContentAreaFilled(false);
         close.setFocusPainted(false);
@@ -1003,7 +1003,7 @@ public final class LivroCaixaView {
         for(int index=0;index<labels.length;index++) {
             fields[index]=modernField("");
             fields[index].setFont(new Font("Segoe UI",Font.PLAIN,19));
-            form.add(ConsultationScreens.fieldBlock(labels[index],fields[index]));
+            form.add(TelasConsultas.fieldBlock(labels[index],fields[index]));
             if(index<labels.length-1) form.add(Box.createVerticalStrut(12));
         }
         root.add(form);
@@ -1011,9 +1011,9 @@ public final class LivroCaixaView {
         JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,10,0));
         actions.setOpaque(false);
         actions.setBorder(new CompoundBorder(
-                new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(14,0,0,0)));
-        JButton cancel=ConsultationScreens.actionButton("Cancelar","close",false,180);
-        JButton save=ConsultationScreens.actionButton("Cadastrar","save",true,175);
+                new MatteBorder(1,0,0,0,ComponentesVisuais.LINE),new EmptyBorder(14,0,0,0)));
+        JButton cancel=TelasConsultas.actionButton("Cancelar","close",false,180);
+        JButton save=TelasConsultas.actionButton("Cadastrar","save",true,175);
         cancel.addActionListener(e->dialog.dispose());
         save.addActionListener(e->{
             String[] values=Arrays.stream(fields).map(JTextField::getText).toArray(String[]::new);
@@ -1066,7 +1066,7 @@ public final class LivroCaixaView {
         confirmDialog.setResizable(false);
 
         boolean[] accepted={false};
-        UiKit.RoundPanel root=new UiKit.RoundPanel(18).fill(Color.WHITE).line(new Color(190,204,226)).shadow(true);
+        ComponentesVisuais.RoundPanel root=new ComponentesVisuais.RoundPanel(18).fill(Color.WHITE).line(new Color(190,204,226)).shadow(true);
         root.setLayout(new BorderLayout(0,18));
         root.setBorder(new EmptyBorder(22,24,20,24));
         root.setPreferredSize(new Dimension(540,275));
@@ -1074,7 +1074,7 @@ public final class LivroCaixaView {
         JPanel header=new JPanel(new BorderLayout());
         header.setOpaque(false);
         header.add(title(dialogTitle,22),BorderLayout.WEST);
-        JButton close=new JButton(UiKit.vectorIcon("close",18,UiKit.MUTED));
+        JButton close=new JButton(ComponentesVisuais.vectorIcon("close",18,ComponentesVisuais.MUTED));
         close.setBorder(new EmptyBorder(5,8,5,8));
         close.setContentAreaFilled(false);
         close.setFocusPainted(false);
@@ -1085,10 +1085,10 @@ public final class LivroCaixaView {
 
         JPanel content=new JPanel(new BorderLayout(18,0));
         content.setOpaque(false);
-        UiKit.RoundPanel iconBox=new UiKit.RoundPanel(14).fill(new Color(255,233,235)).line(new Color(255,193,198)).shadow(false);
+        ComponentesVisuais.RoundPanel iconBox=new ComponentesVisuais.RoundPanel(14).fill(new Color(255,233,235)).line(new Color(255,193,198)).shadow(false);
         iconBox.setPreferredSize(new Dimension(68,68));
         iconBox.setLayout(new GridBagLayout());
-        iconBox.add(new JLabel(UiKit.vectorIcon(icon,32,UiKit.RED)));
+        iconBox.add(new JLabel(ComponentesVisuais.vectorIcon(icon,32,ComponentesVisuais.RED)));
         content.add(iconBox,BorderLayout.WEST);
         JPanel copy=new JPanel();
         copy.setOpaque(false);
@@ -1102,7 +1102,7 @@ public final class LivroCaixaView {
         question.setRows(2);
         question.setColumns(29);
         question.setFont(new Font("Segoe UI",Font.BOLD,18));
-        question.setForeground(UiKit.INK);
+        question.setForeground(ComponentesVisuais.INK);
         question.setBorder(null);
         JTextArea explanation=new JTextArea(detail);
         explanation.setEditable(false);
@@ -1113,7 +1113,7 @@ public final class LivroCaixaView {
         explanation.setRows(2);
         explanation.setColumns(29);
         explanation.setFont(new Font("Segoe UI",Font.PLAIN,15));
-        explanation.setForeground(UiKit.MUTED);
+        explanation.setForeground(ComponentesVisuais.MUTED);
         explanation.setBorder(null);
         copy.add(question);
         copy.add(Box.createVerticalStrut(5));
@@ -1123,9 +1123,9 @@ public final class LivroCaixaView {
 
         JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,10,0));
         actions.setOpaque(false);
-        actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(15,0,0,0)));
-        JButton back=new UiKit.RoundButton("Voltar",UiKit.vectorIcon("close",18,UiKit.INK),new Color(235,241,250),UiKit.INK);
-        JButton proceed=new UiKit.RoundButton(actionLabel,UiKit.vectorIcon(icon,18,Color.WHITE),UiKit.RED,Color.WHITE);
+        actions.setBorder(new CompoundBorder(new MatteBorder(1,0,0,0,ComponentesVisuais.LINE),new EmptyBorder(15,0,0,0)));
+        JButton back=new ComponentesVisuais.RoundButton("Voltar",ComponentesVisuais.vectorIcon("close",18,ComponentesVisuais.INK),new Color(235,241,250),ComponentesVisuais.INK);
+        JButton proceed=new ComponentesVisuais.RoundButton(actionLabel,ComponentesVisuais.vectorIcon(icon,18,Color.WHITE),ComponentesVisuais.RED,Color.WHITE);
         back.setPreferredSize(new Dimension(140,48));
         proceed.setPreferredSize(new Dimension(190,48));
         back.addActionListener(e->confirmDialog.dispose());

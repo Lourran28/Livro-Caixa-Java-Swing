@@ -121,16 +121,16 @@ src/livrocaixa/
 |  |- Payment.java                   Entidade de pagamento
 |  `- Expense.java                   Entidade de saída financeira
 `- view/
-   |- LivroCaixaView.java            Login, janela principal e navegação visual
-   |- UiKit.java                     Componentes, cores, ícones e estilos reutilizáveis
-   |- OperationalListScreens.java    Telas de clientes e consultas
-   |- ConsultationScreens.java       Formulário visual de nova consulta
-   |- BillingScreen.java             Faturamento à vista e a prazo
-   |- FinanceListScreens.java        Listagens financeiras e contas a receber
-   |- PaymentScreens.java            Registro visual de pagamentos e descontos
-   |- ConfirmedPaymentScreen.java    Confirmação e opção para desfazer baixa
-   |- ManagementScreens.java         Relatórios, configurações e cadastros auxiliares
-   `- SmokeTest.java                 Verificação automática da abertura e navegação das telas
+   |- TelaLivroCaixa.java            Login, janela principal e navegação visual
+   |- ComponentesVisuais.java         Componentes, cores, ícones e estilos reutilizáveis
+   |- TelasOperacionais.java          Telas de clientes e consultas
+   |- TelasConsultas.java             Formulário visual de nova consulta
+   |- TelaFaturamento.java            Faturamento à vista e a prazo
+   |- TelasFinanceiras.java           Listagens financeiras e contas a receber
+   |- TelasPagamentos.java            Registro visual de pagamentos e descontos
+   |- TelaPagamentoConfirmado.java    Confirmação e opção para desfazer baixa
+   |- TelasGerenciamento.java         Relatórios, configurações e cadastros auxiliares
+   `- TesteInicializacao.java         Verificação automática da abertura e navegação das telas
 ```
 
 ### Organização MVC
@@ -153,7 +153,7 @@ Arquivos auxiliares:
 Depois de compilar, o teste de navegação pode ser executado com:
 
 ```powershell
-java -cp .\build\LivroCaixa.jar livrocaixa.view.SmokeTest
+java -cp .\build\LivroCaixa.jar livrocaixa.view.TesteInicializacao
 ```
 
 O resultado esperado no terminal é:

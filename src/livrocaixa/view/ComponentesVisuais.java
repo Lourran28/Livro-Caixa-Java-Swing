@@ -20,7 +20,7 @@ import java.util.function.Consumer;
  * Centraliza cores, fontes, cartões, botões, tabelas, gráficos e ícones vetoriais
  * para manter o mesmo padrão visual sem bibliotecas externas.
  */
-final class UiKit {
+final class ComponentesVisuais {
     static final Color NAVY = new Color(5, 48, 80);
     static final Color NAVY_2 = new Color(10, 61, 94);
     static final Color BLUE = new Color(0, 91, 234);
@@ -36,7 +36,7 @@ final class UiKit {
     static final Font REGULAR = new Font("Segoe UI", Font.PLAIN, 17);
     static final Font SEMIBOLD = new Font("Segoe UI", Font.BOLD, 17);
 
-    private UiKit() {}
+    private ComponentesVisuais() {}
 
     static void installDefaults() {
         // Valores globais usados pelos componentes Swing que não recebem estilo próprio.

@@ -17,16 +17,16 @@ import java.util.Map;
 import java.util.function.IntPredicate;
 
 /** Telas de relatórios e configurações reproduzidas a partir dos protótipos 13–16. */
-final class ManagementScreens {
-    private ManagementScreens() {}
+final class TelasGerenciamento {
+    private TelasGerenciamento() {}
 
     private static final List<EmployeeRow> EMPLOYEES = new ArrayList<>(List.of(
             new EmployeeRow(1, "Ana Souza", "Administrador"),
             new EmployeeRow(2, "Bruno Reis", "Atendente")
     ));
 
-    static JComponent buildReports(LivroCaixaView.MainFrame frame) {
-        JPanel root = LivroCaixaView.page();
+    static JComponent buildReports(TelaLivroCaixa.JanelaPrincipal frame) {
+        JPanel root = TelaLivroCaixa.page();
         root.setBorder(new EmptyBorder(12, 14, 14, 14));
 
         CardLayout cardsLayout = new CardLayout();
@@ -81,13 +81,13 @@ final class ManagementScreens {
     }
 
     private static void addReportTab(JPanel bar, Map<String, ReportTabButton> map, String text, String icon) {
-        ReportTabButton button = new ReportTabButton(text, UiKit.vectorIcon(icon, 29, UiKit.INK));
+        ReportTabButton button = new ReportTabButton(text, ComponentesVisuais.vectorIcon(icon, 29, ComponentesVisuais.INK));
         map.put(text, button);
         bar.add(button);
     }
 
-    private static JComponent reportFilters(LivroCaixaView.MainFrame frame) {
-        UiKit.RoundPanel box = new UiKit.RoundPanel(14).fill(Color.WHITE).shadow(false);
+    private static JComponent reportFilters(TelaLivroCaixa.JanelaPrincipal frame) {
+        ComponentesVisuais.RoundPanel box = new ComponentesVisuais.RoundPanel(14).fill(Color.WHITE).shadow(false);
         box.setLayout(new GridBagLayout());
         box.setBorder(new EmptyBorder(10, 12, 10, 12));
         GridBagConstraints g = new GridBagConstraints();
@@ -96,21 +96,21 @@ final class ManagementScreens {
         g.fill = GridBagConstraints.HORIZONTAL;
         g.gridx = 0;
         g.weightx = .18;
-        box.add(fieldBlock("Data inicial", LivroCaixaView.modernField("01/11/2026")), g);
+        box.add(fieldBlock("Data inicial", TelaLivroCaixa.modernField("01/11/2026")), g);
         g.gridx = 1;
-        box.add(fieldBlock("Data final", LivroCaixaView.modernField("30/11/2026")), g);
+        box.add(fieldBlock("Data final", TelaLivroCaixa.modernField("30/11/2026")), g);
         JComboBox<String> employee = new JComboBox<>(new String[]{"Todos", "Ana Souza", "Bruno Reis"});
         g.gridx = 2;
         g.weightx = .20;
         box.add(fieldBlock("Funcionário", employee), g);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 18));
         actions.setOpaque(false);
-        JButton apply = UiKit.primary("Aplicar filtros", "search");
-        JButton clear = UiKit.secondary("Limpar", "default");
-        JButton print = UiKit.secondary("Imprimir", "default");
-        apply.addActionListener(e -> LivroCaixaView.info(frame, "Filtros aplicados ao período informado."));
+        JButton apply = ComponentesVisuais.primary("Aplicar filtros", "search");
+        JButton clear = ComponentesVisuais.secondary("Limpar", "default");
+        JButton print = ComponentesVisuais.secondary("Imprimir", "default");
+        apply.addActionListener(e -> TelaLivroCaixa.info(frame, "Filtros aplicados ao período informado."));
         clear.addActionListener(e -> employee.setSelectedIndex(0));
-        print.addActionListener(e -> LivroCaixaView.info(frame, "Relatório preparado para impressão."));
+        print.addActionListener(e -> TelaLivroCaixa.info(frame, "Relatório preparado para impressão."));
         actions.add(apply);
         actions.add(clear);
         actions.add(print);
@@ -121,17 +121,17 @@ final class ManagementScreens {
         return box;
     }
 
-    private static JComponent overview(LivroCaixaView.MainFrame frame) {
+    private static JComponent overview(TelaLivroCaixa.JanelaPrincipal frame) {
         JPanel page = new JPanel(new BorderLayout(0, 10));
         page.setOpaque(false);
         JPanel stats = statsRow(
-                stat("Entradas", LivroCaixaView.money(frame.store.income()),
+                stat("Entradas", TelaLivroCaixa.money(frame.store.income()),
                         new Color(223, 255, 222), new Color(82, 210, 84)),
-                stat("Saídas", LivroCaixaView.money(frame.store.expenseTotal()),
+                stat("Saídas", TelaLivroCaixa.money(frame.store.expenseTotal()),
                         new Color(255, 229, 231), new Color(244, 130, 137)),
-                stat("Saldo", LivroCaixaView.money(frame.store.balance()),
+                stat("Saldo", TelaLivroCaixa.money(frame.store.balance()),
                         new Color(229, 239, 255), new Color(114, 160, 245)),
-                stat("A receber", LivroCaixaView.money(frame.store.pending()),
+                stat("A receber", TelaLivroCaixa.money(frame.store.pending()),
                         new Color(255, 247, 207), new Color(242, 190, 36))
         );
         stats.setPreferredSize(new Dimension(0, 92));
@@ -139,18 +139,18 @@ final class ManagementScreens {
 
         JPanel middle = new JPanel(new GridLayout(1, 2, 12, 0));
         middle.setOpaque(false);
-        UiKit.RoundPanel chartCard = panelCard(
+        ComponentesVisuais.RoundPanel chartCard = panelCard(
                 "Entradas × Saídas",
                 "Comparação dos valores movimentados no período selecionado");
         chartCard.add(new TwoBarChart(
                 frame.store.income().doubleValue(), frame.store.expenseTotal().doubleValue()));
         middle.add(chartCard);
-        UiKit.RoundPanel summaryCard = panelCard("Resumo por sessão");
+        ComponentesVisuais.RoundPanel summaryCard = panelCard("Resumo por sessão");
         JPanel summaries = new JPanel(new GridLayout(1, 3, 10, 0));
         summaries.setOpaque(false);
-        summaries.add(sessionCard("Saídas", "7 registros", "R$ 4.260,00", UiKit.RED, "swap"));
-        summaries.add(sessionCard("Consultas", "18 realizadas", "16 clientes atendidos", UiKit.BLUE, "calendar"));
-        summaries.add(sessionCard("Recebimentos", "22 pagamentos", "R$ 12.680,00", UiKit.GREEN, "coins"));
+        summaries.add(sessionCard("Saídas", "7 registros", "R$ 4.260,00", ComponentesVisuais.RED, "swap"));
+        summaries.add(sessionCard("Consultas", "18 realizadas", "16 clientes atendidos", ComponentesVisuais.BLUE, "calendar"));
+        summaries.add(sessionCard("Recebimentos", "22 pagamentos", "R$ 12.680,00", ComponentesVisuais.GREEN, "coins"));
         summaryCard.add(summaries);
         middle.add(summaryCard);
         page.add(middle);
@@ -160,7 +160,7 @@ final class ManagementScreens {
                 "Ana Souza", "Cartão de crédito", "R$ 350,00"});
         rows.add(new Object[]{"05/11/2026", "Saída", "Aluguel", "Ana Souza", "—", "R$ 1.200,00"});
         rows.add(new Object[]{"04/11/2026", "Saída", "Energia", "Ana Souza", "—", "R$ 620,00"});
-        UiKit.RoundPanel table = tableCard(
+        ComponentesVisuais.RoundPanel table = tableCard(
                 "Últimas movimentações",
                 new String[]{"Data", "Movimento", "Descrição", "Funcionário", "Forma de pagamento", "Valor"},
                 rows.toArray(Object[][]::new),
@@ -170,7 +170,7 @@ final class ManagementScreens {
         return page;
     }
 
-    private static JComponent expenses(LivroCaixaView.MainFrame frame) {
+    private static JComponent expenses(TelaLivroCaixa.JanelaPrincipal frame) {
         JPanel page = new JPanel(new BorderLayout(0, 10));
         page.setOpaque(false);
         BigDecimal average = frame.store.expenses.isEmpty()
@@ -178,11 +178,11 @@ final class ManagementScreens {
                 : frame.store.expenseTotal().divide(
                         BigDecimal.valueOf(frame.store.expenses.size()), 2, RoundingMode.HALF_UP);
         JPanel stats = statsRow(
-                stat("Total de saídas", LivroCaixaView.money(frame.store.expenseTotal()),
+                stat("Total de saídas", TelaLivroCaixa.money(frame.store.expenseTotal()),
                         new Color(255, 229, 231), new Color(244, 130, 137)),
                 stat("Saídas realizadas", String.valueOf(frame.store.expenses.size()),
                         new Color(229, 239, 255), new Color(114, 160, 245)),
-                stat("Média por saída", LivroCaixaView.money(average),
+                stat("Média por saída", TelaLivroCaixa.money(average),
                         new Color(224, 255, 222), new Color(86, 210, 87)),
                 stat("Maior saída", "Aluguel - R$ 1.200,00",
                         new Color(255, 247, 207), new Color(242, 190, 36))
@@ -193,22 +193,22 @@ final class ManagementScreens {
                 "Aluguel", "Manutenção", "Energia", "Limpeza", "Água", "Material de escritório", "Internet"
         };
         double[] values = {1200, 760, 620, 500, 500, 480, 200};
-        UiKit.RoundPanel chart = panelCard(
+        ComponentesVisuais.RoundPanel chart = panelCard(
                 "Saídas por tipo",
                 "Total gasto em cada categoria — do maior para o menor");
-        chart.add(new HorizontalBarChart(labels, values, true, UiKit.RED));
+        chart.add(new HorizontalBarChart(labels, values, true, ComponentesVisuais.RED));
         page.add(chart);
         Object[][] rows = frame.store.expenses.stream()
                 .map(x -> new Object[]{
-                        LivroCaixaView.fmt(x.date), x.type, x.employee, LivroCaixaView.money(x.value)})
+                        TelaLivroCaixa.fmt(x.date), x.type, x.employee, TelaLivroCaixa.money(x.value)})
                 .toArray(Object[][]::new);
-        UiKit.RoundPanel table = tableCard("Detalhamento das saídas", new String[]{"Data", "Tipo de saída", "Funcionário", "Valor"}, rows, "");
+        ComponentesVisuais.RoundPanel table = tableCard("Detalhamento das saídas", new String[]{"Data", "Tipo de saída", "Funcionário", "Valor"}, rows, "");
         table.setPreferredSize(new Dimension(0, 180));
         page.add(table, BorderLayout.SOUTH);
         return page;
     }
 
-    private static JComponent appointments(LivroCaixaView.MainFrame frame) {
+    private static JComponent appointments(TelaLivroCaixa.JanelaPrincipal frame) {
         JPanel page = new JPanel(new BorderLayout(0, 10));
         page.setOpaque(false);
         JPanel stats = statsRow(
@@ -219,17 +219,17 @@ final class ManagementScreens {
         );
         stats.setPreferredSize(new Dimension(0, 92));
         page.add(stats, BorderLayout.NORTH);
-        UiKit.RoundPanel chart = panelCard(
+        ComponentesVisuais.RoundPanel chart = panelCard(
                 "Consultas por tipo",
                 "Quantidade de atendimentos agrupada pelo tipo de consulta");
         chart.add(new HorizontalBarChart(
                 new String[]{"Consulta de rotina", "Retorno", "Avaliação"},
-                new double[]{9, 6, 3}, false, UiKit.BLUE));
+                new double[]{9, 6, 3}, false, ComponentesVisuais.BLUE));
         page.add(chart);
         Object[][] rows = frame.store.appointments.stream()
-                .map(x -> new Object[]{LivroCaixaView.fmt(x.date), x.client, x.type, x.employee})
+                .map(x -> new Object[]{TelaLivroCaixa.fmt(x.date), x.client, x.type, x.employee})
                 .toArray(Object[][]::new);
-        UiKit.RoundPanel table = tableCard(
+        ComponentesVisuais.RoundPanel table = tableCard(
                 "Detalhamento das consultas", new String[]{"Data", "Cliente", "Tipo", "Funcionário"}, rows,
                 "Exibindo " + rows.length + " de 18 consultas");
         table.setPreferredSize(new Dimension(0, 180));
@@ -237,7 +237,7 @@ final class ManagementScreens {
         return page;
     }
 
-    private static JComponent receipts(LivroCaixaView.MainFrame frame) {
+    private static JComponent receipts(TelaLivroCaixa.JanelaPrincipal frame) {
         JPanel page = new JPanel(new BorderLayout(0, 10));
         page.setOpaque(false);
         JPanel stats = statsRow(
@@ -248,19 +248,19 @@ final class ManagementScreens {
         );
         stats.setPreferredSize(new Dimension(0, 92));
         page.add(stats, BorderLayout.NORTH);
-        UiKit.RoundPanel chart = panelCard(
+        ComponentesVisuais.RoundPanel chart = panelCard(
                 "Recebimentos por forma de pagamento",
                 "Total recebido em cada meio de pagamento no período");
         chart.add(new HorizontalBarChart(
                 new String[]{"Cartão de crédito", "PIX", "Dinheiro", "Cartão de débito"},
-                new double[]{4200, 3980, 2500, 2000}, true, UiKit.GREEN));
+                new double[]{4200, 3980, 2500, 2000}, true, ComponentesVisuais.GREEN));
         page.add(chart);
         Object[][] rows = {
                 {"05/11/2026", "Carlos Mendes", "Parcela 1/4", "À prazo", "Cartão de crédito", "R$ 350,00"},
                 {"05/11/2026", "Mariana Silva", "Consulta 104", "À vista", "PIX", "R$ 420,00"},
                 {"04/11/2026", "Fernanda Costa", "Parcela 1/2", "À prazo", "Dinheiro", "R$ 600,00"}
         };
-        UiKit.RoundPanel table = tableCard(
+        ComponentesVisuais.RoundPanel table = tableCard(
                 "Detalhamento dos recebimentos", new String[]{"Data", "Cliente", "Origem", "Tipo", "Forma de pagamento", "Valor"},
                 rows, "Exibindo 3 de 22 pagamentos");
         table.setPreferredSize(new Dimension(0, 180));
@@ -268,16 +268,16 @@ final class ManagementScreens {
         return page;
     }
 
-    static JComponent buildSettings(LivroCaixaView.MainFrame frame) {
-        JPanel root = LivroCaixaView.page();
+    static JComponent buildSettings(TelaLivroCaixa.JanelaPrincipal frame) {
+        JPanel root = TelaLivroCaixa.page();
         root.setBorder(new EmptyBorder(16, 16, 16, 16));
-        UiKit.RoundPanel body = new UiKit.RoundPanel(17).fill(new Color(249, 251, 255));
+        ComponentesVisuais.RoundPanel body = new ComponentesVisuais.RoundPanel(17).fill(new Color(249, 251, 255));
         body.setLayout(new BorderLayout(0, 22));
         body.setBorder(new EmptyBorder(22, 22, 22, 22));
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
-        heading.add(LivroCaixaView.title("Configurações do sistema", 34));
+        heading.add(TelaLivroCaixa.title("Configurações do sistema", 34));
         JLabel sub = new JLabel("Gerencie usuários e cadastros auxiliares");
         sub.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         heading.add(Box.createVerticalStrut(4));
@@ -310,10 +310,10 @@ final class ManagementScreens {
         cardsArea.add(cards, cardsPosition);
         body.add(cardsArea);
 
-        UiKit.RoundPanel info = new UiKit.RoundPanel(13).fill(new Color(231, 240, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel info = new ComponentesVisuais.RoundPanel(13).fill(new Color(231, 240, 255)).shadow(false);
         info.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 12));
         JLabel infoLabel = new JLabel("Cadastros em uso não podem ser excluídos.",
-                UiKit.vectorIcon("info", 28, UiKit.BLUE), SwingConstants.LEFT);
+                ComponentesVisuais.vectorIcon("info", 28, ComponentesVisuais.BLUE), SwingConstants.LEFT);
         infoLabel.setIconTextGap(16);
         infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 17));
         info.add(infoLabel);
@@ -322,12 +322,12 @@ final class ManagementScreens {
         return root;
     }
 
-    private static JComponent settingsCard(LivroCaixaView.MainFrame frame, String name, String count,
+    private static JComponent settingsCard(TelaLivroCaixa.JanelaPrincipal frame, String name, String count,
                                            String icon, Color fill, Color line, int route) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(18).fill(fill).line(line).shadow(false);
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(18).fill(fill).line(line).shadow(false);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(20, 14, 18, 14));
-        JLabel glyph = new JLabel(UiKit.vectorIcon(icon, 52, new Color(23, 46, 176)));
+        JLabel glyph = new JLabel(ComponentesVisuais.vectorIcon(icon, 52, new Color(23, 46, 176)));
         glyph.setAlignmentX(.5f);
         String displayName = switch (name) {
             case "Tipos de consulta" -> "Tipos de<br>consulta";
@@ -335,7 +335,7 @@ final class ManagementScreens {
             case "Formas de pagamento" -> "Formas de<br>pagamento";
             default -> name;
         };
-        JLabel title = LivroCaixaView.title(
+        JLabel title = TelaLivroCaixa.title(
                 "<html><center>" + displayName + "</center></html>", 20);
         title.setAlignmentX(.5f);
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -345,7 +345,7 @@ final class ManagementScreens {
         JLabel amount = new JLabel(count);
         amount.setFont(new Font("Segoe UI", Font.PLAIN, 17));
         amount.setAlignmentX(.5f);
-        JButton manage = UiKit.primary("Gerenciar", "default");
+        JButton manage = ComponentesVisuais.primary("Gerenciar", "default");
         manage.setAlignmentX(.5f);
         manage.setFont(new Font("Segoe UI", Font.BOLD, 15));
         manage.setIconTextGap(6);
@@ -369,12 +369,12 @@ final class ManagementScreens {
         return card;
     }
 
-    private static JComponent employeesAndProfiles(LivroCaixaView.MainFrame frame, int selectedTab) {
-        JPanel root = LivroCaixaView.page();
-        UiKit.RoundPanel body = new UiKit.RoundPanel(17).fill(new Color(249, 251, 255));
+    private static JComponent employeesAndProfiles(TelaLivroCaixa.JanelaPrincipal frame, int selectedTab) {
+        JPanel root = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel body = new ComponentesVisuais.RoundPanel(17).fill(new Color(249, 251, 255));
         body.setLayout(new BorderLayout(20, 14));
         body.setBorder(new EmptyBorder(18, 20, 18, 20));
-        body.add(LivroCaixaView.title("Funcionários e perfis", 32), BorderLayout.NORTH);
+        body.add(TelaLivroCaixa.title("Funcionários e perfis", 32), BorderLayout.NORTH);
 
         JPanel content = new JPanel(new GridLayout(1, 3, 20, 0));
         content.setOpaque(false);
@@ -391,7 +391,7 @@ final class ManagementScreens {
         content.add(profileSummary(frame));
         body.add(content);
 
-        JButton back = UiKit.secondary("Voltar", "default");
+        JButton back = ComponentesVisuais.secondary("Voltar", "default");
         back.addActionListener(e -> frame.showPage("Configurações"));
         JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         south.setOpaque(false);
@@ -401,20 +401,20 @@ final class ManagementScreens {
         return root;
     }
 
-    private static JComponent employeeList(LivroCaixaView.MainFrame frame) {
+    private static JComponent employeeList(TelaLivroCaixa.JanelaPrincipal frame) {
         JPanel p = new JPanel(new BorderLayout(0, 10));
         p.setOpaque(false);
         JPanel search = new JPanel(new BorderLayout(8, 0));
         search.setOpaque(false);
-        JTextField field = LivroCaixaView.modernField("");
+        JTextField field = TelaLivroCaixa.modernField("");
         search.add(field);
-        search.add(UiKit.primary("Buscar", "search"), BorderLayout.EAST);
+        search.add(ComponentesVisuais.primary("Buscar", "search"), BorderLayout.EAST);
         p.add(search, BorderLayout.NORTH);
 
         DefaultTableModel model = employeeModel();
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         installActions(table, row -> false, row -> {}, row -> {
-            if (LivroCaixaView.confirm(frame,
+            if (TelaLivroCaixa.confirm(frame,
                     "Excluir o funcionário \"" + EMPLOYEES.get(row).name() + "\"?")) {
                 EMPLOYEES.remove(row);
                 model.setDataVector(employeeRows(), new String[]{"Código", "Nome", "Perfil", "Ações"});
@@ -429,15 +429,15 @@ final class ManagementScreens {
                 new Object[][]{{"001", "Administrador"}, {"002", "Atendente"}}, "");
     }
 
-    private static JComponent employeeForm(LivroCaixaView.MainFrame frame) {
-        UiKit.RoundPanel p = panelCard("Novo funcionário");
+    private static JComponent employeeForm(TelaLivroCaixa.JanelaPrincipal frame) {
+        ComponentesVisuais.RoundPanel p = panelCard("Novo funcionário");
         p.setBorder(new EmptyBorder(14, 16, 14, 16));
         JPanel fields = new JPanel();
         fields.setOpaque(false);
         fields.setLayout(new BoxLayout(fields, BoxLayout.Y_AXIS));
-        JTextField name = LivroCaixaView.modernField("Mariana Alves");
+        JTextField name = TelaLivroCaixa.modernField("Mariana Alves");
         JComboBox<String> profile = new JComboBox<>(new String[]{"Administrador", "Atendente"});
-        JPasswordField password = LivroCaixaView.modernPassword("12345678");
+        JPasswordField password = TelaLivroCaixa.modernPassword("12345678");
         fields.add(fieldBlock("Nome", name));
         fields.add(Box.createVerticalStrut(9));
         fields.add(fieldBlock("Perfil", profile));
@@ -448,8 +448,8 @@ final class ManagementScreens {
 
         JPanel actions = new JPanel(new GridLayout(1, 2, 10, 0));
         actions.setOpaque(false);
-        JButton cancel = UiKit.secondary("Cancelar", "default");
-        JButton save = UiKit.primary("Salvar", "save");
+        JButton cancel = ComponentesVisuais.secondary("Cancelar", "default");
+        JButton save = ComponentesVisuais.primary("Salvar", "save");
         for (JButton button : new JButton[]{cancel, save}) {
             button.setFont(new Font("Segoe UI", Font.BOLD, 15));
             button.setIconTextGap(6);
@@ -459,7 +459,7 @@ final class ManagementScreens {
             if (!name.getText().isBlank()) {
                 EMPLOYEES.add(new EmployeeRow(EMPLOYEES.size() + 1, name.getText().trim(),
                         String.valueOf(profile.getSelectedItem())));
-                LivroCaixaView.info(frame, "Funcionário salvo com sucesso.");
+                TelaLivroCaixa.info(frame, "Funcionário salvo com sucesso.");
                 frame.showCustom("Configurações", employeesAndProfiles(frame, 0));
             }
         });
@@ -469,34 +469,34 @@ final class ManagementScreens {
         return p;
     }
 
-    private static JComponent profileSummary(LivroCaixaView.MainFrame frame) {
-        UiKit.RoundPanel p = panelCard("Perfis cadastrados");
-        JTable table = UiKit.modernTable(UiKit.readOnlyModel(
+    private static JComponent profileSummary(TelaLivroCaixa.JanelaPrincipal frame) {
+        ComponentesVisuais.RoundPanel p = panelCard("Perfis cadastrados");
+        JTable table = ComponentesVisuais.modernTable(ComponentesVisuais.readOnlyModel(
                 new Object[][]{{"001", "Administrador"}, {"002", "Atendente"}},
                 "Código", "Perfil"));
         table.setRowHeight(32);
         p.add(new JScrollPane(table));
-        JButton manage = UiKit.primary("Gerenciar perfis", "gear");
+        JButton manage = ComponentesVisuais.primary("Gerenciar perfis", "gear");
         manage.addActionListener(e -> frame.showCustom(
                 "Configurações", employeesAndProfiles(frame, 1)));
         p.add(manage, BorderLayout.SOUTH);
         return p;
     }
 
-    private static JComponent auxiliary(LivroCaixaView.MainFrame frame, int selected) {
-        JPanel root = LivroCaixaView.page();
-        UiKit.RoundPanel body = new UiKit.RoundPanel(17).fill(new Color(249, 251, 255));
+    private static JComponent auxiliary(TelaLivroCaixa.JanelaPrincipal frame, int selected) {
+        JPanel root = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel body = new ComponentesVisuais.RoundPanel(17).fill(new Color(249, 251, 255));
         body.setLayout(new BorderLayout(0, 14));
         body.setBorder(new EmptyBorder(14, 16, 14, 16));
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
-        heading.add(LivroCaixaView.title("Cadastros auxiliares", 32));
+        heading.add(TelaLivroCaixa.title("Cadastros auxiliares", 32));
         heading.add(new JLabel("Escolha uma categoria para consultar, cadastrar ou editar."));
         JPanel headingBar = new JPanel(new BorderLayout());
         headingBar.setOpaque(false);
         headingBar.add(heading);
-        JButton back = UiKit.secondary("Voltar para configurações", "back");
+        JButton back = ComponentesVisuais.secondary("Voltar para configurações", "back");
         back.setPreferredSize(new Dimension(285, 48));
         back.addActionListener(e -> frame.showPage("Configurações"));
         headingBar.add(back, BorderLayout.EAST);
@@ -525,50 +525,50 @@ final class ManagementScreens {
         tabs.setSelectedIndex(Math.max(0, Math.min(selected, 2)));
         body.add(tabs);
 
-        UiKit.RoundPanel tips = new UiKit.RoundPanel(12).fill(new Color(231, 240, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel tips = new ComponentesVisuais.RoundPanel(12).fill(new Color(231, 240, 255)).shadow(false);
         tips.setLayout(new GridLayout(1, 4, 10, 0));
         tips.setBorder(new EmptyBorder(10, 14, 10, 14));
-        tips.add(flowTip("Registros em uso são protegidos", "shield", UiKit.RED));
+        tips.add(flowTip("Registros em uso são protegidos", "shield", ComponentesVisuais.RED));
         tips.add(flowTip("Escolha uma categoria", "card", new Color(111, 76, 205)));
-        tips.add(flowTip("Clique em Novo ou Editar", "edit", UiKit.BLUE));
-        tips.add(flowTip("Salve as alterações", "save", UiKit.GREEN));
+        tips.add(flowTip("Clique em Novo ou Editar", "edit", ComponentesVisuais.BLUE));
+        tips.add(flowTip("Salve as alterações", "save", ComponentesVisuais.GREEN));
         body.add(tips, BorderLayout.SOUTH);
         root.add(body);
         return root;
     }
 
-    private static JComponent categoryEditor(LivroCaixaView.MainFrame frame, List<String> values,
+    private static JComponent categoryEditor(TelaLivroCaixa.JanelaPrincipal frame, List<String> values,
                                              String singular, String hint,
                                              java.util.function.Predicate<String> used) {
         JPanel content = new JPanel(new GridLayout(1, 2, 18, 0));
         content.setBorder(new EmptyBorder(14, 8, 14, 8));
         content.setOpaque(false);
 
-        UiKit.RoundPanel left = panelCard(capitalize(singular) + " cadastrados");
+        ComponentesVisuais.RoundPanel left = panelCard(capitalize(singular) + " cadastrados");
         JLabel helper = new JLabel(
-                hint, UiKit.vectorIcon("info", 22, UiKit.BLUE), SwingConstants.LEFT);
+                hint, ComponentesVisuais.vectorIcon("info", 22, ComponentesVisuais.BLUE), SwingConstants.LEFT);
         helper.setForeground(new Color(23, 54, 178));
         left.add(helper, BorderLayout.NORTH);
         DefaultTableModel model = listModel(values);
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         JPanel tableHolder = new JPanel(new BorderLayout(0, 10));
         tableHolder.setOpaque(false);
-        JButton add = UiKit.primary("Novo " + singular, "plus");
+        JButton add = ComponentesVisuais.primary("Novo " + singular, "plus");
         tableHolder.add(add, BorderLayout.NORTH);
         tableHolder.add(new JScrollPane(table));
         left.add(tableHolder);
 
-        UiKit.RoundPanel right = panelCard("Novo " + singular);
+        ComponentesVisuais.RoundPanel right = panelCard("Novo " + singular);
         JPanel form = new JPanel();
         form.setOpaque(false);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        JTextField description = LivroCaixaView.modernField("");
+        JTextField description = TelaLivroCaixa.modernField("");
         form.add(fieldBlock("Descrição", description));
         right.add(form);
         JPanel actions = new JPanel(new GridLayout(1, 2, 10, 0));
         actions.setOpaque(false);
-        JButton cancel = UiKit.secondary("Cancelar", "close");
-        JButton save = UiKit.primary("Salvar", "save");
+        JButton cancel = ComponentesVisuais.secondary("Cancelar", "close");
+        JButton save = ComponentesVisuais.primary("Salvar", "save");
         actions.add(cancel);
         actions.add(save);
         right.add(actions, BorderLayout.SOUTH);
@@ -605,10 +605,10 @@ final class ManagementScreens {
                 },
                 row -> {
                     if (used.test(values.get(row))) {
-                        LivroCaixaView.error(frame, "Este cadastro está em uso e não pode ser excluído.");
+                        TelaLivroCaixa.error(frame, "Este cadastro está em uso e não pode ser excluído.");
                         return;
                     }
-                    if (LivroCaixaView.confirm(frame,
+                    if (TelaLivroCaixa.confirm(frame,
                             "Excluir o cadastro \"" + values.get(row) + "\"?")) {
                         values.remove(row);
                         frame.store.save();
@@ -622,10 +622,10 @@ final class ManagementScreens {
     }
 
     private static JLabel flowTip(String text, String icon, Color color) {
-        JLabel tip = new JLabel(text, UiKit.vectorIcon(icon, 22, color), SwingConstants.LEFT);
+        JLabel tip = new JLabel(text, ComponentesVisuais.vectorIcon(icon, 22, color), SwingConstants.LEFT);
         tip.setIconTextGap(9);
         tip.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        tip.setForeground(UiKit.INK);
+        tip.setForeground(ComponentesVisuais.INK);
         return tip;
     }
 
@@ -636,7 +636,7 @@ final class ManagementScreens {
         table.getColumnModel().getColumn(col).setCellRenderer(new ActionRenderer(locked));
         table.getColumnModel().getColumn(col).setMinWidth(150);
         table.getColumnModel().getColumn(col).setPreferredWidth(170);
-        UiKit.onClick(table, e -> {
+        ComponentesVisuais.onClick(table, e -> {
             int view = table.rowAtPoint(e.getPoint());
             int column = table.columnAtPoint(e.getPoint());
             if (view < 0 || column != col) return;
@@ -651,7 +651,7 @@ final class ManagementScreens {
     }
 
     private static DefaultTableModel employeeModel() {
-        return UiKit.readOnlyModel(
+        return ComponentesVisuais.readOnlyModel(
                 employeeRows(), "Código", "Nome", "Perfil", "Ações");
     }
 
@@ -662,7 +662,7 @@ final class ManagementScreens {
     }
 
     private static DefaultTableModel listModel(List<String> values) {
-        return UiKit.readOnlyModel(listRows(values), "Código", "Descrição", "Ações");
+        return ComponentesVisuais.readOnlyModel(listRows(values), "Código", "Descrição", "Ações");
     }
 
     private static Object[][] listRows(List<String> values) {
@@ -681,11 +681,11 @@ final class ManagementScreens {
     }
 
     private static JComponent stat(String title, String value, Color fill, Color line) {
-        UiKit.RoundPanel p = new UiKit.RoundPanel(14).fill(fill).line(line).shadow(false);
+        ComponentesVisuais.RoundPanel p = new ComponentesVisuais.RoundPanel(14).fill(fill).line(line).shadow(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBorder(new EmptyBorder(10, 18, 10, 18));
-        JLabel t = LivroCaixaView.title(title, 18);
-        JLabel v = LivroCaixaView.title(value, 22);
+        JLabel t = TelaLivroCaixa.title(title, 18);
+        JLabel v = TelaLivroCaixa.title(value, 22);
         v.setForeground(new Color(20, 40, 184));
         p.add(t);
         p.add(Box.createVerticalStrut(5));
@@ -693,24 +693,24 @@ final class ManagementScreens {
         return p;
     }
 
-    private static UiKit.RoundPanel panelCard(String title) {
+    private static ComponentesVisuais.RoundPanel panelCard(String title) {
         return panelCard(title, "");
     }
 
-    private static UiKit.RoundPanel panelCard(String title, String subtitle) {
-        UiKit.RoundPanel p = new UiKit.RoundPanel(14).fill(Color.WHITE).shadow(false);
+    private static ComponentesVisuais.RoundPanel panelCard(String title, String subtitle) {
+        ComponentesVisuais.RoundPanel p = new ComponentesVisuais.RoundPanel(14).fill(Color.WHITE).shadow(false);
         p.setLayout(new BorderLayout(0, 8));
         p.setBorder(new EmptyBorder(10, 12, 10, 12));
         if (!title.isBlank()) {
             JPanel heading = new JPanel();
             heading.setOpaque(false);
             heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
-            heading.add(LivroCaixaView.title(title, 20));
+            heading.add(TelaLivroCaixa.title(title, 20));
             if (!subtitle.isBlank()) {
                 heading.add(Box.createVerticalStrut(2));
                 JLabel explanation = new JLabel(subtitle);
                 explanation.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                explanation.setForeground(UiKit.MUTED);
+                explanation.setForeground(ComponentesVisuais.MUTED);
                 heading.add(explanation);
             }
             p.add(heading, BorderLayout.NORTH);
@@ -720,13 +720,13 @@ final class ManagementScreens {
 
     private static JComponent sessionCard(String title, String first, String second,
                                           Color color, String icon) {
-        UiKit.RoundPanel p = new UiKit.RoundPanel(13)
+        ComponentesVisuais.RoundPanel p = new ComponentesVisuais.RoundPanel(13)
                 .fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 23))
                 .line(new Color(color.getRed(), color.getGreen(), color.getBlue(), 115))
                 .shadow(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBorder(new EmptyBorder(14, 10, 14, 10));
-        JLabel h = new JLabel(title, UiKit.vectorIcon(icon, 24, color), SwingConstants.LEFT);
+        JLabel h = new JLabel(title, ComponentesVisuais.vectorIcon(icon, 24, color), SwingConstants.LEFT);
         h.setIconTextGap(6);
         h.setFont(new Font("Segoe UI", Font.BOLD, 16));
         p.add(h);
@@ -734,17 +734,17 @@ final class ManagementScreens {
         JLabel firstLabel = new JLabel(first);
         firstLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         p.add(firstLabel);
-        JLabel value = LivroCaixaView.title(second, second.length() > 16 ? 14 : 17);
+        JLabel value = TelaLivroCaixa.title(second, second.length() > 16 ? 14 : 17);
         value.setForeground(new Color(18, 39, 185));
         p.add(Box.createVerticalStrut(5));
         p.add(value);
         return p;
     }
 
-    private static UiKit.RoundPanel tableCard(String title, String[] columns,
+    private static ComponentesVisuais.RoundPanel tableCard(String title, String[] columns,
                                                Object[][] rows, String footer) {
-        UiKit.RoundPanel p = panelCard(title);
-        JTable table = UiKit.modernTable(UiKit.readOnlyModel(rows, columns));
+        ComponentesVisuais.RoundPanel p = panelCard(title);
+        JTable table = ComponentesVisuais.modernTable(ComponentesVisuais.readOnlyModel(rows, columns));
         table.setRowHeight(28);
         p.add(new JScrollPane(table));
         if (!footer.isBlank()) {
@@ -784,7 +784,7 @@ final class ManagementScreens {
             super(text, icon);
             setIconTextGap(12);
             setFont(new Font("Segoe UI", Font.BOLD, 19));
-            setForeground(UiKit.INK);
+            setForeground(ComponentesVisuais.INK);
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
@@ -796,17 +796,17 @@ final class ManagementScreens {
         public void setSelected(boolean selected) {
             super.setSelected(selected);
             this.selected = selected;
-            setForeground(selected ? Color.WHITE : UiKit.INK);
+            setForeground(selected ? Color.WHITE : ComponentesVisuais.INK);
             repaint();
         }
 
         @Override
         protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
-            UiKit.antialias(g);
-            g.setColor(selected ? UiKit.BLUE : new Color(237, 242, 250));
+            ComponentesVisuais.antialias(g);
+            g.setColor(selected ? ComponentesVisuais.BLUE : new Color(237, 242, 250));
             g.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-            g.setColor(selected ? UiKit.BLUE : new Color(167, 186, 218));
+            g.setColor(selected ? ComponentesVisuais.BLUE : new Color(167, 186, 218));
             g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
             g.dispose();
             super.paintComponent(graphics);
@@ -826,22 +826,22 @@ final class ManagementScreens {
             p.setBorder(new EmptyBorder(3, 4, 3, 4));
             p.setBackground(selected ? table.getSelectionBackground()
                     : row % 2 == 0 ? Color.WHITE : new Color(249, 251, 255));
-            JButton edit = new UiKit.RoundButton(
-                    "Editar", UiKit.vectorIcon("edit", 15, UiKit.BLUE),
-                    new Color(231, 240, 255), UiKit.BLUE);
+            JButton edit = new ComponentesVisuais.RoundButton(
+                    "Editar", ComponentesVisuais.vectorIcon("edit", 15, ComponentesVisuais.BLUE),
+                    new Color(231, 240, 255), ComponentesVisuais.BLUE);
             boolean isLocked = locked.test(table.convertRowIndexToModel(row));
-            JButton del = new UiKit.RoundButton(
+            JButton del = new ComponentesVisuais.RoundButton(
                     isLocked ? "Em uso" : "Excluir",
-                    UiKit.vectorIcon("trash", 15, isLocked ? Color.GRAY : UiKit.RED),
+                    ComponentesVisuais.vectorIcon("trash", 15, isLocked ? Color.GRAY : ComponentesVisuais.RED),
                     isLocked ? new Color(235, 235, 235) : new Color(255, 235, 237),
-                    isLocked ? Color.GRAY : UiKit.RED);
+                    isLocked ? Color.GRAY : ComponentesVisuais.RED);
             edit.setFont(new Font("Segoe UI", Font.BOLD, 12));
             del.setFont(new Font("Segoe UI", Font.BOLD, 12));
             edit.setIconTextGap(5);
             del.setIconTextGap(5);
             edit.setBorder(new EmptyBorder(4, 6, 4, 6));
             del.setBorder(new EmptyBorder(4, 6, 4, 6));
-            UiKit.addActionPair(p, edit, del);
+            ComponentesVisuais.addActionPair(p, edit, del);
             return p;
         }
     }
@@ -863,7 +863,7 @@ final class ManagementScreens {
         @Override
         protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
-            UiKit.antialias(g);
+            ComponentesVisuais.antialias(g);
             int left = 215;
             int right = 100;
             int top = 28;
@@ -877,7 +877,7 @@ final class ManagementScreens {
             int chartWidth = Math.max(1, w - 20);
 
             g.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            g.setColor(UiKit.MUTED);
+            g.setColor(ComponentesVisuais.MUTED);
             g.drawString("0", left, 15);
             String maximum = formatChartValue(max, money);
             FontMetrics scaleMetrics = g.getFontMetrics();
@@ -891,7 +891,7 @@ final class ManagementScreens {
             for (int i = 0; i < values.length; i++) {
                 int y = top + i * row + 2;
                 int bw = (int) (values[i] / max * chartWidth);
-                g.setColor(UiKit.INK);
+                g.setColor(ComponentesVisuais.INK);
                 g.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 FontMetrics fm = g.getFontMetrics();
                 g.drawString(labels[i], left - 12 - fm.stringWidth(labels[i]), y + barHeight - 2);
@@ -901,7 +901,7 @@ final class ManagementScreens {
                 g.setPaint(new GradientPaint(left, y, accent, left + bw, y, end));
                 g.fillRoundRect(left, y, Math.max(8, bw), barHeight, 8, 8);
                 String val = formatChartValue(values[i], money);
-                g.setColor(UiKit.INK);
+                g.setColor(ComponentesVisuais.INK);
                 g.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 int valueX = Math.min(left + bw + 10, getWidth() - right + 12);
                 g.drawString(val, valueX, y + barHeight - 2);
@@ -928,7 +928,7 @@ final class ManagementScreens {
         @Override
         protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
-            UiKit.antialias(g);
+            ComponentesVisuais.antialias(g);
             int top = 30;
             int bottom = 30;
             int base = getHeight() - bottom;
@@ -943,7 +943,7 @@ final class ManagementScreens {
                 int y=base-(maxH-22)*step/4;
                 g.setColor(new Color(226,233,243));
                 g.drawLine(28,y,getWidth()-18,y);
-                g.setColor(UiKit.MUTED);
+                g.setColor(ComponentesVisuais.MUTED);
                 String scale="R$ "+String.format("%,.0f",max*step/4)
                         .replace(',', 'X').replace('.', ',').replace('X', '.');
                 g.drawString(scale,32,y-3);
@@ -958,7 +958,7 @@ final class ManagementScreens {
             int h = (int) (value / max * (maxH - 22));
             g.setPaint(new GradientPaint(x, base - h, color.brighter(), x + w, base - h, color));
             g.fillRoundRect(x,base-h,w,h,12,12);
-            g.setColor(UiKit.INK);
+            g.setColor(ComponentesVisuais.INK);
             g.setFont(new Font("Segoe UI", Font.BOLD, 14));
             String v = "R$ " + String.format("%,.2f", value)
                     .replace(',', 'X').replace('.', ',').replace('X', '.');

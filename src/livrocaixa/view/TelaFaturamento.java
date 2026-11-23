@@ -19,12 +19,12 @@ import java.util.List;
  * Mantém a montagem da interface na View e envia ao Model somente registros
  * já validados, preservando o fluxo MVC do protótipo.
  */
-final class BillingScreen {
-    private BillingScreen() {}
+final class TelaFaturamento {
+    private TelaFaturamento() {}
 
-    static void show(LivroCaixaView.MainFrame frame, Appointment appointment) {
-        JPanel page = LivroCaixaView.page();
-        UiKit.RoundPanel surface = new UiKit.RoundPanel(17)
+    static void show(TelaLivroCaixa.JanelaPrincipal frame, Appointment appointment) {
+        JPanel page = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel surface = new ComponentesVisuais.RoundPanel(17)
                 .fill(new Color(252, 253, 255))
                 .line(new Color(174, 198, 234))
                 .shadow(false);
@@ -33,25 +33,25 @@ final class BillingScreen {
 
         JPanel top = new JPanel(new BorderLayout(0, 12));
         top.setOpaque(false);
-        top.add(LivroCaixaView.title("Faturamento da consulta", 41), BorderLayout.NORTH);
+        top.add(TelaLivroCaixa.title("Faturamento da consulta", 41), BorderLayout.NORTH);
         top.add(invoiceBanner(appointment));
         surface.add(top, BorderLayout.NORTH);
 
-        JLabel informed = summaryValue(LivroCaixaView.money(appointment.value), UiKit.INK, 22);
-        JLabel remaining = summaryValue(LivroCaixaView.money(BigDecimal.ZERO), new Color(6, 128, 28), 24);
+        JLabel informed = summaryValue(TelaLivroCaixa.money(appointment.value), ComponentesVisuais.INK, 22);
+        JLabel remaining = summaryValue(TelaLivroCaixa.money(BigDecimal.ZERO), new Color(6, 128, 28), 24);
         JComponent summary = summaryPanel(appointment.value, informed, remaining);
 
         JPanel left = new JPanel(new BorderLayout(0, 10));
         left.setOpaque(false);
-        JLabel typeTitle = LivroCaixaView.title("Tipo de pagamento", 25);
+        JLabel typeTitle = TelaLivroCaixa.title("Tipo de pagamento", 25);
         left.add(typeTitle, BorderLayout.NORTH);
 
         JPanel leftBody = new JPanel(new BorderLayout(0, 12));
         leftBody.setOpaque(false);
         JPanel segmented = new JPanel(new GridLayout(1, 2));
         segmented.setOpaque(false);
-        UiKit.SegmentToggle cash = new UiKit.SegmentToggle("À vista", 21);
-        UiKit.SegmentToggle term = new UiKit.SegmentToggle("À prazo", 21);
+        ComponentesVisuais.SegmentToggle cash = new ComponentesVisuais.SegmentToggle("À vista", 21);
+        ComponentesVisuais.SegmentToggle term = new ComponentesVisuais.SegmentToggle("À prazo", 21);
         ButtonGroup group = new ButtonGroup();
         group.add(cash); group.add(term); cash.setSelected(true);
         segmented.add(cash); segmented.add(term);
@@ -63,8 +63,8 @@ final class BillingScreen {
         JPanel cards = new JPanel(modes);
         cards.setOpaque(false);
 
-        DefaultTableModel cashModel = UiKit.readOnlyModel(
-                new Object[][]{{"PIX", LivroCaixaView.money(new BigDecimal("900.00")), ""}, {"Dinheiro", LivroCaixaView.money(new BigDecimal("500.00")), ""}},
+        DefaultTableModel cashModel = ComponentesVisuais.readOnlyModel(
+                new Object[][]{{"PIX", TelaLivroCaixa.money(new BigDecimal("900.00")), ""}, {"Dinheiro", TelaLivroCaixa.money(new BigDecimal("500.00")), ""}},
                 "Forma de pagamento", "Valor", "Ação");
         JTable cashTable = prominentTable(cashModel);
         cashTable.getColumnModel().getColumn(0).setPreferredWidth(330);
@@ -74,7 +74,7 @@ final class BillingScreen {
         JPanel cashPanel = new JPanel();
         cashPanel.setOpaque(false);
         cashPanel.setLayout(new BoxLayout(cashPanel, BoxLayout.Y_AXIS));
-        JLabel formsTitle = LivroCaixaView.title("Formas de pagamento", 25);
+        JLabel formsTitle = TelaLivroCaixa.title("Formas de pagamento", 25);
         formsTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         cashPanel.add(formsTitle);
         cashPanel.add(Box.createVerticalStrut(9));
@@ -91,10 +91,10 @@ final class BillingScreen {
         JComboBox<String> cashMethod = new JComboBox<>(frame.store.paymentMethods.toArray(String[]::new));
         cashMethod.setFont(new Font("Segoe UI", Font.PLAIN, 17));
         JTextField cashValue = largeField("0,00");
-        JButton addMethod = new UiKit.RoundButton("Adicionar", UiKit.vectorIcon("plus", 22, Color.WHITE), UiKit.BLUE, Color.WHITE);
+        JButton addMethod = new ComponentesVisuais.RoundButton("Adicionar", ComponentesVisuais.vectorIcon("plus", 22, Color.WHITE), ComponentesVisuais.BLUE, Color.WHITE);
         addMethod.setFont(new Font("Segoe UI", Font.BOLD, 17));
         addMethod.setPreferredSize(new Dimension(165, 48));
-        UiKit.RoundPanel addPayment = new UiKit.RoundPanel(12).fill(new Color(242, 247, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel addPayment = new ComponentesVisuais.RoundPanel(12).fill(new Color(242, 247, 255)).shadow(false);
         addPayment.setLayout(new BorderLayout(12, 0));
         addPayment.setBorder(new EmptyBorder(10, 12, 10, 12));
         addPayment.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -137,15 +137,15 @@ final class BillingScreen {
         Runnable refreshCash = () -> {
             BigDecimal total = BigDecimal.ZERO;
             for (int i = 0; i < cashModel.getRowCount(); i++) {
-                try { total = total.add(LivroCaixaView.parseMoney(String.valueOf(cashModel.getValueAt(i, 1)))); }
+                try { total = total.add(TelaLivroCaixa.parseMoney(String.valueOf(cashModel.getValueAt(i, 1)))); }
                 catch (Exception ignored) {}
             }
-            informed.setText(LivroCaixaView.money(total));
+            informed.setText(TelaLivroCaixa.money(total));
             BigDecimal rest = appointment.value.subtract(total);
-            remaining.setText(LivroCaixaView.money(rest));
-            remaining.setForeground(rest.signum() == 0 ? new Color(6, 128, 28) : UiKit.RED);
+            remaining.setText(TelaLivroCaixa.money(rest));
+            remaining.setForeground(rest.signum() == 0 ? new Color(6, 128, 28) : ComponentesVisuais.RED);
         };
-        UiKit.onClick(cashTable, event -> {
+        ComponentesVisuais.onClick(cashTable, event -> {
             int row = cashTable.rowAtPoint(event.getPoint());
             int col = cashTable.columnAtPoint(event.getPoint());
             if (row >= 0 && col == 2) {
@@ -155,17 +155,17 @@ final class BillingScreen {
         });
         addMethod.addActionListener(e -> {
             try {
-                BigDecimal value = LivroCaixaView.parseMoney(cashValue.getText());
+                BigDecimal value = TelaLivroCaixa.parseMoney(cashValue.getText());
                 if (value.signum() <= 0) throw new IllegalArgumentException();
                 BigDecimal after = cashTotal(cashModel).add(value);
                 if (after.compareTo(appointment.value) > 0) {
                     throw new IllegalArgumentException("O total informado não pode ultrapassar o valor da consulta.");
                 }
-                cashModel.addRow(new Object[]{cashMethod.getSelectedItem(), LivroCaixaView.money(value), ""});
+                cashModel.addRow(new Object[]{cashMethod.getSelectedItem(), TelaLivroCaixa.money(value), ""});
                 cashValue.setText("0,00");
                 refreshCash.run();
             } catch (IllegalArgumentException ex) {
-                LivroCaixaView.error(frame, ex.getMessage() == null ? "Informe um valor válido." : ex.getMessage());
+                TelaLivroCaixa.error(frame, ex.getMessage() == null ? "Informe um valor válido." : ex.getMessage());
             }
         });
         cash.addActionListener(e -> {
@@ -215,7 +215,7 @@ final class BillingScreen {
                 else saveTermInvoice(frame, appointment, termComponents);
                 frame.showSuccessPage("Fatura salva com sucesso", "Consultas");
             } catch (IllegalArgumentException ex) {
-                LivroCaixaView.error(frame, ex.getMessage() == null ? "Revise os dados da fatura." : ex.getMessage());
+                TelaLivroCaixa.error(frame, ex.getMessage() == null ? "Revise os dados da fatura." : ex.getMessage());
             }
         });
         actions.add(back); actions.add(save);
@@ -227,14 +227,14 @@ final class BillingScreen {
     }
 
     private static JComponent invoiceBanner(Appointment a) {
-        UiKit.RoundPanel banner = new UiKit.RoundPanel(12).fill(new Color(229, 239, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel banner = new ComponentesVisuais.RoundPanel(12).fill(new Color(229, 239, 255)).shadow(false);
         banner.setBorder(new EmptyBorder(12, 15, 12, 15));
         banner.setLayout(new GridLayout(1, 5));
         banner.add(bannerCell("Consulta nº " + a.id, true));
         banner.add(bannerCell("Cliente:  " + a.client, false));
         banner.add(bannerCell("Tipo:  " + a.type, false));
-        banner.add(bannerCell("Data:  " + LivroCaixaView.fmt(a.date), false));
-        banner.add(bannerCell("Valor total:  " + LivroCaixaView.money(a.value), false));
+        banner.add(bannerCell("Data:  " + TelaLivroCaixa.fmt(a.date), false));
+        banner.add(bannerCell("Valor total:  " + TelaLivroCaixa.money(a.value), false));
         banner.setPreferredSize(new Dimension(0, 60));
         return banner;
     }
@@ -248,16 +248,16 @@ final class BillingScreen {
     }
 
     private static JTable prominentTable(DefaultTableModel model) {
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         table.setRowHeight(50);
         table.getTableHeader().setPreferredSize(new Dimension(0, 50));
-        table.getTableHeader().setDefaultRenderer(UiKit.headerRenderer(20));
+        table.getTableHeader().setDefaultRenderer(ComponentesVisuais.headerRenderer(20));
         return table;
     }
 
     private static JComponent summaryPanel(BigDecimal total, JLabel informed, JLabel remaining) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(15)
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(15)
                 .fill(new Color(248, 250, 255))
                 .line(new Color(142, 172, 220))
                 .shadow(false);
@@ -266,13 +266,13 @@ final class BillingScreen {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(225, 236, 252));
         header.setBorder(new EmptyBorder(12, 17, 12, 17));
-        header.add(LivroCaixaView.title("Resumo", 30));
+        header.add(TelaLivroCaixa.title("Resumo", 30));
         card.add(header, BorderLayout.NORTH);
         JPanel rows = new JPanel();
         rows.setOpaque(false);
         rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
         rows.setBorder(new EmptyBorder(9, 17, 12, 17));
-        addSummaryLine(rows, "Valor da consulta", summaryValue(LivroCaixaView.money(total), UiKit.INK, 22));
+        addSummaryLine(rows, "Valor da consulta", summaryValue(TelaLivroCaixa.money(total), ComponentesVisuais.INK, 22));
         addSummaryLine(rows, "Total informado", informed);
         addSummaryLine(rows, "Saldo restante", remaining);
         card.add(rows);
@@ -304,10 +304,10 @@ final class BillingScreen {
     }
 
     private static JComponent infoBar(JLabel text) {
-        UiKit.RoundPanel info = new UiKit.RoundPanel(12).fill(new Color(228, 239, 255)).line(new Color(123, 167, 232)).shadow(false);
+        ComponentesVisuais.RoundPanel info = new ComponentesVisuais.RoundPanel(12).fill(new Color(228, 239, 255)).line(new Color(123, 167, 232)).shadow(false);
         info.setLayout(new BorderLayout(12, 0));
         info.setBorder(new EmptyBorder(10, 16, 10, 16));
-        info.add(new JLabel(UiKit.vectorIcon("info", 29, new Color(27, 100, 229))), BorderLayout.WEST);
+        info.add(new JLabel(ComponentesVisuais.vectorIcon("info", 29, new Color(27, 100, 229))), BorderLayout.WEST);
         info.add(text);
         info.setPreferredSize(new Dimension(0, 50));
         return info;
@@ -319,15 +319,15 @@ final class BillingScreen {
         JPanel fields = new JPanel(new GridLayout(2, 3, 10, 4));
         fields.setOpaque(false);
         JTextField entry = largeField("200,00");
-        JTextField entryDate = largeField(LivroCaixaView.fmt(appointment.date));
-        JTextField firstDue = largeField(LivroCaixaView.fmt(appointment.date.plusDays(30)));
+        JTextField entryDate = largeField(TelaLivroCaixa.fmt(appointment.date));
+        JTextField firstDue = largeField(TelaLivroCaixa.fmt(appointment.date.plusDays(30)));
         JTextField count = largeField("5");
         JComboBox<String> period = new JComboBox<>(new String[]{"Mensal", "Quinzenal", "Semanal"});
         period.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         JPanel valueMode = new JPanel(new GridLayout(1, 2));
         valueMode.setOpaque(false);
-        UiKit.SegmentToggle equal = new UiKit.SegmentToggle("Iguais");
-        UiKit.SegmentToggle custom = new UiKit.SegmentToggle("Personalizados");
+        ComponentesVisuais.SegmentToggle equal = new ComponentesVisuais.SegmentToggle("Iguais");
+        ComponentesVisuais.SegmentToggle custom = new ComponentesVisuais.SegmentToggle("Personalizados");
         equal.setFont(new Font("Segoe UI", Font.BOLD, 17));
         equal.setBorder(new EmptyBorder(5, 6, 5, 6));
         custom.setFont(new Font("Segoe UI", Font.BOLD, 15));
@@ -341,28 +341,28 @@ final class BillingScreen {
         fields.add(fieldBlock("Periodicidade", period));
         fields.add(fieldBlock("Valores das parcelas", valueMode));
         panel.add(fields, BorderLayout.NORTH);
-        DefaultTableModel model = UiKit.editableModel(
+        DefaultTableModel model = ComponentesVisuais.editableModel(
                 new String[]{"Parcela", "Tipo", "Vencimento", "Valor", "Status"},
                 (firstValue, column) -> custom.isSelected()
                         && !"Entrada".equals(String.valueOf(firstValue))
                         && (column == 2 || column == 3));
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         table.setRowHeight(32);
         table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(new LineBorder(new Color(146, 177, 224)));
-        JButton generate = new UiKit.RoundButton("Gerar parcelas", UiKit.vectorIcon("chart", 23, Color.WHITE), UiKit.BLUE, Color.WHITE);
+        JButton generate = new ComponentesVisuais.RoundButton("Gerar parcelas", ComponentesVisuais.vectorIcon("chart", 23, Color.WHITE), ComponentesVisuais.BLUE, Color.WHITE);
         generate.setFont(new Font("Segoe UI", Font.BOLD, 16));
         generate.setPreferredSize(new Dimension(186, 38));
         JPanel preview = new JPanel(new BorderLayout(0, 5));
         preview.setOpaque(false);
         JPanel previewHeader = new JPanel(new BorderLayout(12, 0));
         previewHeader.setOpaque(false);
-        previewHeader.add(LivroCaixaView.title("Prévia das parcelas", 21));
+        previewHeader.add(TelaLivroCaixa.title("Prévia das parcelas", 21));
         JLabel modeHint = new JLabel("Valores calculados automaticamente.");
         modeHint.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        modeHint.setForeground(UiKit.MUTED);
+        modeHint.setForeground(ComponentesVisuais.MUTED);
         modeHint.setHorizontalAlignment(SwingConstants.RIGHT);
         previewHeader.add(modeHint, BorderLayout.CENTER);
         previewHeader.add(generate, BorderLayout.EAST);
@@ -374,7 +374,7 @@ final class BillingScreen {
     }
 
     private static JTextField largeField(String value) {
-        JTextField field = LivroCaixaView.modernField(value);
+        JTextField field = TelaLivroCaixa.modernField(value);
         field.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         field.setPreferredSize(new Dimension(130, 34));
         return field;
@@ -393,10 +393,10 @@ final class BillingScreen {
     /** Gera a prévia; os registros só são criados depois da validação ao salvar. */
     private static void generateTermRows(Appointment appointment, TermComponents c, JLabel informed, JLabel remaining) {
         try {
-            BigDecimal entry = LivroCaixaView.parseMoney(c.entry.getText());
+            BigDecimal entry = TelaLivroCaixa.parseMoney(c.entry.getText());
             int count = Integer.parseInt(c.count.getText().trim());
-            LocalDate first = LivroCaixaView.parseDate(c.firstDue.getText());
-            LocalDate entryDate = LivroCaixaView.parseDate(c.entryDate.getText());
+            LocalDate first = TelaLivroCaixa.parseDate(c.firstDue.getText());
+            LocalDate entryDate = TelaLivroCaixa.parseDate(c.entryDate.getText());
             if (entry.signum() < 0 || entry.compareTo(appointment.value) >= 0) {
                 throw new IllegalArgumentException("A entrada deve ser menor que o valor da consulta.");
             }
@@ -405,14 +405,14 @@ final class BillingScreen {
             }
             c.model.setRowCount(0);
             if (entry.signum() > 0) {
-                c.model.addRow(new Object[]{"Entrada", "Entrada", LivroCaixaView.fmt(entryDate), LivroCaixaView.money(entry), "Pendente"});
+                c.model.addRow(new Object[]{"Entrada", "Entrada", TelaLivroCaixa.fmt(entryDate), TelaLivroCaixa.money(entry), "Pendente"});
             }
             BigDecimal rest = appointment.value.subtract(entry);
             BigDecimal each = rest.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
             for (int i = 1; i <= count; i++) {
                 BigDecimal value = i == count ? rest.subtract(each.multiply(BigDecimal.valueOf(count - 1))) : each;
                 LocalDate due = installmentDate(first, String.valueOf(c.period.getSelectedItem()), i - 1);
-                c.model.addRow(new Object[]{i + "/" + count, c.period.getSelectedItem(), LivroCaixaView.fmt(due), LivroCaixaView.money(value), "Pendente"});
+                c.model.addRow(new Object[]{i + "/" + count, c.period.getSelectedItem(), TelaLivroCaixa.fmt(due), TelaLivroCaixa.money(value), "Pendente"});
             }
             c.modeHint.setText(c.custom.isSelected()
                     ? "Edite vencimento e valor das parcelas na tabela."
@@ -421,7 +421,7 @@ final class BillingScreen {
         } catch (Exception ex) {
             informed.setText("Dados inválidos");
             remaining.setText("—");
-            remaining.setForeground(UiKit.RED);
+            remaining.setForeground(ComponentesVisuais.RED);
             if (ex instanceof IllegalArgumentException && ex.getMessage() != null) {
                 c.modeHint.setText(ex.getMessage());
             } else {
@@ -444,29 +444,29 @@ final class BillingScreen {
         boolean valid = model.getRowCount() > 0;
         for (int row = 0; row < model.getRowCount(); row++) {
             try {
-                BigDecimal value = LivroCaixaView.parseMoney(String.valueOf(model.getValueAt(row, 3)));
+                BigDecimal value = TelaLivroCaixa.parseMoney(String.valueOf(model.getValueAt(row, 3)));
                 if (value.signum() <= 0) valid = false;
                 total = total.add(value);
-                LivroCaixaView.parseDate(String.valueOf(model.getValueAt(row, 2)));
+                TelaLivroCaixa.parseDate(String.valueOf(model.getValueAt(row, 2)));
             } catch (Exception error) {
                 valid = false;
             }
         }
-        informed.setText(valid ? LivroCaixaView.money(total) : "Revise a tabela");
+        informed.setText(valid ? TelaLivroCaixa.money(total) : "Revise a tabela");
         BigDecimal rest = appointment.value.subtract(total);
-        remaining.setText(valid ? LivroCaixaView.money(rest) : "—");
-        remaining.setForeground(valid && rest.signum() == 0 ? new Color(6, 128, 28) : UiKit.RED);
+        remaining.setText(valid ? TelaLivroCaixa.money(rest) : "—");
+        remaining.setForeground(valid && rest.signum() == 0 ? new Color(6, 128, 28) : ComponentesVisuais.RED);
     }
 
     private static BigDecimal cashTotal(DefaultTableModel model) {
         BigDecimal total = BigDecimal.ZERO;
         for (int row = 0; row < model.getRowCount(); row++) {
-            total = total.add(LivroCaixaView.parseMoney(String.valueOf(model.getValueAt(row, 1))));
+            total = total.add(TelaLivroCaixa.parseMoney(String.valueOf(model.getValueAt(row, 1))));
         }
         return total;
     }
 
-    private static void saveCashInvoice(LivroCaixaView.MainFrame frame, Appointment appointment,
+    private static void saveCashInvoice(TelaLivroCaixa.JanelaPrincipal frame, Appointment appointment,
                                         DefaultTableModel model) {
         if (model.getRowCount() == 0) {
             throw new IllegalArgumentException("Adicione ao menos uma forma de pagamento.");
@@ -477,7 +477,7 @@ final class BillingScreen {
         for (int row = 0; row < model.getRowCount(); row++) {
             BigDecimal value;
             try {
-                value = LivroCaixaView.parseMoney(String.valueOf(model.getValueAt(row, 1)));
+                value = TelaLivroCaixa.parseMoney(String.valueOf(model.getValueAt(row, 1)));
             } catch (Exception error) {
                 throw new IllegalArgumentException("Revise os valores das formas de pagamento.");
             }
@@ -498,7 +498,7 @@ final class BillingScreen {
         frame.store.recordInvoice(appointment, payments, installments);
     }
 
-    private static void saveTermInvoice(LivroCaixaView.MainFrame frame, Appointment appointment,
+    private static void saveTermInvoice(TelaLivroCaixa.JanelaPrincipal frame, Appointment appointment,
                                         TermComponents components) {
         if (components.table.isEditing() && !components.table.getCellEditor().stopCellEditing()) {
             throw new IllegalArgumentException("Conclua a edição da parcela antes de salvar.");
@@ -519,8 +519,8 @@ final class BillingScreen {
             BigDecimal value;
             LocalDate date;
             try {
-                value = LivroCaixaView.parseMoney(String.valueOf(components.model.getValueAt(row, 3)));
-                date = LivroCaixaView.parseDate(String.valueOf(components.model.getValueAt(row, 2)));
+                value = TelaLivroCaixa.parseMoney(String.valueOf(components.model.getValueAt(row, 3)));
+                date = TelaLivroCaixa.parseDate(String.valueOf(components.model.getValueAt(row, 2)));
             } catch (Exception error) {
                 throw new IllegalArgumentException("Revise os vencimentos e valores personalizados.");
             }
@@ -540,17 +540,17 @@ final class BillingScreen {
         }
         if (installments.isEmpty()) throw new IllegalArgumentException("A fatura a prazo precisa de ao menos uma parcela.");
         if (total.compareTo(appointment.value) != 0) {
-            throw new IllegalArgumentException("Entrada e parcelas devem totalizar " + LivroCaixaView.money(appointment.value) + ".");
+            throw new IllegalArgumentException("Entrada e parcelas devem totalizar " + TelaLivroCaixa.money(appointment.value) + ".");
         }
         frame.store.recordInvoice(appointment, payments, installments);
     }
 
     private static JButton actionButton(String text, String icon, boolean primary, int width) {
-        JButton button = new UiKit.RoundButton(
+        JButton button = new ComponentesVisuais.RoundButton(
                 text,
-                UiKit.vectorIcon(icon, 27, primary ? Color.WHITE : UiKit.INK),
-                primary ? UiKit.BLUE : new Color(235, 241, 251),
-                primary ? Color.WHITE : UiKit.INK
+                ComponentesVisuais.vectorIcon(icon, 27, primary ? Color.WHITE : ComponentesVisuais.INK),
+                primary ? ComponentesVisuais.BLUE : new Color(235, 241, 251),
+                primary ? Color.WHITE : ComponentesVisuais.INK
         );
         button.setFont(new Font("Segoe UI", Font.BOLD, 21));
         button.setPreferredSize(new Dimension(width, 56));
@@ -559,7 +559,7 @@ final class BillingScreen {
 
     private record TermComponents(JPanel panel, JTextField entry, JTextField entryDate, JTextField firstDue,
                                   JTextField count, JComboBox<String> period, DefaultTableModel model, JTable table,
-                                  UiKit.SegmentToggle equal, UiKit.SegmentToggle custom, JLabel modeHint,
+                                  ComponentesVisuais.SegmentToggle equal, ComponentesVisuais.SegmentToggle custom, JLabel modeHint,
                                   JButton generate) {}
 
     private static final class RemoveRenderer implements TableCellRenderer {
@@ -568,8 +568,8 @@ final class BillingScreen {
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 6));
             panel.setOpaque(true);
             panel.setBackground(selected ? table.getSelectionBackground() : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
-            JButton remove = new UiKit.RoundButton("Remover", UiKit.vectorIcon("trash", 16, UiKit.RED),
-                    new Color(255, 238, 240), UiKit.RED);
+            JButton remove = new ComponentesVisuais.RoundButton("Remover", ComponentesVisuais.vectorIcon("trash", 16, ComponentesVisuais.RED),
+                    new Color(255, 238, 240), ComponentesVisuais.RED);
             remove.setFont(new Font("Segoe UI", Font.PLAIN, 17));
             remove.setBorder(new EmptyBorder(5, 17, 5, 17));
             panel.add(remove);

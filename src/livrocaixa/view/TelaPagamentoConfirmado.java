@@ -17,26 +17,26 @@ import java.util.Comparator;
 import java.util.List;
 
 /** Tela visual do fluxo 10: confirmação, resumo e desfazer baixa. */
-final class ConfirmedPaymentScreen {
+final class TelaPagamentoConfirmado {
     private static final LocalDate REFERENCE_DATE = LivroCaixaModel.DEMO_DATE;
 
-    private ConfirmedPaymentScreen() {}
+    private TelaPagamentoConfirmado() {}
 
-    static void show(LivroCaixaView.MainFrame frame, Installment item) {
-        JPanel page = LivroCaixaView.page();
-        UiKit.RoundPanel surface = new UiKit.RoundPanel(16).fill(Color.WHITE);
+    static void show(TelaLivroCaixa.JanelaPrincipal frame, Installment item) {
+        JPanel page = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel surface = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
         surface.setLayout(new BorderLayout(0, 12));
         surface.setBorder(new EmptyBorder(15, 18, 15, 18));
 
         JPanel top = new JPanel();
         top.setOpaque(false);
         top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
-        top.add(LivroCaixaView.title("Pagamento confirmado", 29));
+        top.add(TelaLivroCaixa.title("Pagamento confirmado", 29));
         top.add(Box.createVerticalStrut(10));
-        UiKit.RoundPanel success = new UiKit.RoundPanel(13).fill(new Color(224, 249, 222)).line(new Color(76, 190, 78)).shadow(false);
+        ComponentesVisuais.RoundPanel success = new ComponentesVisuais.RoundPanel(13).fill(new Color(224, 249, 222)).line(new Color(76, 190, 78)).shadow(false);
         success.setLayout(new BorderLayout());
         success.setBorder(new EmptyBorder(13, 18, 13, 18));
-        JLabel successText = new JLabel("Pagamento registrado com sucesso", UiKit.vectorIcon("check", 42, new Color(7, 132, 31)), SwingConstants.LEFT);
+        JLabel successText = new JLabel("Pagamento registrado com sucesso", ComponentesVisuais.vectorIcon("check", 42, new Color(7, 132, 31)), SwingConstants.LEFT);
         successText.setIconTextGap(14);
         successText.setFont(new Font("Segoe UI", Font.BOLD, 25));
         successText.setForeground(new Color(7, 117, 26));
@@ -69,10 +69,10 @@ final class ConfirmedPaymentScreen {
 
         JPanel bottom = new JPanel(new BorderLayout(12, 10));
         bottom.setOpaque(false);
-        UiKit.RoundPanel hint = new UiKit.RoundPanel(12).fill(new Color(231, 240, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel hint = new ComponentesVisuais.RoundPanel(12).fill(new Color(231, 240, 255)).shadow(false);
         hint.setBorder(new EmptyBorder(10, 14, 10, 14));
         hint.setLayout(new BorderLayout(10, 0));
-        hint.add(new JLabel(UiKit.vectorIcon("info", 25, UiKit.BLUE)), BorderLayout.WEST);
+        hint.add(new JLabel(ComponentesVisuais.vectorIcon("info", 25, ComponentesVisuais.BLUE)), BorderLayout.WEST);
         JLabel hintText = new JLabel("Desfazer baixa reverte o pagamento e o desconto associados.");
         hintText.setFont(new Font("Segoe UI", Font.BOLD, 16));
         hint.add(hintText);
@@ -80,8 +80,8 @@ final class ConfirmedPaymentScreen {
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actions.setOpaque(false);
-        JButton invoice = UiKit.secondary("Ver fatura", "document");
-        JButton back = UiKit.primary("Voltar para contas a receber", "document");
+        JButton invoice = ComponentesVisuais.secondary("Ver fatura", "document");
+        JButton back = ComponentesVisuais.primary("Voltar para contas a receber", "document");
         invoice.addActionListener(e -> showInvoice(frame, item.appointmentId));
         back.addActionListener(e -> frame.showPage("Contas a receber"));
         actions.add(invoice);
@@ -93,12 +93,12 @@ final class ConfirmedPaymentScreen {
     }
 
     /** Exibe a situação completa da fatura sem abrir janelas auxiliares. */
-    static void showInvoice(LivroCaixaView.MainFrame frame, int invoiceId) {
+    static void showInvoice(TelaLivroCaixa.JanelaPrincipal frame, int invoiceId) {
         List<Installment> installments = frame.store.installmentsForInvoice(invoiceId);
         List<Payment> payments = frame.store.paymentsForInvoice(invoiceId);
         Appointment appointment = frame.store.appointmentForInvoice(invoiceId);
         if (installments.isEmpty() && payments.isEmpty() && appointment == null) {
-            LivroCaixaView.error(frame, "Fatura não encontrada.");
+            TelaLivroCaixa.error(frame, "Fatura não encontrada.");
             return;
         }
 
@@ -127,8 +127,8 @@ final class ConfirmedPaymentScreen {
                 .min(Comparator.naturalOrder())
                 .orElse(null);
 
-        JPanel page = LivroCaixaView.page();
-        UiKit.RoundPanel surface = new UiKit.RoundPanel(16).fill(Color.WHITE);
+        JPanel page = TelaLivroCaixa.page();
+        ComponentesVisuais.RoundPanel surface = new ComponentesVisuais.RoundPanel(16).fill(Color.WHITE);
         surface.setLayout(new BorderLayout(0, 14));
         surface.setBorder(new EmptyBorder(17, 18, 15, 18));
 
@@ -137,10 +137,10 @@ final class ConfirmedPaymentScreen {
         JPanel heading = new JPanel();
         heading.setOpaque(false);
         heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
-        heading.add(LivroCaixaView.title("Fatura nº " + String.format("%03d", invoiceId), 30));
+        heading.add(TelaLivroCaixa.title("Fatura nº " + String.format("%03d", invoiceId), 30));
         JLabel subtitle = new JLabel(client + (appointment == null ? "" : "  •  " + appointment.type));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 17));
-        subtitle.setForeground(UiKit.MUTED);
+        subtitle.setForeground(ComponentesVisuais.MUTED);
         heading.add(Box.createVerticalStrut(4));
         heading.add(subtitle);
         header.add(heading);
@@ -159,17 +159,17 @@ final class ConfirmedPaymentScreen {
         content.setOpaque(false);
         JPanel values = new JPanel(new GridLayout(1, 4, 12, 0));
         values.setOpaque(false);
-        values.add(invoiceMetric("Valor original", LivroCaixaView.money(total), "document", UiKit.BLUE,
-                "Entrada: " + LivroCaixaView.money(entry)));
-        values.add(invoiceMetric("Valor recebido", LivroCaixaView.money(received), "coins", new Color(22, 137, 59),
-                "Descontos: " + LivroCaixaView.money(discounts)));
-        values.add(invoiceMetric("Saldo restante", LivroCaixaView.money(balance), "wallet",
-                balance.signum() == 0 ? new Color(22, 137, 59) : UiKit.RED,
+        values.add(invoiceMetric("Valor original", TelaLivroCaixa.money(total), "document", ComponentesVisuais.BLUE,
+                "Entrada: " + TelaLivroCaixa.money(entry)));
+        values.add(invoiceMetric("Valor recebido", TelaLivroCaixa.money(received), "coins", new Color(22, 137, 59),
+                "Descontos: " + TelaLivroCaixa.money(discounts)));
+        values.add(invoiceMetric("Saldo restante", TelaLivroCaixa.money(balance), "wallet",
+                balance.signum() == 0 ? new Color(22, 137, 59) : ComponentesVisuais.RED,
                 balance.signum() == 0 ? "Fatura liquidada" : "Ainda falta receber"));
         values.add(invoiceMetric("Parcelas restantes", String.valueOf(openCount), "calendar",
                 openCount == 0 ? new Color(22, 137, 59) : new Color(214, 119, 0),
                 nextDue == null ? "Nenhum vencimento pendente"
-                        : (overdueCount > 0 ? "Mais antigo: " : "Próxima: ") + LivroCaixaView.fmt(nextDue)));
+                        : (overdueCount > 0 ? "Mais antigo: " : "Próxima: ") + TelaLivroCaixa.fmt(nextDue)));
         content.add(values, BorderLayout.NORTH);
 
         JPanel center = new JPanel(new BorderLayout(14, 0));
@@ -181,8 +181,8 @@ final class ConfirmedPaymentScreen {
 
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         footer.setOpaque(false);
-        footer.setBorder(new CompoundBorder(new MatteBorder(1, 0, 0, 0, UiKit.LINE), new EmptyBorder(13, 0, 0, 0)));
-        JButton back = UiKit.secondary("Voltar para contas a receber", "swap");
+        footer.setBorder(new CompoundBorder(new MatteBorder(1, 0, 0, 0, ComponentesVisuais.LINE), new EmptyBorder(13, 0, 0, 0)));
+        JButton back = ComponentesVisuais.secondary("Voltar para contas a receber", "swap");
         back.addActionListener(e -> frame.showPage("Contas a receber"));
         footer.add(back);
         surface.add(footer, BorderLayout.SOUTH);
@@ -192,38 +192,38 @@ final class ConfirmedPaymentScreen {
     }
 
     private static JComponent invoiceInformation(String client, Appointment appointment, BigDecimal entry) {
-        UiKit.RoundPanel banner = new UiKit.RoundPanel(12).fill(new Color(232, 241, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel banner = new ComponentesVisuais.RoundPanel(12).fill(new Color(232, 241, 255)).shadow(false);
         banner.setLayout(new GridLayout(1, 4));
         banner.setBorder(new EmptyBorder(11, 15, 11, 15));
         banner.add(pair("Cliente:", client));
         banner.add(pair("Consulta:", appointment == null ? "Não vinculada" : String.valueOf(appointment.id)));
-        banner.add(pair("Data:", appointment == null ? "—" : LivroCaixaView.fmt(appointment.date)));
-        banner.add(pair("Entrada:", LivroCaixaView.money(entry)));
+        banner.add(pair("Data:", appointment == null ? "—" : TelaLivroCaixa.fmt(appointment.date)));
+        banner.add(pair("Entrada:", TelaLivroCaixa.money(entry)));
         return banner;
     }
 
     private static JComponent invoiceMetric(String label, String value, String icon, Color color, String detail) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(13).fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 18))
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(13).fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 18))
                 .line(new Color(color.getRed(), color.getGreen(), color.getBlue(), 92)).shadow(false);
         card.setLayout(new BorderLayout(12, 0));
         card.setBorder(new EmptyBorder(13, 15, 13, 15));
-        UiKit.RoundPanel iconBox = new UiKit.RoundPanel(11).fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 30))
+        ComponentesVisuais.RoundPanel iconBox = new ComponentesVisuais.RoundPanel(11).fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 30))
                 .line(null).shadow(false);
         iconBox.setPreferredSize(new Dimension(50, 50));
         iconBox.setLayout(new GridBagLayout());
-        iconBox.add(new JLabel(UiKit.vectorIcon(icon, 27, color)));
+        iconBox.add(new JLabel(ComponentesVisuais.vectorIcon(icon, 27, color)));
         card.add(iconBox, BorderLayout.WEST);
         JPanel copy = new JPanel();
         copy.setOpaque(false);
         copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
         JLabel caption = new JLabel(label);
         caption.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        caption.setForeground(UiKit.MUTED);
-        JLabel amount = LivroCaixaView.title(value, 21);
+        caption.setForeground(ComponentesVisuais.MUTED);
+        JLabel amount = TelaLivroCaixa.title(value, 21);
         amount.setForeground(color);
         JLabel helper = new JLabel(detail);
         helper.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        helper.setForeground(UiKit.MUTED);
+        helper.setForeground(ComponentesVisuais.MUTED);
         copy.add(caption);
         copy.add(Box.createVerticalStrut(4));
         copy.add(amount);
@@ -234,16 +234,16 @@ final class ConfirmedPaymentScreen {
     }
 
     private static JComponent invoiceCounts(long total, long paid, long open, long cancelled, long overdue) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
         card.setPreferredSize(new Dimension(285, 0));
         card.setLayout(new BorderLayout(0, 10));
         card.setBorder(new EmptyBorder(12, 14, 12, 14));
-        card.add(LivroCaixaView.title("Situação das parcelas", 20), BorderLayout.NORTH);
+        card.add(TelaLivroCaixa.title("Situação das parcelas", 20), BorderLayout.NORTH);
 
         JPanel content = new JPanel();
         content.setOpaque(false);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        UiKit.RoundPanel totalCard = countCard("Parcelas cadastradas", total, "document", UiKit.BLUE);
+        ComponentesVisuais.RoundPanel totalCard = countCard("Parcelas cadastradas", total, "document", ComponentesVisuais.BLUE);
         totalCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         totalCard.setPreferredSize(new Dimension(0, 70));
         content.add(totalCard);
@@ -255,24 +255,24 @@ final class ConfirmedPaymentScreen {
         statuses.setMaximumSize(new Dimension(Integer.MAX_VALUE, 164));
         statuses.add(countCard("Quitadas", paid, "check", new Color(22, 137, 59)));
         statuses.add(countCard("Em aberto", open, "calendar", new Color(214, 119, 0)));
-        statuses.add(countCard("Vencidas", overdue, "warning", UiKit.RED));
+        statuses.add(countCard("Vencidas", overdue, "warning", ComponentesVisuais.RED));
         statuses.add(countCard("Canceladas", cancelled, "close", new Color(91, 108, 137)));
         content.add(statuses);
         card.add(content);
         return card;
     }
 
-    private static UiKit.RoundPanel countCard(String label, long value, String icon, Color color) {
-        UiKit.RoundPanel tile = new UiKit.RoundPanel(11)
+    private static ComponentesVisuais.RoundPanel countCard(String label, long value, String icon, Color color) {
+        ComponentesVisuais.RoundPanel tile = new ComponentesVisuais.RoundPanel(11)
                 .fill(new Color(color.getRed(), color.getGreen(), color.getBlue(), 18))
                 .line(new Color(color.getRed(), color.getGreen(), color.getBlue(), 78)).shadow(false);
         tile.setLayout(new BorderLayout(8, 0));
         tile.setBorder(new EmptyBorder(9, 10, 9, 10));
-        tile.add(new JLabel(UiKit.vectorIcon(icon, 23, color)), BorderLayout.WEST);
+        tile.add(new JLabel(ComponentesVisuais.vectorIcon(icon, 23, color)), BorderLayout.WEST);
         JPanel copy = new JPanel();
         copy.setOpaque(false);
         copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
-        JLabel amount = LivroCaixaView.title(String.valueOf(value), 22);
+        JLabel amount = TelaLivroCaixa.title(String.valueOf(value), 22);
         amount.setForeground(color);
         JLabel name = new JLabel(label);
         name.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -285,25 +285,25 @@ final class ConfirmedPaymentScreen {
     }
 
     private static JComponent invoiceInstallmentsTable(List<Installment> installments, List<Payment> payments) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
         card.setLayout(new BorderLayout(0, 8));
         card.setBorder(new EmptyBorder(11, 11, 11, 11));
-        card.add(LivroCaixaView.title("Parcelas da fatura", 20), BorderLayout.NORTH);
-        DefaultTableModel model = UiKit.readOnlyModel(
+        card.add(TelaLivroCaixa.title("Parcelas da fatura", 20), BorderLayout.NORTH);
+        DefaultTableModel model = ComponentesVisuais.readOnlyModel(
                 "Parcela", "Vencimento", "Valor", "Recebido", "Saldo", "Status");
         for (Installment installment : installments) {
             BigDecimal cashReceived = payments.stream()
                     .filter(payment -> !payment.reversed && payment.label.equals(installment.label))
                     .map(payment -> payment.value)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            model.addRow(new Object[]{installment.label, LivroCaixaView.fmt(installment.due),
-                    LivroCaixaView.money(installment.value), LivroCaixaView.money(cashReceived),
-                    LivroCaixaView.money(installment.remaining()), installment.status(REFERENCE_DATE)});
+            model.addRow(new Object[]{installment.label, TelaLivroCaixa.fmt(installment.due),
+                    TelaLivroCaixa.money(installment.value), TelaLivroCaixa.money(cashReceived),
+                    TelaLivroCaixa.money(installment.remaining()), installment.status(REFERENCE_DATE)});
         }
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setRowHeight(39);
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(new LineBorder(UiKit.LINE));
+        scroll.setBorder(new LineBorder(ComponentesVisuais.LINE));
         card.add(scroll);
         return card;
     }
@@ -311,9 +311,9 @@ final class ConfirmedPaymentScreen {
     private static JComponent invoiceStatusPill(String status) {
         boolean paid = "Quitada".equals(status);
         boolean overdue = status.contains("vencidas");
-        Color foreground = paid ? new Color(7, 115, 27) : overdue ? UiKit.RED : new Color(146, 87, 0);
+        Color foreground = paid ? new Color(7, 115, 27) : overdue ? ComponentesVisuais.RED : new Color(146, 87, 0);
         Color background = paid ? new Color(217, 244, 218) : overdue ? new Color(255, 226, 228) : new Color(255, 238, 193);
-        JLabel pill = new JLabel(status, paid ? UiKit.vectorIcon("check", 19, foreground) : UiKit.vectorIcon("info", 19, foreground), SwingConstants.CENTER);
+        JLabel pill = new JLabel(status, paid ? ComponentesVisuais.vectorIcon("check", 19, foreground) : ComponentesVisuais.vectorIcon("info", 19, foreground), SwingConstants.CENTER);
         pill.setFont(new Font("Segoe UI", Font.BOLD, 15));
         pill.setForeground(foreground);
         pill.setBackground(background);
@@ -327,13 +327,13 @@ final class ConfirmedPaymentScreen {
     }
 
     private static JComponent detailBanner(Installment item) {
-        UiKit.RoundPanel banner = new UiKit.RoundPanel(12).fill(new Color(232, 241, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel banner = new ComponentesVisuais.RoundPanel(12).fill(new Color(232, 241, 255)).shadow(false);
         banner.setBorder(new EmptyBorder(11, 15, 11, 15));
         banner.setLayout(new GridLayout(1, 5));
         banner.add(pair("Cliente:", item.client));
         banner.add(pair("Fatura:", String.valueOf(item.appointmentId)));
         banner.add(pair("Parcela:", item.label));
-        banner.add(pair("Valor liquidado:", LivroCaixaView.money(item.paid)));
+        banner.add(pair("Valor liquidado:", TelaLivroCaixa.money(item.paid)));
         JPanel status = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
         status.setOpaque(false);
         JLabel label = new JLabel("Status:");
@@ -355,45 +355,45 @@ final class ConfirmedPaymentScreen {
         p.setOpaque(false);
         JLabel a = new JLabel(name);
         a.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        JLabel b = LivroCaixaView.title(value, 18);
+        JLabel b = TelaLivroCaixa.title(value, 18);
         b.setForeground(new Color(23, 58, 145));
         p.add(a);
         p.add(b);
         return p;
     }
 
-    private static JComponent historyPanel(LivroCaixaView.MainFrame frame, Installment item,
+    private static JComponent historyPanel(TelaLivroCaixa.JanelaPrincipal frame, Installment item,
                                            List<Payment> payments) {
-        UiKit.RoundPanel card = new UiKit.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
         card.setLayout(new BorderLayout(0, 8));
         card.setBorder(new EmptyBorder(11, 11, 11, 11));
-        card.add(LivroCaixaView.title("Histórico de pagamentos", 21), BorderLayout.NORTH);
-        DefaultTableModel model = UiKit.readOnlyModel(
+        card.add(TelaLivroCaixa.title("Histórico de pagamentos", 21), BorderLayout.NORTH);
+        DefaultTableModel model = ComponentesVisuais.readOnlyModel(
                 "Data", "Forma de pagamento", "Valor", "Desconto", "Ações");
         for (Payment payment : payments) {
-            model.addRow(new Object[]{LivroCaixaView.fmt(payment.date), payment.method,
-                    LivroCaixaView.money(payment.value), LivroCaixaView.money(payment.discount), ""});
+            model.addRow(new Object[]{TelaLivroCaixa.fmt(payment.date), payment.method,
+                    TelaLivroCaixa.money(payment.value), TelaLivroCaixa.money(payment.discount), ""});
         }
-        JTable table = UiKit.modernTable(model);
+        JTable table = ComponentesVisuais.modernTable(model);
         table.setRowHeight(52);
         table.getColumnModel().getColumn(4).setPreferredWidth(190);
         table.getColumnModel().getColumn(4).setCellRenderer(new UndoRenderer());
-        UiKit.onClick(table, event -> {
+        ComponentesVisuais.onClick(table, event -> {
             int viewRow = table.rowAtPoint(event.getPoint());
             int column = table.columnAtPoint(event.getPoint());
             if (viewRow < 0 || column != 4) return;
             int row = table.convertRowIndexToModel(viewRow);
             if (row >= payments.size()) return;
             Payment payment = payments.get(row);
-            if (LivroCaixaView.confirm(frame,
-                    "Desfazer a baixa de " + LivroCaixaView.money(payment.value)
+            if (TelaLivroCaixa.confirm(frame,
+                    "Desfazer a baixa de " + TelaLivroCaixa.money(payment.value)
                             + " via " + payment.method + "?")) {
                 frame.store.reversePayment(item, payment);
                 frame.paymentConfirmed(item);
             }
         });
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(new LineBorder(UiKit.LINE));
+        scroll.setBorder(new LineBorder(ComponentesVisuais.LINE));
         card.add(scroll);
         return card;
     }
@@ -402,10 +402,10 @@ final class ConfirmedPaymentScreen {
         BigDecimal received = payments.stream().map(p -> p.value).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal discounts = payments.stream().map(p -> p.discount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal remaining = item.value.subtract(item.paid).max(BigDecimal.ZERO);
-        UiKit.RoundPanel card = new UiKit.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
+        ComponentesVisuais.RoundPanel card = new ComponentesVisuais.RoundPanel(13).fill(new Color(248, 250, 255)).shadow(false);
         card.setLayout(new BorderLayout(0, 8));
         card.setBorder(new EmptyBorder(11, 14, 11, 14));
-        card.add(LivroCaixaView.title("Resumo da parcela", 21), BorderLayout.NORTH);
+        card.add(TelaLivroCaixa.title("Resumo da parcela", 21), BorderLayout.NORTH);
         JPanel rows = new JPanel(new GridLayout(5, 2, 8, 0));
         rows.setOpaque(false);
         addSummaryRow(rows, "Valor original", item.value, false);
@@ -419,7 +419,7 @@ final class ConfirmedPaymentScreen {
 
     private static void addSummaryRow(JPanel rows, String label, BigDecimal value, boolean highlight) {
         JLabel a = new JLabel(label);
-        JLabel b = LivroCaixaView.title(LivroCaixaView.money(value), highlight ? 22 : 18);
+        JLabel b = TelaLivroCaixa.title(TelaLivroCaixa.money(value), highlight ? 22 : 18);
         b.setHorizontalAlignment(SwingConstants.RIGHT);
         b.setForeground(highlight ? new Color(7, 125, 31) : new Color(23, 58, 145));
         if (highlight) {
@@ -438,7 +438,7 @@ final class ConfirmedPaymentScreen {
             JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 7));
             p.setOpaque(true);
             p.setBackground(selected ? table.getSelectionBackground() : (row & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
-            JButton button = UiKit.secondary("Desfazer baixa", "refresh");
+            JButton button = ComponentesVisuais.secondary("Desfazer baixa", "refresh");
             button.setForeground(new Color(205, 23, 31));
             button.setBorder(new EmptyBorder(5, 10, 5, 10));
             p.add(button);

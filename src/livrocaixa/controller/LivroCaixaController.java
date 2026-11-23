@@ -1,7 +1,7 @@
 package livrocaixa.controller;
 
 import livrocaixa.model.LivroCaixaModel;
-import livrocaixa.view.LivroCaixaView;
+import livrocaixa.view.TelaLivroCaixa;
 
 import java.util.Objects;
 
@@ -33,6 +33,6 @@ public final class LivroCaixaController {
 
     /** Inicia a View e entrega a ela este Controller. */
     public void iniciar() {
-        LivroCaixaView.start(this);
+        TelaLivroCaixa.start(this);
     }
 }
