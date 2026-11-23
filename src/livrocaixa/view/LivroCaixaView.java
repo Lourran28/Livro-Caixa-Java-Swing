@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Camada View do protótipo visual Livro Caixa.
@@ -608,7 +609,24 @@ public final class LivroCaixaView {
 
             JButton newType = ConsultationScreens.largeSecondary(
                     "Novo tipo","plus",190);
-            newType.addActionListener(e -> newExpenseTypeScreen(root,type));
+            newType.addActionListener(e -> quickEntry(
+                    this,
+                    "Novo tipo de saída",
+                    "Crie uma categoria sem perder os dados da saída.",
+                    new String[]{"Nome do tipo"},
+                    values -> {
+                        String name=values[0].trim();
+                        if(name.isBlank()) {
+                            throw new IllegalArgumentException("Informe o nome do novo tipo de saída.");
+                        }
+                        if(store.expenseTypes.stream().anyMatch(item -> item.equalsIgnoreCase(name))) {
+                            throw new IllegalArgumentException("Este tipo de saída já está cadastrado.");
+                        }
+                        store.expenseTypes.add(name);
+                        store.save();
+                        type.addItem(name);
+                        type.setSelectedItem(name);
+                    }));
             JPanel typeLine = ConsultationScreens.lineWithButton(type,newType);
             JScrollPane notesScroll = new JScrollPane(notes);
             notesScroll.setBorder(new LineBorder(new Color(133,164,219),1,true));
@@ -691,91 +709,6 @@ public final class LivroCaixaView {
             card.add(footer,BorderLayout.SOUTH);
             root.add(card);
             showCustom("Saídas",root);
-        }
-
-        private void newExpenseTypeScreen(JPanel returnPage,JComboBox<String> typeSelector) {
-            JPanel root = page();
-            UiKit.RoundPanel surface = new UiKit.RoundPanel(17)
-                    .fill(new Color(252,253,255))
-                    .line(new Color(185,205,237)).shadow(false);
-            surface.setLayout(new BorderLayout(0,14));
-            surface.setBorder(new EmptyBorder(18,22,18,22));
-
-            JPanel heading = new JPanel();
-            heading.setOpaque(false);
-            heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
-            heading.add(title("Novo tipo de saída",42));
-            heading.add(Box.createVerticalStrut(3));
-            JLabel subtitle = new JLabel("Crie uma categoria para organizar os lançamentos financeiros");
-            subtitle.setFont(new Font("Segoe UI",Font.PLAIN,27));
-            subtitle.setForeground(new Color(29,44,70));
-            heading.add(subtitle);
-            heading.add(Box.createVerticalStrut(9));
-            JLabel hint = new JLabel("O novo tipo ficará disponível no cadastro de saídas.",
-                    UiKit.vectorIcon("info",23,new Color(24,67,164)),SwingConstants.LEFT);
-            hint.setIconTextGap(9);
-            hint.setFont(new Font("Segoe UI",Font.ITALIC,18));
-            hint.setForeground(new Color(34,59,106));
-            heading.add(hint);
-            heading.setPreferredSize(new Dimension(0,138));
-            surface.add(heading,BorderLayout.NORTH);
-
-            JPanel content = new JPanel(new GridBagLayout());
-            content.setOpaque(false);
-            JPanel form = new JPanel();
-            form.setOpaque(false);
-            form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
-            JTextField description = modernField("");
-            description.setFont(new Font("Segoe UI",Font.PLAIN,21));
-            description.setMaximumSize(new Dimension(Integer.MAX_VALUE,50));
-            form.add(ConsultationScreens.fieldBlock("Nome do tipo de saída",description));
-            form.add(Box.createVerticalStrut(12));
-            JLabel guidance = new JLabel("Exemplos: Aluguel, Energia, Internet ou Manutenção.");
-            guidance.setFont(new Font("Segoe UI",Font.ITALIC,17));
-            guidance.setForeground(UiKit.MUTED);
-            form.add(guidance);
-            form.add(Box.createVerticalGlue());
-
-            GridBagConstraints formSlot = new GridBagConstraints();
-            formSlot.gridx=0; formSlot.gridy=0; formSlot.weightx=1;
-            formSlot.fill=GridBagConstraints.HORIZONTAL;
-            formSlot.anchor=GridBagConstraints.NORTH;
-            content.add(form,formSlot);
-            formSlot.gridy=1; formSlot.weighty=1; formSlot.fill=GridBagConstraints.BOTH;
-            content.add(Box.createVerticalGlue(),formSlot);
-            surface.add(content);
-
-            JPanel footer = new JPanel(new BorderLayout(0,12));
-            footer.setOpaque(false);
-            footer.add(new JSeparator(),BorderLayout.NORTH);
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
-            actions.setOpaque(false);
-            JButton back = ConsultationScreens.actionButton("Voltar","back",false,190);
-            JButton save = ConsultationScreens.actionButton("Salvar tipo","save",true,230);
-            back.addActionListener(e -> showCustom("Saídas",returnPage));
-            save.addActionListener(e -> {
-                String name = description.getText().trim();
-                if(name.isBlank()) {
-                    error(this,"Informe o nome do novo tipo de saída.");
-                    return;
-                }
-                if(store.expenseTypes.stream().anyMatch(item -> item.equalsIgnoreCase(name))) {
-                    error(this,"Este tipo de saída já está cadastrado.");
-                    return;
-                }
-                store.expenseTypes.add(name);
-                store.save();
-                typeSelector.addItem(name);
-                typeSelector.setSelectedItem(name);
-                showCustom("Saídas",returnPage);
-            });
-            actions.add(back);
-            actions.add(save);
-            footer.add(actions);
-            surface.add(footer,BorderLayout.SOUTH);
-            root.add(surface);
-            showCustom("Saídas",root);
-            SwingUtilities.invokeLater(description::requestFocusInWindow);
         }
 
         JComponent reports(){return ManagementScreens.buildReports(this);}
@@ -1023,6 +956,81 @@ public final class LivroCaixaView {
     static void error(Component component,String message) {
         JOptionPane.showMessageDialog(
                 component,message,"Atenção",JOptionPane.ERROR_MESSAGE);
+    }
+
+    static void quickEntry(Component ownerComponent,String dialogTitle,String subtitle,
+                           String[] labels,Consumer<String[]> onSave) {
+        Window owner=ownerComponent instanceof Window window
+                ? window:SwingUtilities.getWindowAncestor(ownerComponent);
+        JDialog dialog=new JDialog(owner,Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setUndecorated(true);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setResizable(false);
+
+        UiKit.RoundPanel root=new UiKit.RoundPanel(18).fill(Color.WHITE)
+                .line(new Color(170,192,226)).shadow(true);
+        root.setLayout(new BorderLayout(0,18));
+        root.setBorder(new EmptyBorder(22,24,20,24));
+        root.setPreferredSize(new Dimension(590,labels.length==1?315:420));
+
+        JPanel header=new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        JPanel copy=new JPanel();
+        copy.setOpaque(false);
+        copy.setLayout(new BoxLayout(copy,BoxLayout.Y_AXIS));
+        copy.add(title(dialogTitle,25));
+        copy.add(Box.createVerticalStrut(4));
+        JLabel description=new JLabel(subtitle);
+        description.setFont(new Font("Segoe UI",Font.PLAIN,15));
+        description.setForeground(UiKit.MUTED);
+        copy.add(description);
+        header.add(copy);
+        JButton close=new JButton(UiKit.vectorIcon("close",18,UiKit.MUTED));
+        close.setBorder(new EmptyBorder(5,8,5,8));
+        close.setContentAreaFilled(false);
+        close.setFocusPainted(false);
+        close.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        close.addActionListener(e->dialog.dispose());
+        header.add(close,BorderLayout.EAST);
+        root.add(header,BorderLayout.NORTH);
+
+        JTextField[] fields=new JTextField[labels.length];
+        JPanel form=new JPanel();
+        form.setOpaque(false);
+        form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
+        for(int index=0;index<labels.length;index++) {
+            fields[index]=modernField("");
+            fields[index].setFont(new Font("Segoe UI",Font.PLAIN,19));
+            form.add(ConsultationScreens.fieldBlock(labels[index],fields[index]));
+            if(index<labels.length-1) form.add(Box.createVerticalStrut(12));
+        }
+        root.add(form);
+
+        JPanel actions=new JPanel(new FlowLayout(FlowLayout.RIGHT,10,0));
+        actions.setOpaque(false);
+        actions.setBorder(new CompoundBorder(
+                new MatteBorder(1,0,0,0,UiKit.LINE),new EmptyBorder(14,0,0,0)));
+        JButton cancel=ConsultationScreens.actionButton("Cancelar","close",false,180);
+        JButton save=ConsultationScreens.actionButton("Cadastrar","save",true,175);
+        cancel.addActionListener(e->dialog.dispose());
+        save.addActionListener(e->{
+            String[] values=Arrays.stream(fields).map(JTextField::getText).toArray(String[]::new);
+            try {
+                onSave.accept(values);
+                dialog.dispose();
+            } catch(IllegalArgumentException exception) {
+                error(dialog,exception.getMessage());
+            }
+        });
+        actions.add(cancel);
+        actions.add(save);
+        root.add(actions,BorderLayout.SOUTH);
+
+        dialog.setContentPane(root);
+        dialog.pack();
+        dialog.setLocationRelativeTo(owner);
+        SwingUtilities.invokeLater(fields[0]::requestFocusInWindow);
+        dialog.setVisible(true);
     }
 
     static boolean confirm(Component ownerComponent,String message){

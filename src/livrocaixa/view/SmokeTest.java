@@ -84,6 +84,8 @@ public final class SmokeTest {
         exerciseButton(frame, "Limpar");
         frame.appointmentDialog(null);
         render(frame, "05-consulta-nova");
+        renderQuickEntry(frame, "Novo cliente", "05b-consulta-novo-cliente-popup");
+        renderQuickEntry(frame, "Novo tipo", "05c-consulta-novo-tipo-popup");
         exerciseButton(frame, "Cancelar");
     }
 
@@ -166,9 +168,7 @@ public final class SmokeTest {
         exerciseButton(frame, "Limpar");
         frame.expenseDialog(null);
         render(frame, "12-saida-nova");
-        exerciseButton(frame, "Novo tipo");
-        render(frame, "12b-tipo-saida-novo");
-        exerciseButton(frame, "Voltar");
+        renderQuickEntry(frame, "Novo tipo", "12b-tipo-saida-popup");
         render(frame, "12c-saida-nova-retorno");
         exerciseButton(frame, "Cancelar");
         frame.expenseDialog(frame.store.expenses.get(0));
@@ -413,6 +413,28 @@ public final class SmokeTest {
         expect(!confirmed, "o teste visual não deve confirmar a exclusão");
         if (captureError.get() != null) {
             throw new AssertionError("Falha ao capturar diálogo", captureError.get());
+        }
+    }
+
+    private static void renderQuickEntry(JFrame frame, String buttonText, String name) {
+        AtomicReference<Throwable> captureError = new AtomicReference<>();
+        Timer timer = new Timer(250, event -> {
+            try {
+                JDialog dialog = findShowingDialog();
+                if (dialog == null) {
+                    throw new AssertionError("Popup de cadastro não foi exibido");
+                }
+                renderWindow(dialog, name);
+                dialog.dispose();
+            } catch (Throwable error) {
+                captureError.set(error);
+            }
+        });
+        timer.setRepeats(false);
+        timer.start();
+        exerciseButton(frame, buttonText);
+        if (captureError.get() != null) {
+            throw new AssertionError("Falha ao capturar popup de cadastro", captureError.get());
         }
     }
 

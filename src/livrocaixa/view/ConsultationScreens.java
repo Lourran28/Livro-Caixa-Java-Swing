@@ -78,8 +78,33 @@ final class ConsultationScreens {
 
         JButton newClient = largeSecondary("Novo cliente", "plus", 190);
         JButton newType = largeSecondary("Novo tipo", "plus", 170);
-        newClient.addActionListener(e -> frame.clientDialog(null));
-        newType.addActionListener(e -> LivroCaixaView.info(frame, "No protótipo visual, esta opção abre o cadastro de tipos."));
+        newClient.addActionListener(e -> LivroCaixaView.quickEntry(
+                frame,
+                "Novo cliente",
+                "Cadastre o cliente sem sair da consulta.",
+                new String[]{"Nome completo", "CPF"},
+                values -> {
+                    Client created = frame.store.saveClient(null, values[0], values[1]);
+                    client.addItem(created.name);
+                    client.setSelectedItem(created.name);
+                }));
+        newType.addActionListener(e -> LivroCaixaView.quickEntry(
+                frame,
+                "Novo tipo de consulta",
+                "Crie uma opção sem perder os dados do atendimento.",
+                new String[]{"Nome do tipo"},
+                values -> {
+                    String name = values[0].trim();
+                    if (name.isBlank()) throw new IllegalArgumentException("Informe o nome do tipo.");
+                    if (frame.store.appointmentTypes.stream()
+                            .anyMatch(item -> item.equalsIgnoreCase(name))) {
+                        throw new IllegalArgumentException("Este tipo de consulta já está cadastrado.");
+                    }
+                    frame.store.appointmentTypes.add(name);
+                    frame.store.save();
+                    type.addItem(name);
+                    type.setSelectedItem(name);
+                }));
 
         JPanel clientLine = lineWithButton(client, newClient);
         JPanel typeLine = lineWithButton(type, newType);
