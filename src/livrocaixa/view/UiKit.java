@@ -6,6 +6,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import javax.swing.text.Document;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -247,9 +248,11 @@ final class UiKit {
     /** Mantém todos os campos de múltipla escolha brancos, inclusive no Windows. */
     static void styleChoices(Component component) {
         if (component instanceof JComboBox<?> choice) {
+            choice.setUI(new WhiteComboBoxUI());
             choice.setOpaque(true);
             choice.setBackground(Color.WHITE);
             choice.setForeground(INK);
+            choice.setBorder(BorderFactory.createLineBorder(new Color(133, 164, 219)));
             DefaultListCellRenderer renderer = new DefaultListCellRenderer();
             renderer.setBackground(Color.WHITE);
             renderer.setForeground(INK);
@@ -258,6 +261,39 @@ final class UiKit {
         }
         if (component instanceof Container container) {
             for (Component child : container.getComponents()) styleChoices(child);
+        }
+    }
+
+    /** Impede o tema do Windows de repintar o seletor com fundo cinza. */
+    private static final class WhiteComboBoxUI extends BasicComboBoxUI {
+        @Override
+        public void paintCurrentValueBackground(
+                Graphics graphics, Rectangle bounds, boolean hasFocus) {
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        }
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public void paintCurrentValue(Graphics graphics, Rectangle bounds, boolean hasFocus) {
+            ListCellRenderer renderer = comboBox.getRenderer();
+            Component rendered = renderer.getListCellRendererComponent(
+                    listBox, comboBox.getSelectedItem(), -1, false, false);
+            rendered.setBackground(Color.WHITE);
+            rendered.setForeground(INK);
+            currentValuePane.paintComponent(
+                    graphics, rendered, comboBox,
+                    bounds.x, bounds.y, bounds.width, bounds.height, true);
+        }
+
+        @Override
+        protected JButton createArrowButton() {
+            JButton button = super.createArrowButton();
+            button.setBackground(Color.WHITE);
+            button.setOpaque(true);
+            button.setBorder(BorderFactory.createMatteBorder(
+                    0, 1, 0, 0, new Color(185, 201, 224)));
+            return button;
         }
     }
 
