@@ -10,9 +10,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,9 +58,7 @@ final class OperationalListScreens {
 
         List<Client> source = new ArrayList<>(frame.store.clients);
         source.sort(Comparator.comparingInt(c -> c.id));
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Código", "Nome", "CPF", "Ações"}, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel("Código", "Nome", "CPF", "Ações");
         for (Client c : source) model.addRow(new Object[]{String.format("%03d", c.id), c.name, c.cpf, ""});
 
         JTable table = UiKit.modernTable(model);
@@ -82,20 +77,18 @@ final class OperationalListScreens {
         clear.addActionListener(e -> { search.setText(""); applyFilter.run(); });
         add.addActionListener(e -> frame.clientDialog(null));
 
-        table.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
-                if (viewRow < 0 || col != 3) return;
-                int row = table.convertRowIndexToModel(viewRow);
-                int id = Integer.parseInt(String.valueOf(model.getValueAt(row, 0)));
-                Client client = frame.store.clients.stream().filter(c -> c.id == id).findFirst().orElse(null);
-                if (client == null) return;
-                Rectangle cell = table.getCellRect(viewRow, col, true);
-                if (e.getX() - cell.x < cell.width / 2) frame.clientDialog(client);
-                else if (LivroCaixaView.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
-                    frame.store.removeClient(client);
-                    frame.showPage("Clientes");
-                }
+        UiKit.onClick(table, e -> {
+            int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
+            if (viewRow < 0 || col != 3) return;
+            int row = table.convertRowIndexToModel(viewRow);
+            int id = Integer.parseInt(String.valueOf(model.getValueAt(row, 0)));
+            Client client = frame.store.clients.stream().filter(c -> c.id == id).findFirst().orElse(null);
+            if (client == null) return;
+            Rectangle cell = table.getCellRect(viewRow, col, true);
+            if (e.getX() - cell.x < cell.width / 2) frame.clientDialog(client);
+            else if (LivroCaixaView.confirm(frame, "Excluir o cliente \"" + client.name + "\"?")) {
+                frame.store.removeClient(client);
+                frame.showPage("Clientes");
             }
         });
 
@@ -151,9 +144,8 @@ final class OperationalListScreens {
 
         List<Appointment> source = new ArrayList<>(frame.store.appointments);
         source.sort(Comparator.comparingInt((Appointment a) -> a.id).reversed());
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Código", "Data", "Cliente", "Tipo", "Funcionário", "Ações"}, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel(
+                "Código", "Data", "Cliente", "Tipo", "Funcionário", "Ações");
         for (Appointment a : source) model.addRow(new Object[]{a.id, LivroCaixaView.fmt(a.date), a.client, a.type, a.employee, ""});
         JTable table = UiKit.modernTable(model); table.setRowHeight(62); table.getTableHeader().setPreferredSize(new Dimension(0, 54));
         table.getColumnModel().getColumn(5).setCellRenderer(new ActionRenderer(ActionKind.APPOINTMENT));
@@ -181,18 +173,20 @@ final class OperationalListScreens {
             employee.setSelectedIndex(0);
             sorter.setRowFilter(null);
         });
-        table.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
-                if (viewRow < 0 || col != 5) return;
-                int row = table.convertRowIndexToModel(viewRow), id = Integer.parseInt(String.valueOf(model.getValueAt(row, 0)));
-                Appointment appointment = frame.store.appointments.stream().filter(a -> a.id == id).findFirst().orElse(null);
-                if (appointment == null) return;
-                Rectangle cell = table.getCellRect(viewRow, col, true);
-                if (e.getX() - cell.x < cell.width / 2) frame.appointmentDialog(appointment);
-                else if (appointment.billed) LivroCaixaView.error(frame, "Esta consulta já foi faturada.");
-                else frame.billingDialog(appointment);
-            }
+        UiKit.onClick(table, e -> {
+            int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
+            if (viewRow < 0 || col != 5) return;
+            int row = table.convertRowIndexToModel(viewRow);
+            int id = Integer.parseInt(String.valueOf(model.getValueAt(row, 0)));
+            Appointment appointment = frame.store.appointments.stream()
+                    .filter(a -> a.id == id)
+                    .findFirst()
+                    .orElse(null);
+            if (appointment == null) return;
+            Rectangle cell = table.getCellRect(viewRow, col, true);
+            if (e.getX() - cell.x < cell.width / 2) frame.appointmentDialog(appointment);
+            else if (appointment.billed) LivroCaixaView.error(frame, "Esta consulta já foi faturada.");
+            else frame.billingDialog(appointment);
         });
         UiKit.RoundPanel tableCard = new UiKit.RoundPanel(15).fill(Color.WHITE).shadow(false); tableCard.setLayout(new BorderLayout());
         JScrollPane scroll = new JScrollPane(table); scroll.setBorder(new LineBorder(UiKit.LINE)); tableCard.add(scroll);
@@ -252,38 +246,12 @@ final class OperationalListScreens {
     }
 
     private static Icon listIcon(String name, int size, Color color) {
-        if (!name.equals("filter") && !name.equals("clear") && !name.equals("newDocument")) {
-            return UiKit.vectorIcon(name, size, color);
-        }
-        return new Icon() {
-            @Override public int getIconWidth() { return size; }
-            @Override public int getIconHeight() { return size; }
-
-            @Override public void paintIcon(Component component, Graphics graphics, int x, int y) {
-                Graphics2D g = (Graphics2D) graphics.create();
-                UiKit.antialias(g);
-                g.translate(x, y);
-                g.scale(size / 24d, size / 24d);
-                g.setColor(color);
-                g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                if (name.equals("filter")) {
-                    Polygon polygon = new Polygon(
-                            new int[]{2, 22, 14, 14, 10, 10},
-                            new int[]{3, 3, 11, 20, 22, 11}, 6);
-                    g.drawPolygon(polygon);
-                } else if (name.equals("clear")) {
-                    g.drawLine(5, 5, 19, 19);
-                    g.drawLine(19, 5, 5, 19);
-                } else {
-                    g.drawRoundRect(4, 2, 13, 20, 2, 2);
-                    g.drawLine(8, 7, 14, 7);
-                    g.drawLine(8, 11, 14, 11);
-                    g.drawLine(19, 13, 19, 23);
-                    g.drawLine(14, 18, 24, 18);
-                }
-                g.dispose();
-            }
+        String sharedName = switch (name) {
+            case "clear" -> "close";
+            case "newDocument" -> "document";
+            default -> name;
         };
+        return UiKit.vectorIcon(sharedName, size, color);
     }
     private static void dimension(JComponent c, int width, int height) {Dimension d = new Dimension(width, height); c.setPreferredSize(d); c.setMinimumSize(d);}
     private static void setWidths(TableColumnModel columns, int[] widths) {for(int i=0;i<widths.length;i++) columns.getColumn(i).setPreferredWidth(widths[i]);}

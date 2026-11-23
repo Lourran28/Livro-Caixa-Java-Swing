@@ -10,8 +10,6 @@ import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -291,10 +289,8 @@ final class ConfirmedPaymentScreen {
         card.setLayout(new BorderLayout(0, 8));
         card.setBorder(new EmptyBorder(11, 11, 11, 11));
         card.add(LivroCaixaView.title("Parcelas da fatura", 20), BorderLayout.NORTH);
-        DefaultTableModel model = new DefaultTableModel(
-                new String[]{"Parcela", "Vencimento", "Valor", "Recebido", "Saldo", "Status"}, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel(
+                "Parcela", "Vencimento", "Valor", "Recebido", "Saldo", "Status");
         for (Installment installment : installments) {
             BigDecimal cashReceived = payments.stream()
                     .filter(payment -> !payment.reversed && payment.label.equals(installment.label))
@@ -372,9 +368,8 @@ final class ConfirmedPaymentScreen {
         card.setLayout(new BorderLayout(0, 8));
         card.setBorder(new EmptyBorder(11, 11, 11, 11));
         card.add(LivroCaixaView.title("Histórico de pagamentos", 21), BorderLayout.NORTH);
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Data", "Forma de pagamento", "Valor", "Desconto", "Ações"}, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel(
+                "Data", "Forma de pagamento", "Valor", "Desconto", "Ações");
         for (Payment payment : payments) {
             model.addRow(new Object[]{LivroCaixaView.fmt(payment.date), payment.method,
                     LivroCaixaView.money(payment.value), LivroCaixaView.money(payment.discount), ""});
@@ -383,18 +378,18 @@ final class ConfirmedPaymentScreen {
         table.setRowHeight(52);
         table.getColumnModel().getColumn(4).setPreferredWidth(190);
         table.getColumnModel().getColumn(4).setCellRenderer(new UndoRenderer());
-        table.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                int viewRow = table.rowAtPoint(e.getPoint());
-                int column = table.columnAtPoint(e.getPoint());
-                if (viewRow < 0 || column != 4) return;
-                int row = table.convertRowIndexToModel(viewRow);
-                if (row >= payments.size()) return;
-                Payment payment = payments.get(row);
-                if (LivroCaixaView.confirm(frame, "Desfazer a baixa de " + LivroCaixaView.money(payment.value) + " via " + payment.method + "?")) {
-                    frame.store.reversePayment(item, payment);
-                    frame.paymentConfirmed(item);
-                }
+        UiKit.onClick(table, event -> {
+            int viewRow = table.rowAtPoint(event.getPoint());
+            int column = table.columnAtPoint(event.getPoint());
+            if (viewRow < 0 || column != 4) return;
+            int row = table.convertRowIndexToModel(viewRow);
+            if (row >= payments.size()) return;
+            Payment payment = payments.get(row);
+            if (LivroCaixaView.confirm(frame,
+                    "Desfazer a baixa de " + LivroCaixaView.money(payment.value)
+                            + " via " + payment.method + "?")) {
+                frame.store.reversePayment(item, payment);
+                frame.paymentConfirmed(item);
             }
         });
         JScrollPane scroll = new JScrollPane(table);

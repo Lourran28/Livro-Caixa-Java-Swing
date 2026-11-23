@@ -5,12 +5,9 @@ import livrocaixa.model.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -66,11 +63,9 @@ final class BillingScreen {
         JPanel cards = new JPanel(modes);
         cards.setOpaque(false);
 
-        DefaultTableModel cashModel = new DefaultTableModel(
+        DefaultTableModel cashModel = UiKit.readOnlyModel(
                 new Object[][]{{"PIX", LivroCaixaView.money(new BigDecimal("900.00")), ""}, {"Dinheiro", LivroCaixaView.money(new BigDecimal("500.00")), ""}},
-                new String[]{"Forma de pagamento", "Valor", "Ação"}) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+                "Forma de pagamento", "Valor", "Ação");
         JTable cashTable = prominentTable(cashModel);
         cashTable.getColumnModel().getColumn(0).setPreferredWidth(330);
         cashTable.getColumnModel().getColumn(1).setPreferredWidth(235);
@@ -150,14 +145,12 @@ final class BillingScreen {
             remaining.setText(LivroCaixaView.money(rest));
             remaining.setForeground(rest.signum() == 0 ? new Color(6, 128, 28) : UiKit.RED);
         };
-        cashTable.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) {
-                int row = cashTable.rowAtPoint(e.getPoint());
-                int col = cashTable.columnAtPoint(e.getPoint());
-                if (row >= 0 && col == 2) {
-                    cashModel.removeRow(cashTable.convertRowIndexToModel(row));
-                    refreshCash.run();
-                }
+        UiKit.onClick(cashTable, event -> {
+            int row = cashTable.rowAtPoint(event.getPoint());
+            int col = cashTable.columnAtPoint(event.getPoint());
+            if (row >= 0 && col == 2) {
+                cashModel.removeRow(cashTable.convertRowIndexToModel(row));
+                refreshCash.run();
             }
         });
         addMethod.addActionListener(e -> {
@@ -259,15 +252,7 @@ final class BillingScreen {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         table.setRowHeight(50);
         table.getTableHeader().setPreferredSize(new Dimension(0, 50));
-        table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-            { setHorizontalAlignment(CENTER); setFont(new Font("Segoe UI", Font.BOLD, 20)); setBorder(new LineBorder(UiKit.LINE)); }
-            @Override public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
-                super.getTableCellRendererComponent(t, v, s, f, r, c);
-                setBackground(new Color(222, 234, 250));
-                setForeground(UiKit.INK);
-                return this;
-            }
-        });
+        table.getTableHeader().setDefaultRenderer(UiKit.headerRenderer(20));
         return table;
     }
 
@@ -356,13 +341,11 @@ final class BillingScreen {
         fields.add(fieldBlock("Periodicidade", period));
         fields.add(fieldBlock("Valores das parcelas", valueMode));
         panel.add(fields, BorderLayout.NORTH);
-        DefaultTableModel model = new DefaultTableModel(new String[]{"Parcela", "Tipo", "Vencimento", "Valor", "Status"}, 0) {
-            @Override public boolean isCellEditable(int row, int column) {
-                return custom.isSelected()
-                        && !"Entrada".equals(String.valueOf(getValueAt(row, 0)))
-                        && (column == 2 || column == 3);
-            }
-        };
+        DefaultTableModel model = UiKit.editableModel(
+                new String[]{"Parcela", "Tipo", "Vencimento", "Valor", "Status"},
+                (firstValue, column) -> custom.isSelected()
+                        && !"Entrada".equals(String.valueOf(firstValue))
+                        && (column == 2 || column == 3));
         JTable table = UiKit.modernTable(model);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         table.setRowHeight(32);

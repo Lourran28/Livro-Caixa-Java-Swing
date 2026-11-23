@@ -8,8 +8,6 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -465,13 +463,9 @@ final class ManagementScreens {
 
     private static JComponent profileSummary(LivroCaixaView.MainFrame frame) {
         UiKit.RoundPanel p = panelCard("Perfis cadastrados");
-        JTable table = UiKit.modernTable(new DefaultTableModel(
+        JTable table = UiKit.modernTable(UiKit.readOnlyModel(
                 new Object[][]{{"001", "Administrador"}, {"002", "Atendente"}},
-                new String[]{"Código", "Perfil"}) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        });
+                "Código", "Perfil"));
         table.setRowHeight(32);
         p.add(new JScrollPane(table));
         JButton manage = UiKit.primary("Gerenciar perfis", "gear");
@@ -619,30 +613,23 @@ final class ManagementScreens {
         table.getColumnModel().getColumn(col).setCellRenderer(new ActionRenderer(locked));
         table.getColumnModel().getColumn(col).setMinWidth(150);
         table.getColumnModel().getColumn(col).setPreferredWidth(170);
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int view = table.rowAtPoint(e.getPoint());
-                int column = table.columnAtPoint(e.getPoint());
-                if (view < 0 || column != col) return;
-                int model = table.convertRowIndexToModel(view);
-                Rectangle r = table.getCellRect(view, column, true);
-                if (e.getX() - r.x < r.width / 2) {
-                    edit.accept(model);
-                } else {
-                    delete.accept(model);
-                }
+        UiKit.onClick(table, e -> {
+            int view = table.rowAtPoint(e.getPoint());
+            int column = table.columnAtPoint(e.getPoint());
+            if (view < 0 || column != col) return;
+            int model = table.convertRowIndexToModel(view);
+            Rectangle r = table.getCellRect(view, column, true);
+            if (e.getX() - r.x < r.width / 2) {
+                edit.accept(model);
+            } else {
+                delete.accept(model);
             }
         });
     }
 
     private static DefaultTableModel employeeModel() {
-        return new DefaultTableModel(
-                employeeRows(), new String[]{"Código", "Nome", "Perfil", "Ações"}) {
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
-        };
+        return UiKit.readOnlyModel(
+                employeeRows(), "Código", "Nome", "Perfil", "Ações");
     }
 
     private static Object[][] employeeRows() {
@@ -652,12 +639,7 @@ final class ManagementScreens {
     }
 
     private static DefaultTableModel listModel(List<String> values) {
-        return new DefaultTableModel(
-                listRows(values), new String[]{"Código", "Descrição", "Ações"}) {
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
-        };
+        return UiKit.readOnlyModel(listRows(values), "Código", "Descrição", "Ações");
     }
 
     private static Object[][] listRows(List<String> values) {
@@ -722,11 +704,7 @@ final class ManagementScreens {
     private static UiKit.RoundPanel tableCard(String title, String[] columns,
                                                Object[][] rows, String footer) {
         UiKit.RoundPanel p = panelCard(title);
-        JTable table = UiKit.modernTable(new DefaultTableModel(rows, columns) {
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
-        });
+        JTable table = UiKit.modernTable(UiKit.readOnlyModel(rows, columns));
         table.setRowHeight(28);
         p.add(new JScrollPane(table));
         if (!footer.isBlank()) {

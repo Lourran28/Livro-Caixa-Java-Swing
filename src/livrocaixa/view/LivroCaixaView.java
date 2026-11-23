@@ -5,8 +5,6 @@ import livrocaixa.model.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -33,7 +31,11 @@ public final class LivroCaixaView {
     static final Color GREEN = new Color(18, 150, 73), RED = new Color(220, 38, 38), ORANGE = new Color(245, 145, 0);
     static final Font NORMAL = new Font("Segoe UI", Font.PLAIN, 17), BOLD = new Font("Segoe UI", Font.BOLD, 17);
     static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+    static final Locale BRAZILIAN_PORTUGUESE = new Locale.Builder()
+        .setLanguage("pt")
+        .setRegion("BR")
+        .build();
+    static final NumberFormat BRL = NumberFormat.getCurrencyInstance(BRAZILIAN_PORTUGUESE);
 
     /**
      * Configura a interface e abre a tela de acesso.
@@ -236,11 +238,14 @@ public final class LivroCaixaView {
             shell.add(right);
             setContentPane(shell);
             showPage("Painel");
-            addWindowListener(new WindowAdapter() {
-                @Override public void windowClosing(WindowEvent e) {
-                    store.save();
-                }
-            });
+        }
+
+        @Override
+        protected void processWindowEvent(WindowEvent event) {
+            if (event.getID() == WindowEvent.WINDOW_CLOSING) {
+                store.save();
+            }
+            super.processWindowEvent(event);
         }
 
         /** Cria o menu da conta exibido no canto direito do cabeçalho. */
@@ -431,12 +436,8 @@ public final class LivroCaixaView {
             JLabel dueTitle = title("Próximos vencimentos",23);
             dueTitle.setBorder(new EmptyBorder(0,4,12,4));
             dueCard.add(dueTitle,BorderLayout.NORTH);
-            JTable dueTable = styledTable(new DefaultTableModel(
-                    upcomingRows(),new String[]{"Cliente","Parcela","Vencimento","Valor","Status"}) {
-                @Override public boolean isCellEditable(int row,int column) {
-                    return false;
-                }
-            });
+            JTable dueTable = styledTable(UiKit.readOnlyModel(
+                    upcomingRows(),"Cliente","Parcela","Vencimento","Valor","Status"));
             dueTable.setRowHeight(38);
             dueCard.add(new JScrollPane(dueTable));
             center.add(dueCard);
@@ -534,18 +535,13 @@ public final class LivroCaixaView {
             summary.add(Box.createVerticalStrut(10));
             summary.add(clientPreviewItem("CPF",summaryCpf,"document"));
 
-            DocumentListener previewListener=new DocumentListener(){
-                private void update(){
-                    String nameValue=name.getText().trim(),cpfValue=cpf.getText().trim();
-                    summaryName.setText(nameValue.isBlank()?"Ainda não informado":nameValue);
-                    summaryCpf.setText(cpfValue.isBlank()?"Ainda não informado":cpfValue);
-                }
-                @Override public void insertUpdate(DocumentEvent e){update();}
-                @Override public void removeUpdate(DocumentEvent e){update();}
-                @Override public void changedUpdate(DocumentEvent e){update();}
+            Runnable refreshPreview=()->{
+                String nameValue=name.getText().trim(),cpfValue=cpf.getText().trim();
+                summaryName.setText(nameValue.isBlank()?"Ainda não informado":nameValue);
+                summaryCpf.setText(cpfValue.isBlank()?"Ainda não informado":cpfValue);
             };
-            name.getDocument().addDocumentListener(previewListener);
-            cpf.getDocument().addDocumentListener(previewListener);
+            UiKit.onDocumentChange(name.getDocument(),refreshPreview);
+            UiKit.onDocumentChange(cpf.getDocument(),refreshPreview);
 
             JPanel body=new JPanel(new GridBagLayout());
             body.setOpaque(false);
@@ -900,11 +896,7 @@ public final class LivroCaixaView {
         JLabel title = LivroCaixaView.title(heading,21);
         title.setBorder(new EmptyBorder(0,2,12,2));
         panel.add(title,BorderLayout.NORTH);
-        DefaultTableModel model = new DefaultTableModel(rows,columns) {
-            @Override public boolean isCellEditable(int row,int column) {
-                return false;
-            }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel(rows,columns);
         JScrollPane scroll = new JScrollPane(styledTable(model));
         scroll.setBorder(new LineBorder(UiKit.LINE));
         panel.add(scroll);
@@ -927,8 +919,6 @@ public final class LivroCaixaView {
     }
 
     static class NavButton extends JButton {
-        boolean hover;
-
         NavButton(String text,Icon icon) {
             super(text,icon);
             setHorizontalAlignment(LEFT);
@@ -941,17 +931,6 @@ public final class LivroCaixaView {
             setFocusPainted(false);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setBorder(new EmptyBorder(12,24,12,12));
-            addMouseListener(new MouseAdapter() {
-                @Override public void mouseEntered(MouseEvent e) {
-                    hover=true;
-                    repaint();
-                }
-
-                @Override public void mouseExited(MouseEvent e) {
-                    hover=false;
-                    repaint();
-                }
-            });
         }
 
         @Override protected void paintComponent(Graphics graphics) {
@@ -960,7 +939,9 @@ public final class LivroCaixaView {
             Color background = getBackground();
             copy.setColor(background.getAlpha() > 0
                     ? background
-                    : hover ? new Color(255,255,255,24) : new Color(0,0,0,0));
+                    : getModel().isRollover()
+                    ? new Color(255,255,255,24)
+                    : new Color(0,0,0,0));
             copy.fillRoundRect(10,2,getWidth()-20,getHeight()-4,13,13);
             copy.dispose();
             super.paintComponent(graphics);

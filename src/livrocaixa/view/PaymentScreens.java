@@ -6,8 +6,6 @@ import livrocaixa.model.LivroCaixaModel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -457,12 +455,7 @@ final class PaymentScreens {
         panel.setLayout(new BorderLayout(0, 6));
         panel.setBorder(new EmptyBorder(9, 9, 9, 9));
         panel.add(LivroCaixaView.title(heading, 18), BorderLayout.NORTH);
-        DefaultTableModel model = new DefaultTableModel(rows, columns) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+        DefaultTableModel model = UiKit.readOnlyModel(rows, columns);
         JTable table = UiKit.modernTable(model);
         table.setRowHeight(35);
         JScrollPane scroll = new JScrollPane(table);
@@ -472,22 +465,7 @@ final class PaymentScreens {
     }
 
     private static void attach(JTextField field, Runnable runnable) {
-        field.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent event) {
-                runnable.run();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent event) {
-                runnable.run();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent event) {
-                runnable.run();
-            }
-        });
+        UiKit.onDocumentChange(field.getDocument(), runnable);
     }
 
     private record PaymentAmounts(BigDecimal payment, BigDecimal discount, BigDecimal balance) {}

@@ -2,12 +2,17 @@ package livrocaixa.view;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.*;
 import java.util.Arrays;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
 /**
  * Biblioteca visual compartilhada pelas telas do protótipo.
@@ -134,7 +139,6 @@ final class UiKit {
     /** Botão arredondado com estados visual de repouso, foco do mouse e clique. */
     static class RoundButton extends JButton {
         private final Color normal, hover, pressed;
-        private boolean over;
 
         RoundButton(String text, Icon icon, Color normal, Color foreground) {
             super(text, icon);
@@ -147,27 +151,19 @@ final class UiKit {
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
+            setRolloverEnabled(true);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setIconTextGap(12);
             setBorder(new EmptyBorder(12, 18, 12, 18));
-            addMouseListener(new MouseAdapter() {
-                public void mouseEntered(MouseEvent e) {
-                    over = true;
-                    repaint();
-                }
-
-                public void mouseExited(MouseEvent e) {
-                    over = false;
-                    repaint();
-                }
-            });
         }
 
         @Override
         protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
             antialias(g);
-            Color c = getModel().isPressed() ? pressed : over ? hover : normal;
+            Color c = getModel().isPressed()
+                    ? pressed
+                    : getModel().isRollover() ? hover : normal;
             g.setColor(c);
             g.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
             g.dispose();
@@ -217,6 +213,30 @@ final class UiKit {
         return new RoundButton(text, vectorIcon("trash", 20, Color.WHITE), RED, Color.WHITE);
     }
 
+    /** Modelo único para tabelas da interface, evitando subclasses anônimas repetidas. */
+    static DefaultTableModel readOnlyModel(String... columns) {
+        return new ViewTableModel(new Object[0][columns.length], columns, (value, column) -> false);
+    }
+
+    static DefaultTableModel readOnlyModel(Object[][] rows, String... columns) {
+        return new ViewTableModel(rows, columns, (value, column) -> false);
+    }
+
+    static DefaultTableModel editableModel(
+            String[] columns,
+            BiPredicate<Object, Integer> editable) {
+        return new ViewTableModel(new Object[0][columns.length], columns, editable);
+    }
+
+    /** Registra os listeners comuns sem gerar uma classe anônima em cada tela. */
+    static void onClick(Component component, Consumer<MouseEvent> action) {
+        component.addMouseListener(new ClickListener(action));
+    }
+
+    static void onDocumentChange(Document document, Runnable action) {
+        document.addDocumentListener(new DocumentChangeListener(action));
+    }
+
     /** Cria tabelas com cabeçalho, seleção, ordenação e linhas alternadas padronizadas. */
     static JTable modernTable(TableModel model) {
         JTable table = new JTable(model);
@@ -241,11 +261,61 @@ final class UiKit {
         return table;
     }
 
+    static TableCellRenderer headerRenderer(int fontSize) {
+        return new HeaderRenderer(fontSize);
+    }
+
+    private static final class ViewTableModel extends DefaultTableModel {
+        private final BiPredicate<Object, Integer> editable;
+
+        ViewTableModel(
+                Object[][] rows,
+                Object[] columns,
+                BiPredicate<Object, Integer> editable) {
+            super(rows, columns);
+            this.editable = editable;
+        }
+
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return editable.test(getValueAt(row, 0), column);
+        }
+    }
+
+    private static final class ClickListener extends MouseAdapter {
+        private final Consumer<MouseEvent> action;
+
+        ClickListener(Consumer<MouseEvent> action) {
+            this.action = action;
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent event) {
+            action.accept(event);
+        }
+    }
+
+    private static final class DocumentChangeListener implements DocumentListener {
+        private final Runnable action;
+
+        DocumentChangeListener(Runnable action) {
+            this.action = action;
+        }
+
+        @Override public void insertUpdate(DocumentEvent event) { action.run(); }
+        @Override public void removeUpdate(DocumentEvent event) { action.run(); }
+        @Override public void changedUpdate(DocumentEvent event) { action.run(); }
+    }
+
     private static final class HeaderRenderer extends DefaultTableCellRenderer {
         HeaderRenderer() {
+            this(17);
+        }
+
+        HeaderRenderer(int fontSize) {
             setHorizontalAlignment(CENTER);
             setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, LINE));
-            setFont(SEMIBOLD);
+            setFont(new Font("Segoe UI", Font.BOLD, fontSize));
         }
 
         @Override
@@ -430,19 +500,19 @@ final class UiKit {
             g.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             switch (name) {
                 case "home" -> {
-                    g.draw(new Path2D.Double() {{
-                        moveTo(2, 11);
-                        lineTo(12, 2);
-                        lineTo(22, 11);
-                        moveTo(5, 9);
-                        lineTo(5, 21);
-                        lineTo(10, 21);
-                        lineTo(10, 15);
-                        lineTo(14, 15);
-                        lineTo(14, 21);
-                        lineTo(19, 21);
-                        lineTo(19, 9);
-                    }});
+                    Path2D path = new Path2D.Double();
+                    path.moveTo(2, 11);
+                    path.lineTo(12, 2);
+                    path.lineTo(22, 11);
+                    path.moveTo(5, 9);
+                    path.lineTo(5, 21);
+                    path.lineTo(10, 21);
+                    path.lineTo(10, 15);
+                    path.lineTo(14, 15);
+                    path.lineTo(14, 21);
+                    path.lineTo(19, 21);
+                    path.lineTo(19, 9);
+                    g.draw(path);
                 }
                 case "user" -> {
                     g.drawOval(8, 2, 8, 8);
@@ -457,15 +527,15 @@ final class UiKit {
                     g.fillRoundRect(17, 14, 7, 7, 5, 5);
                 }
                 case "shield" -> {
-                    g.draw(new Path2D.Double() {{
-                        moveTo(12, 2);
-                        lineTo(21, 6);
-                        lineTo(20, 14);
-                        curveTo(19, 19, 15, 21, 12, 23);
-                        curveTo(9, 21, 5, 19, 4, 14);
-                        lineTo(3, 6);
-                        closePath();
-                    }});
+                    Path2D path = new Path2D.Double();
+                    path.moveTo(12, 2);
+                    path.lineTo(21, 6);
+                    path.lineTo(20, 14);
+                    path.curveTo(19, 19, 15, 21, 12, 23);
+                    path.curveTo(9, 21, 5, 19, 4, 14);
+                    path.lineTo(3, 6);
+                    path.closePath();
+                    g.draw(path);
                     g.drawOval(9, 7, 6, 6);
                     g.drawArc(7, 12, 10, 7, 0, 180);
                 }

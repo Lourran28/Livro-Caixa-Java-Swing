@@ -89,6 +89,10 @@ O arquivo executável será gerado em:
 build\LivroCaixa.jar
 ```
 
+Os vários arquivos `.class` usados durante a compilação são temporários e são
+apagados automaticamente. A pasta `build` mantém somente o JAR final, evitando
+poluição visual no projeto.
+
 Depois da compilação, também é possível iniciar com:
 
 ```powershell
@@ -149,7 +153,7 @@ Arquivos auxiliares:
 Depois de compilar, o teste de navegação pode ser executado com:
 
 ```powershell
-java -cp .\build\classes livrocaixa.view.SmokeTest
+java -cp .\build\LivroCaixa.jar livrocaixa.view.SmokeTest
 ```
 
 O resultado esperado no terminal é:

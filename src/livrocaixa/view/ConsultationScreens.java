@@ -6,8 +6,6 @@ import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -137,11 +135,7 @@ final class ConsultationScreens {
         client.addActionListener(e -> refreshSummary.run());
         type.addActionListener(e -> refreshSummary.run());
         employee.addActionListener(e -> refreshSummary.run());
-        date.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { refreshSummary.run(); }
-            public void removeUpdate(DocumentEvent e) { refreshSummary.run(); }
-            public void changedUpdate(DocumentEvent e) { refreshSummary.run(); }
-        });
+        UiKit.onDocumentChange(date.getDocument(), refreshSummary);
 
         JPanel footer = new JPanel(new BorderLayout(0, 12));
         footer.setOpaque(false);

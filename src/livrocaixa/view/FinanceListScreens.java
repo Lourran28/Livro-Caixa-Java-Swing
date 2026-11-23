@@ -8,7 +8,6 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,7 +75,7 @@ final class FinanceListScreens {
         surface.add(top, BorderLayout.NORTH);
 
         String[] columns = {"Cliente", "Fatura", "Parcela", "Vencimento", "Valor", "Status", "Ações"};
-        DefaultTableModel model = readOnlyModel(columns);
+        DefaultTableModel model = UiKit.readOnlyModel(columns);
         JTable table = UiKit.modernTable(model);
         table.setRowHeight(48);
         table.getColumnModel().getColumn(1).setMaxWidth(110);
@@ -113,25 +112,23 @@ final class FinanceListScreens {
             status.setSelectedIndex(0);
             refresh.run();
         });
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int viewRow = table.rowAtPoint(e.getPoint()), col = table.columnAtPoint(e.getPoint());
-                if (viewRow < 0 || col != 6) return;
-                int row = table.convertRowIndexToModel(viewRow);
-                if (row >= visible.size()) return;
-                Installment item = visible.get(row);
-                int action = actionIndex(table, viewRow, col, e);
-                if (action == 0) {
-                    if (item.cancelled) return;
-                    if (item.paid.compareTo(item.value) >= 0) {
-                        frame.paymentConfirmed(item);
-                    } else {
-                        frame.paymentDialog(item);
-                    }
-                } else if (action == 1) {
-                    ConfirmedPaymentScreen.showInvoice(frame, item.appointmentId);
+        UiKit.onClick(table, event -> {
+            int viewRow = table.rowAtPoint(event.getPoint());
+            int col = table.columnAtPoint(event.getPoint());
+            if (viewRow < 0 || col != 6) return;
+            int row = table.convertRowIndexToModel(viewRow);
+            if (row >= visible.size()) return;
+            Installment item = visible.get(row);
+            int action = actionIndex(table, viewRow, col, event);
+            if (action == 0) {
+                if (item.cancelled) return;
+                if (item.paid.compareTo(item.value) >= 0) {
+                    frame.paymentConfirmed(item);
+                } else {
+                    frame.paymentDialog(item);
                 }
+            } else if (action == 1) {
+                ConfirmedPaymentScreen.showInvoice(frame, item.appointmentId);
             }
         });
         refresh.run();
@@ -194,7 +191,7 @@ final class FinanceListScreens {
         surface.add(top, BorderLayout.NORTH);
 
         String[] columns = {"Código", "Data", "Tipo de saída", "Funcionário", "Valor", "Ações"};
-        DefaultTableModel model = readOnlyModel(columns);
+        DefaultTableModel model = UiKit.readOnlyModel(columns);
         JTable table = UiKit.modernTable(model);
         table.setRowHeight(43);
         table.getColumnModel().getColumn(0).setMaxWidth(115);
@@ -234,23 +231,21 @@ final class FinanceListScreens {
             employee.setSelectedIndex(0);
             refresh.run();
         });
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int viewRow = table.rowAtPoint(e.getPoint());
-                int col = table.columnAtPoint(e.getPoint());
-                if (viewRow < 0 || col != 5) return;
-                int row = table.convertRowIndexToModel(viewRow);
-                if (row >= visible.size()) return;
-                Expense item = visible.get(row);
-                int action = actionIndex(table, viewRow, col, e);
-                if (action == 0) {
-                    frame.expenseDialog(item);
-                } else if (action == 1 && LivroCaixaView.confirm(frame,
-                        "Excluir a saída \"" + item.type + "\" de " + LivroCaixaView.money(item.value) + "?")) {
-                    frame.store.removeExpense(item);
-                    refresh.run();
-                }
+        UiKit.onClick(table, event -> {
+            int viewRow = table.rowAtPoint(event.getPoint());
+            int col = table.columnAtPoint(event.getPoint());
+            if (viewRow < 0 || col != 5) return;
+            int row = table.convertRowIndexToModel(viewRow);
+            if (row >= visible.size()) return;
+            Expense item = visible.get(row);
+            int action = actionIndex(table, viewRow, col, event);
+            if (action == 0) {
+                frame.expenseDialog(item);
+            } else if (action == 1 && LivroCaixaView.confirm(frame,
+                    "Excluir a saída \"" + item.type + "\" de "
+                            + LivroCaixaView.money(item.value) + "?")) {
+                frame.store.removeExpense(item);
+                refresh.run();
             }
         });
 
@@ -321,15 +316,6 @@ final class FinanceListScreens {
         field.setPreferredSize(new Dimension(150, 39));
         box.add(field);
         target.add(box, gc);
-    }
-
-    private static DefaultTableModel readOnlyModel(String[] columns) {
-        return new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int r, int c) {
-                return false;
-            }
-        };
     }
 
     private static LocalDate parseDateOr(String value, LocalDate fallback) {
