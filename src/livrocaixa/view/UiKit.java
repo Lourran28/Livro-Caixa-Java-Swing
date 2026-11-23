@@ -45,6 +45,13 @@ final class UiKit {
         UIManager.put("TextField.font", REGULAR);
         UIManager.put("PasswordField.font", REGULAR);
         UIManager.put("ComboBox.font", REGULAR);
+        UIManager.put("ComboBox.background", Color.WHITE);
+        UIManager.put("ComboBox.foreground", INK);
+        UIManager.put("ComboBox.selectionBackground", new Color(225, 237, 255));
+        UIManager.put("ComboBox.selectionForeground", INK);
+        UIManager.put("ComboBox.buttonBackground", Color.WHITE);
+        UIManager.put("ComboBox.disabledBackground", new Color(248, 250, 253));
+        UIManager.put("List.background", Color.WHITE);
         UIManager.put("Table.font", REGULAR);
         UIManager.put("TableHeader.font", SEMIBOLD);
         UIManager.put("ScrollPane.border", BorderFactory.createEmptyBorder());
@@ -235,6 +242,23 @@ final class UiKit {
 
     static void onDocumentChange(Document document, Runnable action) {
         document.addDocumentListener(new DocumentChangeListener(action));
+    }
+
+    /** Mantém todos os campos de múltipla escolha brancos, inclusive no Windows. */
+    static void styleChoices(Component component) {
+        if (component instanceof JComboBox<?> choice) {
+            choice.setOpaque(true);
+            choice.setBackground(Color.WHITE);
+            choice.setForeground(INK);
+            DefaultListCellRenderer renderer = new DefaultListCellRenderer();
+            renderer.setBackground(Color.WHITE);
+            renderer.setForeground(INK);
+            renderer.setOpaque(true);
+            choice.setRenderer(renderer);
+        }
+        if (component instanceof Container container) {
+            for (Component child : container.getComponents()) styleChoices(child);
+        }
     }
 
     /** Organiza duas ações com a mesma largura e um divisor discreto entre elas. */

@@ -357,6 +357,7 @@ public final class LivroCaixaView {
                 case "Configurações" -> settings();
                 default -> dashboard();
             };
+            UiKit.styleChoices(page);
             content.add(page);
             content.revalidate();
             content.repaint();
@@ -370,6 +371,7 @@ public final class LivroCaixaView {
                 button.setBackground(new Color(0,0,0,0));
                 button.repaint();
             });
+            UiKit.styleChoices(panel);
             content.add(panel);
             content.revalidate();
             content.repaint();
