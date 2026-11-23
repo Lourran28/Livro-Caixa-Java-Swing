@@ -64,6 +64,7 @@ final class OperationalListScreens {
         JTable table = UiKit.modernTable(model);
         table.setRowHeight(62);
         table.getTableHeader().setPreferredSize(new Dimension(0, 54));
+        UiKit.centerColumns(table, 0, 1, 2);
         table.getColumnModel().getColumn(3).setCellRenderer(new ActionRenderer(ActionKind.CLIENT));
         setWidths(table.getColumnModel(), new int[]{130, 360, 310, 340});
 

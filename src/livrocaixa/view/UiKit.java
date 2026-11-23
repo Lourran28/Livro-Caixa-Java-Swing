@@ -265,6 +265,13 @@ final class UiKit {
         return new HeaderRenderer(fontSize);
     }
 
+    static void centerColumns(JTable table, int... columns) {
+        TableCellRenderer centered = new CellRenderer(SwingConstants.CENTER);
+        for (int column : columns) {
+            table.getColumnModel().getColumn(column).setCellRenderer(centered);
+        }
+    }
+
     private static final class ViewTableModel extends DefaultTableModel {
         private final BiPredicate<Object, Integer> editable;
 
@@ -329,10 +336,16 @@ final class UiKit {
     }
 
     private static final class CellRenderer extends DefaultTableCellRenderer {
+        private final int baseAlignment;
         private boolean pill;
         private Color pillColor;
 
         CellRenderer() {
+            this(LEFT);
+        }
+
+        CellRenderer(int baseAlignment) {
+            this.baseAlignment = baseAlignment;
             setBorder(new EmptyBorder(0, 10, 0, 10));
         }
 
@@ -342,7 +355,7 @@ final class UiKit {
             super.getTableCellRendererComponent(t, v, s, f, r, c);
             String text = String.valueOf(v);
             pill = false;
-            setHorizontalAlignment(LEFT);
+            setHorizontalAlignment(baseAlignment);
             setFont(REGULAR);
             setOpaque(true);
             if (!s) setBackground((r & 1) == 0 ? Color.WHITE : new Color(249, 251, 255));
