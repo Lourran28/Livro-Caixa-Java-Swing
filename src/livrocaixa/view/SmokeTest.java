@@ -166,10 +166,13 @@ public final class SmokeTest {
         exerciseButton(frame, "Limpar");
         frame.expenseDialog(null);
         render(frame, "12-saida-nova");
-        exerciseButton(frame, "Novo tipo de saída");
+        exerciseButton(frame, "Novo tipo");
         render(frame, "12b-tipo-saida-novo");
         exerciseButton(frame, "Voltar");
         render(frame, "12c-saida-nova-retorno");
+        exerciseButton(frame, "Cancelar");
+        frame.expenseDialog(frame.store.expenses.get(0));
+        render(frame, "12d-saida-editar");
         exerciseButton(frame, "Cancelar");
     }
 

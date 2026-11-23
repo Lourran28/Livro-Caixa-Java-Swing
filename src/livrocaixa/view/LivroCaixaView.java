@@ -552,17 +552,29 @@ public final class LivroCaixaView {
         JComponent expenses(){return FinanceListScreens.buildExpenses(this);}
         void expenseDialog(Expense edit) {
             JPanel root = page();
-            UiKit.RoundPanel card = new UiKit.RoundPanel(16).fill(Color.WHITE);
-            card.setLayout(new BorderLayout(18,18));
+            UiKit.RoundPanel card = new UiKit.RoundPanel(17)
+                    .fill(new Color(252,253,255))
+                    .line(new Color(185,205,237)).shadow(false);
+            card.setLayout(new BorderLayout(0,14));
             card.setBorder(new EmptyBorder(18,22,18,22));
 
             JPanel heading = new JPanel();
             heading.setOpaque(false);
             heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
-            heading.add(title(edit == null ? "Nova saída" : "Editar saída",34));
+            heading.add(title(edit == null ? "Nova saída" : "Editar saída",42));
+            heading.add(Box.createVerticalStrut(3));
             JLabel sub = new JLabel("Registre uma despesa no livro caixa");
-            sub.setFont(new Font("Segoe UI",Font.PLAIN,20));
+            sub.setFont(new Font("Segoe UI",Font.PLAIN,27));
+            sub.setForeground(new Color(29,44,70));
             heading.add(sub);
+            heading.add(Box.createVerticalStrut(9));
+            JLabel hint = new JLabel("Cadastre uma nova opção sem sair desta tela.",
+                    UiKit.vectorIcon("info",23,new Color(24,67,164)),SwingConstants.LEFT);
+            hint.setIconTextGap(9);
+            hint.setFont(new Font("Segoe UI",Font.ITALIC,18));
+            hint.setForeground(new Color(34,59,106));
+            heading.add(hint);
+            heading.setPreferredSize(new Dimension(0,138));
             card.add(heading,BorderLayout.NORTH);
 
             JPanel body = new JPanel(new GridBagLayout());
@@ -575,76 +587,67 @@ public final class LivroCaixaView {
             constraints.weightx=2.2;
             constraints.insets=new Insets(0,0,0,24);
 
-            JPanel formArea = new JPanel();
-            formArea.setOpaque(false);
-            formArea.setLayout(new BoxLayout(formArea,BoxLayout.Y_AXIS));
             JComboBox<String> type = new JComboBox<>(store.expenseTypes.toArray(String[]::new));
             JTextField value = modernField(edit == null ? "1.200,00" : edit.value.toString());
             JTextField date = modernField(fmt(edit == null ? LocalDate.of(2026,11,5) : edit.date));
             JComboBox<String> worker = new JComboBox<>(new String[]{employee,"Bruno Reis"});
+            ConsultationScreens.styleCombo(type);
+            ConsultationScreens.styleCombo(worker);
+            value.setFont(new Font("Segoe UI",Font.PLAIN,21));
+            date.setFont(new Font("Segoe UI",Font.PLAIN,21));
             JTextArea notes = new JTextArea(
-                    edit == null ? "Pagamento do aluguel do consultório." : edit.notes,4,30);
+                    edit == null ? "Pagamento do aluguel do consultório." : edit.notes,5,30);
             notes.setLineWrap(true);
-            notes.setBorder(new EmptyBorder(8,8,8,8));
+            notes.setWrapStyleWord(true);
+            notes.setFont(new Font("Segoe UI",Font.PLAIN,20));
+            notes.setBorder(new EmptyBorder(12,14,12,14));
             if(edit != null) {
                 type.setSelectedItem(edit.type);
                 worker.setSelectedItem(edit.employee);
             }
 
-            JPanel typeLine = new JPanel(new BorderLayout(10,0));
-            typeLine.setOpaque(false);
-            typeLine.add(type);
-            JButton newType = secondary("Novo tipo de saída");
-            newType.setIcon(UiKit.vectorIcon("plus",18,BLUE));
+            JButton newType = ConsultationScreens.largeSecondary(
+                    "Novo tipo","plus",190);
             newType.addActionListener(e -> newExpenseTypeScreen(root,type));
-            typeLine.add(newType,BorderLayout.EAST);
-            formArea.add(taggedField("Tipo de saída","Obrigatório",typeLine));
-            JLabel help = new JLabel("Cadastre um novo tipo sem sair desta tela.");
-            help.setForeground(UiKit.MUTED);
-            formArea.add(help);
-            formArea.add(Box.createVerticalStrut(8));
-            formArea.add(taggedField("Valor","Obrigatório",value));
-            formArea.add(Box.createVerticalStrut(8));
-            formArea.add(taggedField("Data","Obrigatório",date));
-            formArea.add(Box.createVerticalStrut(8));
-            formArea.add(taggedField("Funcionário","Obrigatório",worker));
-            formArea.add(Box.createVerticalStrut(8));
-            formArea.add(taggedField("Observações","Opcional",new JScrollPane(notes)));
+            JPanel typeLine = ConsultationScreens.lineWithButton(type,newType);
+            JScrollPane notesScroll = new JScrollPane(notes);
+            notesScroll.setBorder(new LineBorder(new Color(133,164,219),1,true));
+            notesScroll.setPreferredSize(new Dimension(0,190));
+
+            JPanel formArea = new JPanel(new GridBagLayout());
+            formArea.setOpaque(false);
+            GridBagConstraints field = new GridBagConstraints();
+            field.fill=GridBagConstraints.BOTH;
+            field.weightx=1;
+            field.gridx=0; field.gridy=0; field.insets=new Insets(0,0,16,16);
+            formArea.add(ConsultationScreens.fieldBlock("Tipo de saída",typeLine),field);
+            field.gridx=1; field.insets=new Insets(0,0,16,0);
+            formArea.add(ConsultationScreens.fieldBlock("Valor",value),field);
+            field.gridx=0; field.gridy=1; field.insets=new Insets(0,0,16,16);
+            formArea.add(ConsultationScreens.fieldBlock("Data",date),field);
+            field.gridx=1; field.insets=new Insets(0,0,16,0);
+            formArea.add(ConsultationScreens.fieldBlock("Funcionário",worker),field);
+            field.gridx=0; field.gridy=2; field.gridwidth=2; field.weighty=1;
+            field.insets=new Insets(0,0,0,0);
+            formArea.add(ConsultationScreens.fieldBlock("Observações",notesScroll),field);
             body.add(formArea,constraints);
 
             constraints.gridx=1;
             constraints.weightx=1;
             constraints.insets=new Insets(0,0,0,0);
-            UiKit.RoundPanel summary = new UiKit.RoundPanel(14)
-                    .fill(new Color(245,248,255)).shadow(false);
-            summary.setLayout(new BoxLayout(summary,BoxLayout.Y_AXIS));
-            summary.setBorder(new EmptyBorder(20,22,20,22));
-            summary.add(title("Resumo da saída",24));
-            JLabel summaryHint = new JLabel("Confira os dados antes de salvar");
-            summaryHint.setFont(new Font("Segoe UI",Font.PLAIN,15));
-            summaryHint.setForeground(UiKit.MUTED);
-            summary.add(summaryHint);
-            summary.add(Box.createVerticalStrut(18));
-
-            JLabel summaryValue = title("R$ "+value.getText(),25);
-            summaryValue.setForeground(BLUE);
-            UiKit.RoundPanel amountCard = expenseSummaryItem(
-                    "Valor da saída",summaryValue,"wallet",BLUE,new Color(232,241,255));
-            summary.add(amountCard);
-            summary.add(Box.createVerticalStrut(12));
-
-            JLabel summaryType = title(String.valueOf(type.getSelectedItem()),17);
-            JLabel summaryDate = title(date.getText(),17);
-            JLabel summaryWorker = title(String.valueOf(worker.getSelectedItem()),17);
-            summary.add(expenseSummaryItem("Tipo de saída",summaryType,"document",
-                    new Color(122,76,210),new Color(244,238,255)));
-            summary.add(Box.createVerticalStrut(10));
-            summary.add(expenseSummaryItem("Data do lançamento",summaryDate,"calendar",
-                    new Color(222,126,0),new Color(255,245,225)));
-            summary.add(Box.createVerticalStrut(10));
-            summary.add(expenseSummaryItem("Responsável",summaryWorker,"user",
-                    new Color(0,135,82),new Color(231,248,239)));
-            summary.add(Box.createVerticalGlue());
+            JLabel summaryType = ConsultationScreens.summaryValue(
+                    String.valueOf(type.getSelectedItem()));
+            JLabel summaryValue = ConsultationScreens.summaryValue("R$ "+value.getText());
+            JLabel summaryDate = ConsultationScreens.summaryValue(date.getText());
+            JLabel summaryWorker = ConsultationScreens.summaryValue(
+                    String.valueOf(worker.getSelectedItem()));
+            JComponent summary = ConsultationScreens.summaryPanel(
+                    "Resumo da saída",
+                    new String[]{"Tipo de saída","Valor","Data","Funcionário"},
+                    summaryType,summaryValue,summaryDate,summaryWorker);
+            JPanel summarySlot = new JPanel(new BorderLayout());
+            summarySlot.setOpaque(false);
+            summarySlot.add(summary,BorderLayout.NORTH);
 
             Runnable refreshSummary = () -> {
                 String amount = value.getText().trim();
@@ -657,15 +660,18 @@ public final class LivroCaixaView {
             UiKit.onDocumentChange(date.getDocument(),refreshSummary);
             type.addActionListener(e -> refreshSummary.run());
             worker.addActionListener(e -> refreshSummary.run());
-            body.add(summary,constraints);
+            body.add(summarySlot,constraints);
             card.add(body);
 
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));
+            JPanel footer = new JPanel(new BorderLayout(0,12));
+            footer.setOpaque(false);
+            footer.add(new JSeparator(),BorderLayout.NORTH);
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
             actions.setOpaque(false);
-            JButton cancel = new UiKit.RoundButton("Cancelar",
-                    UiKit.vectorIcon("close",20,UiKit.INK),new Color(234,240,249),UiKit.INK);
-            JButton save = new UiKit.RoundButton("Salvar saída",
-                    UiKit.vectorIcon("save",21,Color.WHITE),BLUE,Color.WHITE);
+            JButton cancel = ConsultationScreens.actionButton(
+                    "Cancelar","close",false,215);
+            JButton save = ConsultationScreens.actionButton(
+                    "Salvar saída","save",true,250);
             cancel.addActionListener(e -> showPage("Saídas"));
             save.addActionListener(e -> {
                 try {
@@ -681,104 +687,71 @@ public final class LivroCaixaView {
             });
             actions.add(cancel);
             actions.add(save);
-            card.add(actions,BorderLayout.SOUTH);
+            footer.add(actions);
+            card.add(footer,BorderLayout.SOUTH);
             root.add(card);
             showCustom("Saídas",root);
         }
 
-        private UiKit.RoundPanel expenseSummaryItem(String label,JLabel valueLabel,String icon,
-                                                     Color accent,Color background) {
-            UiKit.RoundPanel item = new UiKit.RoundPanel(13).fill(background).shadow(false);
-            item.setLayout(new BorderLayout(14,0));
-            item.setBorder(new EmptyBorder(13,14,13,14));
-            UiKit.RoundPanel iconBox = new UiKit.RoundPanel(10)
-                    .fill(new Color(accent.getRed(),accent.getGreen(),accent.getBlue(),28))
-                    .line(null).shadow(false);
-            iconBox.setPreferredSize(new Dimension(48,48));
-            iconBox.setLayout(new GridBagLayout());
-            iconBox.add(new JLabel(UiKit.vectorIcon(icon,24,accent)));
-            item.add(iconBox,BorderLayout.WEST);
-            JPanel text = new JPanel();
-            text.setOpaque(false);
-            text.setLayout(new BoxLayout(text,BoxLayout.Y_AXIS));
-            JLabel caption = new JLabel(label);
-            caption.setFont(new Font("Segoe UI",Font.BOLD,14));
-            caption.setForeground(UiKit.MUTED);
-            text.add(caption);
-            text.add(Box.createVerticalStrut(3));
-            valueLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            text.add(valueLabel);
-            item.add(text);
-            return item;
-        }
-
         private void newExpenseTypeScreen(JPanel returnPage,JComboBox<String> typeSelector) {
             JPanel root = page();
-            UiKit.RoundPanel surface = new UiKit.RoundPanel(16).fill(Color.WHITE).shadow(false);
-            surface.setLayout(new BorderLayout(0,22));
-            surface.setBorder(new EmptyBorder(24,28,24,28));
+            UiKit.RoundPanel surface = new UiKit.RoundPanel(17)
+                    .fill(new Color(252,253,255))
+                    .line(new Color(185,205,237)).shadow(false);
+            surface.setLayout(new BorderLayout(0,14));
+            surface.setBorder(new EmptyBorder(18,22,18,22));
 
             JPanel heading = new JPanel();
             heading.setOpaque(false);
             heading.setLayout(new BoxLayout(heading,BoxLayout.Y_AXIS));
-            heading.add(title("Novo tipo de saída",34));
+            heading.add(title("Novo tipo de saída",42));
+            heading.add(Box.createVerticalStrut(3));
             JLabel subtitle = new JLabel("Crie uma categoria para organizar os lançamentos financeiros");
-            subtitle.setFont(new Font("Segoe UI",Font.PLAIN,18));
-            subtitle.setForeground(UiKit.MUTED);
-            heading.add(Box.createVerticalStrut(4));
+            subtitle.setFont(new Font("Segoe UI",Font.PLAIN,27));
+            subtitle.setForeground(new Color(29,44,70));
             heading.add(subtitle);
+            heading.add(Box.createVerticalStrut(9));
+            JLabel hint = new JLabel("O novo tipo ficará disponível no cadastro de saídas.",
+                    UiKit.vectorIcon("info",23,new Color(24,67,164)),SwingConstants.LEFT);
+            hint.setIconTextGap(9);
+            hint.setFont(new Font("Segoe UI",Font.ITALIC,18));
+            hint.setForeground(new Color(34,59,106));
+            heading.add(hint);
+            heading.setPreferredSize(new Dimension(0,138));
             surface.add(heading,BorderLayout.NORTH);
 
-            JPanel content = new JPanel(new GridLayout(1,2,22,0));
+            JPanel content = new JPanel(new GridBagLayout());
             content.setOpaque(false);
-            UiKit.RoundPanel form = new UiKit.RoundPanel(14)
-                    .fill(new Color(248,250,255)).shadow(false);
+            JPanel form = new JPanel();
+            form.setOpaque(false);
             form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
-            form.setBorder(new EmptyBorder(24,24,24,24));
-            form.add(title("Dados da categoria",23));
-            form.add(Box.createVerticalStrut(18));
             JTextField description = modernField("");
-            description.setMaximumSize(new Dimension(Integer.MAX_VALUE,52));
-            form.add(taggedField("Nome do tipo","Obrigatório",description));
+            description.setFont(new Font("Segoe UI",Font.PLAIN,21));
+            description.setMaximumSize(new Dimension(Integer.MAX_VALUE,50));
+            form.add(ConsultationScreens.fieldBlock("Nome do tipo de saída",description));
             form.add(Box.createVerticalStrut(12));
             JLabel guidance = new JLabel("Exemplos: Aluguel, Energia, Internet ou Manutenção.");
-            guidance.setFont(new Font("Segoe UI",Font.PLAIN,15));
+            guidance.setFont(new Font("Segoe UI",Font.ITALIC,17));
             guidance.setForeground(UiKit.MUTED);
             form.add(guidance);
             form.add(Box.createVerticalGlue());
 
-            UiKit.RoundPanel preview = new UiKit.RoundPanel(14)
-                    .fill(new Color(244,248,255)).shadow(false);
-            preview.setLayout(new BorderLayout(0,18));
-            preview.setBorder(new EmptyBorder(24,24,24,24));
-            JPanel previewTop = new JPanel();
-            previewTop.setOpaque(false);
-            previewTop.setLayout(new BoxLayout(previewTop,BoxLayout.Y_AXIS));
-            previewTop.add(title("Prévia",23));
-            JLabel previewHint = new JLabel("Assim o novo tipo aparecerá no cadastro de saídas");
-            previewHint.setFont(new Font("Segoe UI",Font.PLAIN,15));
-            previewHint.setForeground(UiKit.MUTED);
-            previewTop.add(Box.createVerticalStrut(4));
-            previewTop.add(previewHint);
-            preview.add(previewTop,BorderLayout.NORTH);
-            JLabel previewName = title("Nome da categoria",22);
-            previewName.setForeground(BLUE);
-            previewName.setHorizontalAlignment(SwingConstants.CENTER);
-            preview.add(previewName);
-            UiKit.onDocumentChange(description.getDocument(),() -> {
-                String text = description.getText().trim();
-                previewName.setText(text.isBlank() ? "Nome da categoria" : text);
-            });
-            content.add(form);
-            content.add(preview);
+            GridBagConstraints formSlot = new GridBagConstraints();
+            formSlot.gridx=0; formSlot.gridy=0; formSlot.weightx=1;
+            formSlot.fill=GridBagConstraints.HORIZONTAL;
+            formSlot.anchor=GridBagConstraints.NORTH;
+            content.add(form,formSlot);
+            formSlot.gridy=1; formSlot.weighty=1; formSlot.fill=GridBagConstraints.BOTH;
+            content.add(Box.createVerticalGlue(),formSlot);
             surface.add(content);
 
-            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,14,0));
+            JPanel footer = new JPanel(new BorderLayout(0,12));
+            footer.setOpaque(false);
+            footer.add(new JSeparator(),BorderLayout.NORTH);
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT,12,0));
             actions.setOpaque(false);
-            JButton back = secondary("Voltar");
-            back.setIcon(UiKit.vectorIcon("back",20,UiKit.INK));
-            JButton save = primary("Salvar tipo");
-            save.setIcon(UiKit.vectorIcon("save",20,Color.WHITE));
+            JButton back = ConsultationScreens.actionButton("Voltar","back",false,190);
+            JButton save = ConsultationScreens.actionButton("Salvar tipo","save",true,230);
             back.addActionListener(e -> showCustom("Saídas",returnPage));
             save.addActionListener(e -> {
                 String name = description.getText().trim();
@@ -798,7 +771,8 @@ public final class LivroCaixaView {
             });
             actions.add(back);
             actions.add(save);
-            surface.add(actions,BorderLayout.SOUTH);
+            footer.add(actions);
+            surface.add(footer,BorderLayout.SOUTH);
             root.add(surface);
             showCustom("Saídas",root);
             SwingUtilities.invokeLater(description::requestFocusInWindow);

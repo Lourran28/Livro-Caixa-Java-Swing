@@ -110,7 +110,10 @@ final class ConsultationScreens {
         JLabel summaryType = summaryValue(String.valueOf(type.getSelectedItem()));
         JLabel summaryDate = summaryValue(date.getText());
         JLabel summaryEmployee = summaryValue(String.valueOf(employee.getSelectedItem()));
-        JComponent summary = summaryPanel(summaryClient, summaryType, summaryDate, summaryEmployee);
+        JComponent summary = summaryPanel(
+                "Resumo da consulta",
+                new String[]{"Cliente", "Tipo de consulta", "Data", "Funcionário"},
+                summaryClient, summaryType, summaryDate, summaryEmployee);
         JPanel summarySlot = new JPanel(new BorderLayout());
         summarySlot.setOpaque(false);
         summarySlot.add(summary, BorderLayout.NORTH);
@@ -180,7 +183,7 @@ final class ConsultationScreens {
         );
     }
 
-    private static void styleCombo(JComboBox<?> combo) {
+    static void styleCombo(JComboBox<?> combo) {
         combo.setFont(new Font("Segoe UI", Font.PLAIN, 21));
         combo.setBackground(Color.WHITE);
         combo.setForeground(UiKit.INK);
@@ -188,7 +191,7 @@ final class ConsultationScreens {
         combo.setMinimumSize(new Dimension(120, 50));
     }
 
-    private static JPanel lineWithButton(JComponent field, JButton button) {
+    static JPanel lineWithButton(JComponent field, JButton button) {
         JPanel line = new JPanel(new BorderLayout(10, 0));
         line.setOpaque(false);
         line.add(field);
@@ -209,7 +212,7 @@ final class ConsultationScreens {
         return box;
     }
 
-    private static JPanel fieldBlock(String label, JComponent component) {
+    static JPanel fieldBlock(String label, JComponent component) {
         JPanel panel = new JPanel(new BorderLayout(0, 7));
         panel.setOpaque(false);
         JLabel name = new JLabel(label);
@@ -220,21 +223,21 @@ final class ConsultationScreens {
         return panel;
     }
 
-    private static JButton largeSecondary(String text, String icon, int width) {
+    static JButton largeSecondary(String text, String icon, int width) {
         JButton button = new UiKit.RoundButton(text, UiKit.vectorIcon(icon, 23, UiKit.BLUE), new Color(235, 241, 251), UiKit.INK);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));
         button.setPreferredSize(new Dimension(width, 50));
         return button;
     }
 
-    private static JLabel summaryValue(String text) {
+    static JLabel summaryValue(String text) {
         JLabel value = new JLabel(text);
         value.setFont(new Font("Segoe UI", Font.PLAIN, 20));
         value.setForeground(new Color(10, 25, 48));
         return value;
     }
 
-    private static JComponent summaryPanel(JLabel client, JLabel type, JLabel date, JLabel employee) {
+    static JComponent summaryPanel(String title, String[] labels, JLabel... values) {
         UiKit.RoundPanel card = new UiKit.RoundPanel(15)
                 .fill(new Color(246, 249, 255))
                 .line(new Color(145, 174, 224))
@@ -244,16 +247,15 @@ final class ConsultationScreens {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(225, 236, 252));
         header.setBorder(new EmptyBorder(14, 18, 14, 18));
-        header.add(LivroCaixaView.title("Resumo da consulta", 26));
+        header.add(LivroCaixaView.title(title, 26));
         card.add(header, BorderLayout.NORTH);
         JPanel rows = new JPanel();
         rows.setOpaque(false);
         rows.setBorder(new EmptyBorder(12, 18, 14, 18));
         rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
-        addSummaryRow(rows, "Cliente", client);
-        addSummaryRow(rows, "Tipo de consulta", type);
-        addSummaryRow(rows, "Data", date);
-        addSummaryRow(rows, "Funcionário", employee);
+        for (int index = 0; index < labels.length; index++) {
+            addSummaryRow(rows, labels[index], values[index]);
+        }
         card.add(rows);
         return card;
     }
@@ -275,7 +277,7 @@ final class ConsultationScreens {
         rows.add(Box.createVerticalStrut(13));
     }
 
-    private static JButton actionButton(String text, String icon, boolean primary, int width) {
+    static JButton actionButton(String text, String icon, boolean primary, int width) {
         Color iconColor = primary ? Color.WHITE : UiKit.INK;
         JButton button = new UiKit.RoundButton(
                 text,
