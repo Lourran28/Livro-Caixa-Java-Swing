@@ -64,11 +64,11 @@ final class ManagementScreens {
         canvas.setOpaque(false);
         canvas.setBorder(new EmptyBorder(0, 0, 8, 8));
         canvas.add(report, BorderLayout.CENTER);
-        canvas.setPreferredSize(new Dimension(1, 760));
+        canvas.setPreferredSize(new Dimension(1, 540));
 
         JScrollPane scroll = new JScrollPane(
                 canvas,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
         );
         scroll.setBorder(null);
@@ -139,7 +139,9 @@ final class ManagementScreens {
 
         JPanel middle = new JPanel(new GridLayout(1, 2, 12, 0));
         middle.setOpaque(false);
-        UiKit.RoundPanel chartCard = panelCard("Entradas × Saídas");
+        UiKit.RoundPanel chartCard = panelCard(
+                "Entradas × Saídas",
+                "Comparação dos valores movimentados no período selecionado");
         chartCard.add(new TwoBarChart(
                 frame.store.income().doubleValue(), frame.store.expenseTotal().doubleValue()));
         middle.add(chartCard);
@@ -163,7 +165,7 @@ final class ManagementScreens {
                 new String[]{"Data", "Movimento", "Descrição", "Funcionário", "Forma de pagamento", "Valor"},
                 rows.toArray(Object[][]::new),
                 "Exibindo 3 de 27 movimentações");
-        table.setPreferredSize(new Dimension(0, 226));
+        table.setPreferredSize(new Dimension(0, 180));
         page.add(table, BorderLayout.SOUTH);
         return page;
     }
@@ -191,15 +193,17 @@ final class ManagementScreens {
                 "Aluguel", "Manutenção", "Energia", "Limpeza", "Água", "Material de escritório", "Internet"
         };
         double[] values = {1200, 760, 620, 500, 500, 480, 200};
-        UiKit.RoundPanel chart = panelCard("Saídas por tipo");
-        chart.add(new HorizontalBarChart(labels, values, true));
+        UiKit.RoundPanel chart = panelCard(
+                "Saídas por tipo",
+                "Total gasto em cada categoria — do maior para o menor");
+        chart.add(new HorizontalBarChart(labels, values, true, UiKit.RED));
         page.add(chart);
         Object[][] rows = frame.store.expenses.stream()
                 .map(x -> new Object[]{
                         LivroCaixaView.fmt(x.date), x.type, x.employee, LivroCaixaView.money(x.value)})
                 .toArray(Object[][]::new);
-        UiKit.RoundPanel table = tableCard("", new String[]{"Data", "Tipo de saída", "Funcionário", "Valor"}, rows, "");
-        table.setPreferredSize(new Dimension(0, 230));
+        UiKit.RoundPanel table = tableCard("Detalhamento das saídas", new String[]{"Data", "Tipo de saída", "Funcionário", "Valor"}, rows, "");
+        table.setPreferredSize(new Dimension(0, 180));
         page.add(table, BorderLayout.SOUTH);
         return page;
     }
@@ -215,18 +219,20 @@ final class ManagementScreens {
         );
         stats.setPreferredSize(new Dimension(0, 92));
         page.add(stats, BorderLayout.NORTH);
-        UiKit.RoundPanel chart = panelCard("Consultas por tipo");
+        UiKit.RoundPanel chart = panelCard(
+                "Consultas por tipo",
+                "Quantidade de atendimentos agrupada pelo tipo de consulta");
         chart.add(new HorizontalBarChart(
                 new String[]{"Consulta de rotina", "Retorno", "Avaliação"},
-                new double[]{9, 6, 3}, false));
+                new double[]{9, 6, 3}, false, UiKit.BLUE));
         page.add(chart);
         Object[][] rows = frame.store.appointments.stream()
                 .map(x -> new Object[]{LivroCaixaView.fmt(x.date), x.client, x.type, x.employee})
                 .toArray(Object[][]::new);
         UiKit.RoundPanel table = tableCard(
-                "", new String[]{"Data", "Cliente", "Tipo", "Funcionário"}, rows,
+                "Detalhamento das consultas", new String[]{"Data", "Cliente", "Tipo", "Funcionário"}, rows,
                 "Exibindo " + rows.length + " de 18 consultas");
-        table.setPreferredSize(new Dimension(0, 230));
+        table.setPreferredSize(new Dimension(0, 180));
         page.add(table, BorderLayout.SOUTH);
         return page;
     }
@@ -242,10 +248,12 @@ final class ManagementScreens {
         );
         stats.setPreferredSize(new Dimension(0, 92));
         page.add(stats, BorderLayout.NORTH);
-        UiKit.RoundPanel chart = panelCard("Recebimentos por forma de pagamento");
+        UiKit.RoundPanel chart = panelCard(
+                "Recebimentos por forma de pagamento",
+                "Total recebido em cada meio de pagamento no período");
         chart.add(new HorizontalBarChart(
                 new String[]{"Cartão de crédito", "PIX", "Dinheiro", "Cartão de débito"},
-                new double[]{4200, 3980, 2500, 2000}, true));
+                new double[]{4200, 3980, 2500, 2000}, true, UiKit.GREEN));
         page.add(chart);
         Object[][] rows = {
                 {"05/11/2026", "Carlos Mendes", "Parcela 1/4", "À prazo", "Cartão de crédito", "R$ 350,00"},
@@ -253,9 +261,9 @@ final class ManagementScreens {
                 {"04/11/2026", "Fernanda Costa", "Parcela 1/2", "À prazo", "Dinheiro", "R$ 600,00"}
         };
         UiKit.RoundPanel table = tableCard(
-                "", new String[]{"Data", "Cliente", "Origem", "Tipo", "Forma de pagamento", "Valor"},
+                "Detalhamento dos recebimentos", new String[]{"Data", "Cliente", "Origem", "Tipo", "Forma de pagamento", "Valor"},
                 rows, "Exibindo 3 de 22 pagamentos");
-        table.setPreferredSize(new Dimension(0, 230));
+        table.setPreferredSize(new Dimension(0, 180));
         page.add(table, BorderLayout.SOUTH);
         return page;
     }
@@ -671,10 +679,27 @@ final class ManagementScreens {
     }
 
     private static UiKit.RoundPanel panelCard(String title) {
+        return panelCard(title, "");
+    }
+
+    private static UiKit.RoundPanel panelCard(String title, String subtitle) {
         UiKit.RoundPanel p = new UiKit.RoundPanel(14).fill(Color.WHITE).shadow(false);
         p.setLayout(new BorderLayout(0, 8));
         p.setBorder(new EmptyBorder(10, 12, 10, 12));
-        if (!title.isBlank()) p.add(LivroCaixaView.title(title, 20), BorderLayout.NORTH);
+        if (!title.isBlank()) {
+            JPanel heading = new JPanel();
+            heading.setOpaque(false);
+            heading.setLayout(new BoxLayout(heading, BoxLayout.Y_AXIS));
+            heading.add(LivroCaixaView.title(title, 20));
+            if (!subtitle.isBlank()) {
+                heading.add(Box.createVerticalStrut(2));
+                JLabel explanation = new JLabel(subtitle);
+                explanation.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                explanation.setForeground(UiKit.MUTED);
+                heading.add(explanation);
+            }
+            p.add(heading, BorderLayout.NORTH);
+        }
         return p;
     }
 
@@ -810,12 +835,14 @@ final class ManagementScreens {
         private final String[] labels;
         private final double[] values;
         private final boolean money;
+        private final Color accent;
 
-        HorizontalBarChart(String[] labels, double[] values, boolean money) {
+        HorizontalBarChart(String[] labels, double[] values, boolean money, Color accent) {
             this.labels = labels;
             this.values = values;
             this.money = money;
-            setPreferredSize(new Dimension(0, 190));
+            this.accent = accent;
+            setPreferredSize(new Dimension(0, 230));
         }
 
         @Override
@@ -823,32 +850,54 @@ final class ManagementScreens {
             Graphics2D g = (Graphics2D) graphics.create();
             UiKit.antialias(g);
             int left = 215;
-            int right = 55;
-            int top = 8;
-            int bottom = 24;
+            int right = 100;
+            int top = 28;
+            int bottom = 14;
             int w = getWidth() - left - right;
             int h = getHeight() - top - bottom;
             double max = 1;
             for (double v : values) max = Math.max(max, v);
-            int row = Math.max(26, h / Math.max(1, values.length));
-            g.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+            int row = Math.max(18, h / Math.max(1, values.length));
+            int barHeight = Math.min(18, Math.max(12, row - 4));
+            int chartWidth = Math.max(1, w - 20);
+
+            g.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            g.setColor(UiKit.MUTED);
+            g.drawString("0", left, 15);
+            String maximum = formatChartValue(max, money);
+            FontMetrics scaleMetrics = g.getFontMetrics();
+            g.drawString(maximum, left + chartWidth - scaleMetrics.stringWidth(maximum), 15);
+            g.setColor(new Color(225, 232, 243));
+            for (int step = 0; step <= 4; step++) {
+                int x = left + chartWidth * step / 4;
+                g.drawLine(x, top - 3, x, getHeight() - bottom);
+            }
+
             for (int i = 0; i < values.length; i++) {
-                int y = top + i * row + 4;
-                int bw = (int) (values[i] / max * Math.max(1, w - 65));
-                g.setColor(UiKit.INK);
-                FontMetrics fm = g.getFontMetrics();
-                g.drawString(labels[i], left - 12 - fm.stringWidth(labels[i]), y + 16);
-                g.setPaint(new GradientPaint(left, y, UiKit.BLUE, left + bw, y, UiKit.BLUE_2));
-                g.fillRoundRect(left, y, bw, 18, 4, 4);
-                String val = money
-                        ? "R$ " + String.format("%,.2f", values[i])
-                        .replace(',', 'X').replace('.', ',').replace('X', '.')
-                        : String.format("%.0f", values[i]);
+                int y = top + i * row + 2;
+                int bw = (int) (values[i] / max * chartWidth);
                 g.setColor(UiKit.INK);
                 g.setFont(new Font("Segoe UI", Font.BOLD, 13));
-                g.drawString(val, left + bw + 10, y + 15);
+                FontMetrics fm = g.getFontMetrics();
+                g.drawString(labels[i], left - 12 - fm.stringWidth(labels[i]), y + barHeight - 2);
+                g.setColor(new Color(235, 240, 247));
+                g.fillRoundRect(left, y, chartWidth, barHeight, 8, 8);
+                Color end = accent.darker();
+                g.setPaint(new GradientPaint(left, y, accent, left + bw, y, end));
+                g.fillRoundRect(left, y, Math.max(8, bw), barHeight, 8, 8);
+                String val = formatChartValue(values[i], money);
+                g.setColor(UiKit.INK);
+                g.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                int valueX = Math.min(left + bw + 10, getWidth() - right + 12);
+                g.drawString(val, valueX, y + barHeight - 2);
             }
             g.dispose();
+        }
+
+        private static String formatChartValue(double value, boolean money) {
+            if (!money) return String.format("%.0f", value);
+            return "R$ " + String.format("%,.2f", value)
+                    .replace(',', 'X').replace('.', ',').replace('X', '.');
         }
     }
 
@@ -865,17 +914,27 @@ final class ManagementScreens {
         protected void paintComponent(Graphics graphics) {
             Graphics2D g = (Graphics2D) graphics.create();
             UiKit.antialias(g);
-            int top = 25;
+            int top = 30;
             int bottom = 30;
             int base = getHeight() - bottom;
             int maxH = base - top;
             double max = Math.max(1, Math.max(income, expense));
-            int bar = Math.min(150, getWidth() / 4);
-            int gap = 55;
+            int bar = Math.min(120, getWidth() / 5);
+            int gap = 70;
             int total = bar * 2 + gap;
             int start = (getWidth() - total) / 2;
-            paintBar(g, start, base, bar, maxH, income, max, new Color(25, 183, 44), "Entradas");
-            paintBar(g, start + bar + gap, base, bar, maxH, expense, max, UiKit.RED, "Saídas");
+            g.setFont(new Font("Segoe UI",Font.PLAIN,11));
+            for (int step=0;step<=4;step++) {
+                int y=base-(maxH-22)*step/4;
+                g.setColor(new Color(226,233,243));
+                g.drawLine(28,y,getWidth()-18,y);
+                g.setColor(UiKit.MUTED);
+                String scale="R$ "+String.format("%,.0f",max*step/4)
+                        .replace(',', 'X').replace('.', ',').replace('X', '.');
+                g.drawString(scale,32,y-3);
+            }
+            paintBar(g,start,base,bar,maxH,income,max,new Color(22,158,76),"Entradas");
+            paintBar(g,start+bar+gap,base,bar,maxH,expense,max,new Color(225,55,65),"Saídas");
             g.dispose();
         }
 
@@ -883,7 +942,7 @@ final class ManagementScreens {
                               double value, double max, Color color, String label) {
             int h = (int) (value / max * (maxH - 22));
             g.setPaint(new GradientPaint(x, base - h, color.brighter(), x + w, base - h, color));
-            g.fillRect(x, base - h, w, h);
+            g.fillRoundRect(x,base-h,w,h,12,12);
             g.setColor(UiKit.INK);
             g.setFont(new Font("Segoe UI", Font.BOLD, 14));
             String v = "R$ " + String.format("%,.2f", value)
