@@ -137,23 +137,18 @@ final class TelasGerenciamento {
         stats.setPreferredSize(new Dimension(0, 92));
         page.add(stats, BorderLayout.NORTH);
 
-        JPanel middle = new JPanel(new GridLayout(1, 2, 12, 0));
-        middle.setOpaque(false);
         ComponentesVisuais.RoundPanel chartCard = panelCard(
                 "Entradas × Saídas",
                 "Comparação dos valores movimentados no período selecionado");
         chartCard.add(new TwoBarChart(
                 frame.store.income().doubleValue(), frame.store.expenseTotal().doubleValue()));
-        middle.add(chartCard);
         ComponentesVisuais.RoundPanel summaryCard = panelCard("Resumo por sessão");
-        JPanel summaries = new JPanel(new GridLayout(1, 3, 10, 0));
+        JPanel summaries = new JPanel(new GridLayout(3, 1, 0, 8));
         summaries.setOpaque(false);
         summaries.add(sessionCard("Saídas", "7 registros", "R$ 4.260,00", ComponentesVisuais.RED, "swap"));
         summaries.add(sessionCard("Consultas", "18 realizadas", "16 clientes atendidos", ComponentesVisuais.BLUE, "calendar"));
         summaries.add(sessionCard("Recebimentos", "22 pagamentos", "R$ 12.680,00", ComponentesVisuais.GREEN, "coins"));
         summaryCard.add(summaries);
-        middle.add(summaryCard);
-        page.add(middle);
 
         List<Object[]> rows = new ArrayList<>();
         rows.add(new Object[]{"05/11/2026", "Entrada", "Parcela 1/4 - Carlos Mendes",
@@ -165,8 +160,7 @@ final class TelasGerenciamento {
                 new String[]{"Data", "Movimento", "Descrição", "Funcionário", "Forma de pagamento", "Valor"},
                 rows.toArray(Object[][]::new),
                 "Exibindo 3 de 27 movimentações");
-        table.setPreferredSize(new Dimension(0, 180));
-        page.add(table, BorderLayout.SOUTH);
+        page.add(reportWorkspace(chartCard, summaryCard, table, .30, .19, .51));
         return page;
     }
 
@@ -197,14 +191,18 @@ final class TelasGerenciamento {
                 "Saídas por tipo",
                 "Total gasto em cada categoria — do maior para o menor");
         chart.add(new HorizontalBarChart(labels, values, true, ComponentesVisuais.RED));
-        page.add(chart);
+        ComponentesVisuais.RoundPanel summary = summaryColumn(
+                "Resumo das saídas",
+                sessionCard("Maior saída", "Aluguel", "R$ 1.200,00", ComponentesVisuais.RED, "swap"),
+                sessionCard("Quantidade", "No período", "7 registros", ComponentesVisuais.BLUE, "document"),
+                sessionCard("Média por saída", "Valor médio", TelaLivroCaixa.money(average), ComponentesVisuais.GREEN, "chart")
+        );
         Object[][] rows = frame.store.expenses.stream()
                 .map(x -> new Object[]{
                         TelaLivroCaixa.fmt(x.date), x.type, x.employee, TelaLivroCaixa.money(x.value)})
                 .toArray(Object[][]::new);
         ComponentesVisuais.RoundPanel table = tableCard("Detalhamento das saídas", new String[]{"Data", "Tipo de saída", "Funcionário", "Valor"}, rows, "");
-        table.setPreferredSize(new Dimension(0, 180));
-        page.add(table, BorderLayout.SOUTH);
+        page.add(reportWorkspace(chart, summary, table, .42, .19, .39));
         return page;
     }
 
@@ -225,15 +223,19 @@ final class TelasGerenciamento {
         chart.add(new HorizontalBarChart(
                 new String[]{"Consulta de rotina", "Retorno", "Avaliação"},
                 new double[]{9, 6, 3}, false, ComponentesVisuais.BLUE));
-        page.add(chart);
+        ComponentesVisuais.RoundPanel summary = summaryColumn(
+                "Resumo das consultas",
+                sessionCard("Mais realizado", "Tipo de consulta", "Consulta de rotina", ComponentesVisuais.BLUE, "calendar"),
+                sessionCard("Atendimentos", "No período", "18 consultas", ComponentesVisuais.GREEN, "document"),
+                sessionCard("Clientes", "Pessoas atendidas", "16 clientes", new Color(196, 126, 0), "group")
+        );
         Object[][] rows = frame.store.appointments.stream()
                 .map(x -> new Object[]{TelaLivroCaixa.fmt(x.date), x.client, x.type, x.employee})
                 .toArray(Object[][]::new);
         ComponentesVisuais.RoundPanel table = tableCard(
                 "Detalhamento das consultas", new String[]{"Data", "Cliente", "Tipo", "Funcionário"}, rows,
                 "Exibindo " + rows.length + " de 18 consultas");
-        table.setPreferredSize(new Dimension(0, 180));
-        page.add(table, BorderLayout.SOUTH);
+        page.add(reportWorkspace(chart, summary, table, .42, .19, .39));
         return page;
     }
 
@@ -254,7 +256,12 @@ final class TelasGerenciamento {
         chart.add(new HorizontalBarChart(
                 new String[]{"Cartão de crédito", "PIX", "Dinheiro", "Cartão de débito"},
                 new double[]{4200, 3980, 2500, 2000}, true, ComponentesVisuais.GREEN));
-        page.add(chart);
+        ComponentesVisuais.RoundPanel summary = summaryColumn(
+                "Resumo dos recebimentos",
+                sessionCard("Maior forma", "Cartão de crédito", "R$ 4.200,00", ComponentesVisuais.GREEN, "wallet"),
+                sessionCard("À vista", "Total recebido", "R$ 7.430,00", ComponentesVisuais.BLUE, "coins"),
+                sessionCard("À prazo", "Total recebido", "R$ 5.250,00", new Color(196, 126, 0), "calendar")
+        );
         Object[][] rows = {
                 {"05/11/2026", "Carlos Mendes", "Parcela 1/4", "À prazo", "Cartão de crédito", "R$ 350,00"},
                 {"05/11/2026", "Mariana Silva", "Consulta 104", "À vista", "PIX", "R$ 420,00"},
@@ -263,9 +270,43 @@ final class TelasGerenciamento {
         ComponentesVisuais.RoundPanel table = tableCard(
                 "Detalhamento dos recebimentos", new String[]{"Data", "Cliente", "Origem", "Tipo", "Forma de pagamento", "Valor"},
                 rows, "Exibindo 3 de 22 pagamentos");
-        table.setPreferredSize(new Dimension(0, 180));
-        page.add(table, BorderLayout.SOUTH);
+        page.add(reportWorkspace(chart, summary, table, .42, .19, .39));
         return page;
+    }
+
+    /** Organiza cada relatório em gráfico, resumo compacto e detalhamento lado a lado. */
+    private static JComponent reportWorkspace(JComponent chart, JComponent summary, JComponent table,
+                                              double chartWeight, double summaryWeight, double tableWeight) {
+        JPanel workspace = new JPanel(new GridBagLayout());
+        workspace.setOpaque(false);
+        GridBagConstraints g = new GridBagConstraints();
+        g.gridy = 0;
+        g.weighty = 1;
+        g.fill = GridBagConstraints.BOTH;
+
+        g.gridx = 0;
+        g.weightx = chartWeight;
+        g.insets = new Insets(0, 0, 0, 10);
+        workspace.add(chart, g);
+
+        g.gridx = 1;
+        g.weightx = summaryWeight;
+        workspace.add(summary, g);
+
+        g.gridx = 2;
+        g.weightx = tableWeight;
+        g.insets = new Insets(0, 0, 0, 0);
+        workspace.add(table, g);
+        return workspace;
+    }
+
+    private static ComponentesVisuais.RoundPanel summaryColumn(String title, JComponent... cards) {
+        ComponentesVisuais.RoundPanel summary = panelCard(title);
+        JPanel content = new JPanel(new GridLayout(cards.length, 1, 0, 8));
+        content.setOpaque(false);
+        for (JComponent card : cards) content.add(card);
+        summary.add(content);
+        return summary;
     }
 
     static JComponent buildSettings(TelaLivroCaixa.JanelaPrincipal frame) {
